@@ -147,6 +147,9 @@ h2 em,h1 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var
   max-width:var(--max);margin:0 auto;padding:0 32px;position:relative;z-index:2;
   display:grid;grid-template-columns:1.15fr .85fr;gap:70px;align-items:center;width:100%;
 }
+/* grid items default to min-width:auto and refuse to shrink below their
+   content, which pushed the hero wider than the viewport on phones */
+.hero-inner>*{min-width:0}
 .eyebrow{
   font-size:.68rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);
   margin-bottom:30px;font-weight:500;
@@ -402,7 +405,9 @@ footer{background:var(--bg);border-top:1px solid var(--line-soft);padding:44px 0
 @media(max-width:1000px){
   section{padding:100px 0}
   .hero-inner{grid-template-columns:1fr;gap:56px}
-  .hero-portrait{max-width:400px;margin:0 auto;order:-1}
+  /* min() so the portrait never exceeds the available column at small widths —
+     a fixed 400px overflowed the viewport and clipped the hero copy. */
+  .hero-portrait{max-width:min(400px,100%);margin:0 auto;order:-1}
   .about-grid{grid-template-columns:1fr;gap:60px}
   .pain-grid,.svc-grid,.demo-grid{grid-template-columns:1fr 1fr}
   .chain{grid-template-columns:repeat(3,1fr);gap:44px 0}

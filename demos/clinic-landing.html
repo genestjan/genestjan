@@ -18,6 +18,24 @@
   .waits div{background:var(--bg-2);border-radius:10px;padding:16px 20px;flex:1;min-width:150px}
   .waits b{display:block;font-family:var(--display);font-size:1.5rem;color:var(--p)}
   .waits span{font-size:.82rem;color:var(--ink-2)}
+  /* assessment report mockup */
+  .card-wrap{padding:30px;align-items:center}
+  .rep{width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px;
+    box-shadow:0 18px 44px rgba(22,36,42,.12)}
+  .rep-top{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;
+    border-bottom:1px solid var(--line);margin-bottom:20px}
+  .rep-top b{font-family:var(--display);font-size:.98rem}
+  .rep-top em{font-style:normal;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+    background:var(--bg-2);color:var(--p);padding:4px 10px;border-radius:100px;font-weight:700}
+  .rep-line{margin-bottom:16px}
+  .rep-line span{display:block;font-size:.8rem;color:var(--ink-2);margin-bottom:7px}
+  .rep-line i{display:block;height:7px;background:var(--bg-2);border-radius:100px;overflow:hidden}
+  .rep-line u{display:block;height:100%;background:linear-gradient(90deg,var(--p),#3FB5B5);border-radius:100px}
+  .rep-note{font-size:.82rem;color:var(--ink-2);font-style:italic;padding:14px 0;
+    border-top:1px solid var(--line);margin-top:20px}
+  .rep-foot{display:flex;align-items:center;gap:9px;font-size:.8rem;color:var(--p);font-weight:600}
+  .rep-foot .tick{width:20px;height:20px;border-radius:50%;background:var(--p);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:.68rem}
 </style>
 </head>
 <body>
@@ -55,7 +73,16 @@
         <div><b>Same wk</b><span>Written report turnaround</span></div>
       </div>
     </div>
-    <div class="visual"><span class="ph">Clinic / therapist photo</span></div>
+    <div class="visual card-wrap">
+      <div class="rep">
+        <div class="rep-top"><b>Assessment summary</b><em>Sample</em></div>
+        <div class="rep-line"><span>Sensory profile</span><i><u style="width:72%"></u></i></div>
+        <div class="rep-line"><span>Fine motor</span><i><u style="width:48%"></u></i></div>
+        <div class="rep-line"><span>Self-care routines</span><i><u style="width:61%"></u></i></div>
+        <div class="rep-note">Plain-language report, written for parents — not clinicians.</div>
+        <div class="rep-foot"><span class="tick">✓</span> Ready within one week</div>
+      </div>
+    </div>
   </div>
 </header>
 

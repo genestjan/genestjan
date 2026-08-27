@@ -16,6 +16,20 @@
   .steps{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;margin-top:40px}
   .steps div{padding:14px 22px;border:1px solid var(--line);border-radius:100px;font-size:.86rem;background:var(--bg);font-weight:500}
   .steps i{color:var(--p);font-style:normal;padding:0 12px;font-weight:700}
+  /* lead-magnet cover mockup */
+  .cover-wrap{padding:34px;align-items:center;justify-content:center}
+  .cover{
+    height:100%;aspect-ratio:3/4;max-width:100%;background:linear-gradient(160deg,#2B1710,#4A2418);
+    border-radius:4px 10px 10px 4px;padding:30px 26px;display:flex;flex-direction:column;
+    box-shadow:0 22px 50px rgba(0,0,0,.35),-6px 0 0 rgba(0,0,0,.22);transform:rotate(-2.5deg);position:relative;
+  }
+  .cover-kicker{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--p);
+    border:1px solid rgba(232,97,60,.5);border-radius:100px;padding:5px 12px;align-self:flex-start;margin-bottom:auto}
+  .cover h3{font-size:1.9rem;color:#fff;line-height:1.08;margin:22px 0 12px;font-weight:700}
+  .cover p{font-size:.8rem;color:rgba(255,255,255,.62);line-height:1.6}
+  .cover-foot{margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);
+    font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+  .cover-foot i{width:16px;height:16px;border-radius:50%;background:var(--p);display:inline-block}
 </style>
 </head>
 <body>
@@ -46,7 +60,14 @@
         <span>No cost, no card</span><span>12 pages, no fluff</span><span>Read in 15 minutes</span>
       </div>
     </div>
-    <div class="visual"><span class="ph">Lead magnet cover</span></div>
+    <div class="visual cover-wrap">
+      <div class="cover">
+        <span class="cover-kicker">Free guide</span>
+        <h3>The Full<br>Calendar<br>Trap</h3>
+        <p>Three pricing shifts that raise your income without adding a single client.</p>
+        <div class="cover-foot"><i></i> Clarity Coaching</div>
+      </div>
+    </div>
   </div>
 </header>
 

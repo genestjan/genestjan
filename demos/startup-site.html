@@ -30,6 +30,28 @@
   .tier ul{list-style:none;margin:18px 0 24px}
   .tier li{font-size:.9rem;color:var(--ink-2);padding:7px 0;border-bottom:1px solid var(--line)}
   .tier li::before{content:"✓ ";color:var(--p);font-weight:700}
+  /* product mockup */
+  .app{padding:26px;align-items:stretch}
+  .app-win{width:100%;background:#12121C;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .app-bar{display:flex;align-items:center;gap:6px;padding:11px 14px;background:#1A1A28;border-bottom:1px solid var(--line)}
+  .app-bar i{width:9px;height:9px;border-radius:50%;background:#3A3A50}
+  .app-bar b{margin-left:10px;font-size:.74rem;color:var(--ink-2);font-weight:600;letter-spacing:.04em}
+  .app-body{padding:18px;display:flex;flex-direction:column;gap:14px;flex:1}
+  .app-row{display:flex;justify-content:space-between;align-items:center}
+  .app-head span{font-size:.72rem;color:var(--ink-2);letter-spacing:.1em;text-transform:uppercase}
+  .app-head em{font-size:.66rem;font-style:normal;background:rgba(108,92,231,.2);color:#A99BFF;
+    padding:4px 10px;border-radius:100px;font-weight:600}
+  .app-fig{font-family:var(--display);font-size:1.9rem;font-weight:700;color:#fff;line-height:1}
+  .app-fig small{display:block;font-size:.68rem;color:var(--ink-2);font-weight:400;letter-spacing:.1em;
+    text-transform:uppercase;margin-top:5px;font-family:var(--font)}
+  .app-bars{display:flex;align-items:flex-end;gap:7px;height:64px}
+  .app-bars span{flex:1;background:linear-gradient(180deg,#6C5CE7,#4B3DC4);border-radius:3px 3px 0 0;opacity:.85}
+  .app-bars span:last-child{opacity:1;box-shadow:0 0 14px rgba(108,92,231,.5)}
+  .app-list{display:flex;flex-direction:column;gap:1px;background:var(--line);border-radius:8px;overflow:hidden}
+  .app-list div{display:flex;justify-content:space-between;padding:10px 12px;background:#12121C;font-size:.76rem}
+  .app-list span{color:var(--ink-2)}
+  .app-list b{color:#fff;font-weight:600}
+  .app-list b.pos{color:#4ADE80}
   @media(max-width:880px){.price{grid-template-columns:1fr}}
 </style>
 </head>
@@ -59,7 +81,24 @@
       <a href="#start" class="btn">Start free — no card</a>
       <div class="trust"><span>Set up in 10 minutes</span><span>Works from your phone</span><span>Cancel any time</span></div>
     </div>
-    <div class="visual"><span class="ph">Product screenshot</span></div>
+    <div class="visual app">
+      <div class="app-win">
+        <div class="app-bar"><i></i><i></i><i></i><b>LedgerLoop</b></div>
+        <div class="app-body">
+          <div class="app-row app-head"><span>This quarter</span><em>BAS ready</em></div>
+          <div class="app-fig">$18,420<small>income</small></div>
+          <div class="app-bars">
+            <span style="height:38%"></span><span style="height:56%"></span><span style="height:44%"></span>
+            <span style="height:72%"></span><span style="height:61%"></span><span style="height:88%"></span>
+          </div>
+          <div class="app-list">
+            <div><span>Bunnings — materials</span><b>−$342.10</b></div>
+            <div><span>Invoice #241 — paid</span><b class="pos">+$1,850.00</b></div>
+            <div><span>Fuel — Shell</span><b>−$96.40</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
