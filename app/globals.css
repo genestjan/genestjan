@@ -204,7 +204,21 @@ body {
 @keyframes skipIn { from { opacity: 0; } to { opacity: 1; } }
 .intro-skip:hover { color: var(--signal); border-color: var(--signal); }
 
-@media (prefers-reduced-motion: reduce) { .intro { display: none; } }
+/* Reduced motion keeps the brand moment but strips the movement: opacity
+   only, no scale, rotation, blur or sweeping light. */
+.intro-still .intro-ring,
+.intro-still .intro-bubble,
+.intro-still .intro-words,
+.intro-still .intro-logo,
+.intro-still .intro-machine img {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+.intro-still .intro-machine img { opacity: 0.42 !important; }
+.intro-still .intro-sheen { display: none; }
+.intro-still { animation: introLift 0.5s ease 1.3s both; }
 
 /* ---------- Cinematic cursor ---------- */
 .has-custom-cursor,

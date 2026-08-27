@@ -33,7 +33,7 @@ export default function MachineBackdrop() {
       }
       if (img.current) {
         // recede: the plate is loudest at the top of the page and quiet by the end
-        const b = 0.34 - cur * 0.2;
+        const b = (innerWidth < 800 ? 0.46 : 0.34) - cur * 0.2;
         img.current.style.filter = `brightness(${b.toFixed(3)}) saturate(0.85) contrast(1.05)`;
       }
       raf = requestAnimationFrame(loop);

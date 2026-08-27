@@ -246,7 +246,9 @@ export default function HeroScene({
       <pointLight position={[-8, -4, 6]} intensity={18} color="#FFB03A" distance={44} />
 
       <CameraRig focus={focus} />
-      {pillars.map((p) => (
+      {/* Nodes are hidden on phones: at this spread they clip against the
+          screen edges and read as broken rectangles rather than cards. */}
+      {tier !== 'mobile' && pillars.map((p) => (
         <PillarNode
           key={p.id} pillar={p}
           active={focus?.id === p.id}

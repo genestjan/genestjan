@@ -4,30 +4,34 @@ import { useEffect, useState } from 'react';
 /**
  * Three-act cinematic entrance.
  *
- *   Act 1  (0.0 - 2.0s)  The logo builds: the gold ring sweeps in and settles,
- *                        the speech mark drops into it, the name resolves.
- *   Act 2  (2.0 - 4.2s)  The logo pushes toward camera and dissolves as the
- *                        machine powers up behind it, light sweeping the metal.
- *   Act 3  (4.2 - 5.0s)  The overlay lifts. The same plate continues underneath
- *                        as the site background, so the cut is seamless.
+ *   Act 1  The logo builds: the gold ring sweeps in, the speech mark drops
+ *          into it, the name resolves.
+ *   Act 2  The logo pushes toward camera and dissolves as the machine powers
+ *          up behind it, light sweeping the metal.
+ *   Act 3  The overlay lifts. The same plate continues underneath as the site
+ *          background, so the hand-off is a continuous shot.
  *
- * Renders nothing until mounted on the client: server-rendering the overlay
- * would ship an opaque full-screen panel that hides the whole site if scripts
- * fail. Plays once per session, skippable, and skipped under reduced-motion.
+ * Plays on every full page load. It was previously gated behind a
+ * sessionStorage flag, which meant it fired once and then never again for the
+ * rest of the browser session, so anyone reloading the page never saw it.
+ *
+ * Under prefers-reduced-motion it still shows the logo, held still and faded
+ * rather than animated: skipping the brand moment entirely is a worse answer
+ * than removing the movement from it.
+ *
+ * Renders nothing until mounted on the client, because server-rendering the
+ * overlay would ship an opaque panel that hides the site if scripts fail.
  */
-const KEY = 'gjr-intro-seen';
-const RUN_MS = 5000;
+const FULL_MS = 5000;
+const REDUCED_MS = 1800;
 
 export default function ApertureIntro() {
-  const [playing, setPlaying] = useState(false);
+  const [state, setState] = useState<'off' | 'full' | 'reduced'>('off');
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let seen = false;
-    try { seen = sessionStorage.getItem(KEY) === '1'; } catch { /* private mode */ }
-    if (reduced || seen) return;
+    setState(reduced ? 'reduced' : 'full');
 
-    setPlaying(true);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -35,12 +39,11 @@ export default function ApertureIntro() {
     const finish = () => {
       if (done) return;
       done = true;
-      setPlaying(false);
+      setState('off');
       document.body.style.overflow = prevOverflow;
-      try { sessionStorage.setItem(KEY, '1'); } catch { /* ignore */ }
     };
 
-    const t = setTimeout(finish, RUN_MS);
+    const t = setTimeout(finish, reduced ? REDUCED_MS : FULL_MS);
     window.addEventListener('keydown', finish);
     window.addEventListener('pointerdown', finish);
     return () => {
@@ -52,30 +55,34 @@ export default function ApertureIntro() {
     };
   }, []);
 
-  if (!playing) return null;
+  if (state === 'off') return null;
 
   return (
-    <div aria-hidden className="intro" data-testid="aperture-intro">
+    <div
+      aria-hidden
+      className={`intro ${state === 'reduced' ? 'intro-still' : ''}`}
+      data-testid="aperture-intro"
+    >
       {/* ACT 2: the machine powering up behind the mark */}
       <div className="intro-machine">
         <picture>
           <source srcSet="/machine-sm.webp" media="(max-width: 800px)" />
-          <img src="/machine.webp" alt="" width={1408} height={768} />
+          <img src="/machine.webp" alt="" width={1408} height={768} fetchPriority="high" />
         </picture>
         <span className="intro-sheen" />
       </div>
 
       {/* ACT 1: the logo assembling */}
       <div className="intro-logo">
-        <img className="intro-ring" src="/mark-ring.webp" alt="" width={900} height={900} />
-        <img className="intro-bubble" src="/mark-bubble.webp" alt="" width={520} height={520} />
+        <img className="intro-ring" src="/mark-ring.webp" alt="" width={900} height={900} fetchPriority="high" />
+        <img className="intro-bubble" src="/mark-bubble.webp" alt="" width={520} height={520} fetchPriority="high" />
         <div className="intro-words">
           <span className="intro-name">Genest Jan Ramirez</span>
           <span className="intro-tag">Connect, Engage, Succeed</span>
         </div>
       </div>
 
-      <button className="intro-skip" onClick={() => setPlaying(false)}>Skip</button>
+      <button className="intro-skip" onClick={() => setState('off')}>Skip</button>
     </div>
   );
 }
