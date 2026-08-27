@@ -7,7 +7,7 @@ export default function Section({
   return (
     <section
       id={id}
-      className={`relative py-24 sm:py-32 ${alt ? 'bg-ink-2' : 'bg-ink'} ${className}`}
+      className={`relative py-24 sm:py-32 ${alt ? 'bg-ink-2/80' : 'bg-ink/70'} ${className}`}
     >
       <div className="mx-auto max-w-content px-5 sm:px-8">{children}</div>
     </section>

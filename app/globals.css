@@ -22,8 +22,10 @@
 
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
+html { background: var(--ink); }
+
 body {
-  background: var(--ink);
+  background: transparent;
   color: var(--paper);
   font-family: var(--font-body), system-ui, sans-serif;
   overflow-x: hidden;
@@ -100,6 +102,171 @@ body {
   .rise-in, .fade-up-in { animation: none; opacity: 1; transform: none; }
 }
 
+/* ---------- Cinematic aperture intro ---------- */
+.intro-root {
+  position: fixed; inset: 0; z-index: 200;
+  /* transparent: the ink cover is the masked rect inside the SVG, so the
+     iris hole can actually reveal the plate underneath */
+  background: transparent;
+  display: grid; place-items: center;
+  overflow: hidden;
+  animation: introLift 0.75s cubic-bezier(0.7, 0, 0.3, 1) 2.45s both;
+}
+@keyframes introLift { to { opacity: 0; visibility: hidden; } }
+
+/* The machine plate pushing back into place */
+.intro-plate { position: absolute; inset: 0; overflow: hidden; }
+.intro-plate img {
+  width: 100%; height: 100%; object-fit: cover;
+  animation: plateSettle 3.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, filter;
+}
+@keyframes plateSettle {
+  0%   { transform: scale(1.85) rotate(-2.2deg); filter: brightness(0.25) saturate(0.6) blur(9px); }
+  45%  { filter: brightness(0.9) saturate(1.15) blur(0px); }
+  100% { transform: scale(1.06) rotate(0deg); filter: brightness(0.62) saturate(1.05) blur(0px); }
+}
+
+/* Specular light travelling across the metal */
+.intro-sweep {
+  position: absolute; inset: -30% -60%;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,214,140,0.34) 50%, transparent 62%);
+  transform: translateX(-70%);
+  animation: sweep 2.1s cubic-bezier(0.4, 0, 0.2, 1) 0.55s both;
+  mix-blend-mode: screen;
+}
+@keyframes sweep { to { transform: translateX(70%); } }
+
+.intro-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* The iris hole growing is what opens the shot */
+.intro-iris { animation: irisOpen 2.2s cubic-bezier(0.5, 0, 0.2, 1) 0.35s both; }
+@keyframes irisOpen {
+  0%   { r: 1; }
+  100% { r: 96; }
+}
+
+.intro-blades { opacity: 0.28; }
+.intro-blade { animation: bladeOpen 1.75s cubic-bezier(0.62, 0, 0.15, 1) both; }
+@keyframes bladeOpen {
+  0%   { transform: rotate(var(--r, 0deg)) scale(1); }
+  100% { transform: rotate(calc(var(--r, 0deg) + 52deg)) scale(3.6); }
+}
+
+.intro-glow { animation: glowPulse 2.6s ease-out both; transform-origin: 50px 50px; }
+@keyframes glowPulse {
+  0%   { opacity: 0; transform: scale(0.2); }
+  35%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2.3); }
+}
+.intro-ring  { animation: ringOut 2.4s cubic-bezier(0.22, 1, 0.36, 1) both; transform-origin: 50px 50px; }
+.intro-ring2 { animation: ringOut 2.4s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both; transform-origin: 50px 50px; }
+@keyframes ringOut {
+  0%   { opacity: 0; transform: scale(0.18) rotate(0deg); }
+  30%  { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(3.6) rotate(60deg); }
+}
+
+.intro-caption {
+  position: absolute; left: 0; right: 0; bottom: 12%;
+  z-index: 3; text-align: center;
+}
+.intro-mark {
+  display: block;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2.6rem, 8vw, 5.2rem); font-weight: 700;
+  color: var(--signal); letter-spacing: 0.3em; text-indent: 0.3em;
+  text-shadow: 0 0 50px rgba(255,176,58,0.55), 0 2px 30px rgba(0,0,0,0.7);
+  animation: markIn 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+}
+@keyframes markIn {
+  0%   { opacity: 0; letter-spacing: 0.85em; filter: blur(14px); }
+  38%  { opacity: 1; letter-spacing: 0.3em; filter: blur(0); }
+  82%  { opacity: 1; }
+  100% { opacity: 0; filter: blur(3px); }
+}
+.intro-sub, .intro-tag {
+  display: block; font-family: var(--font-mono), monospace;
+  animation: subIn 2.4s ease-out 0.95s both;
+  text-shadow: 0 2px 18px rgba(0,0,0,0.85);
+}
+.intro-sub { margin-top: 1rem; font-size: 0.7rem; letter-spacing: 0.44em; color: var(--paper); }
+.intro-tag { margin-top: 0; font-size: 0.6rem; letter-spacing: 0.42em; color: var(--current); }
+@keyframes subIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  35% { opacity: 1; transform: none; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.intro-skip {
+  position: absolute; right: 22px; bottom: 20px; z-index: 4;
+  font-family: var(--font-mono), monospace; font-size: 0.6rem; letter-spacing: 0.24em;
+  color: var(--muted); border: 1px solid var(--line); border-radius: 999px;
+  padding: 8px 16px; background: rgba(6,8,13,0.55); backdrop-filter: blur(6px);
+  transition: color 0.3s, border-color 0.3s;
+}
+.intro-skip:hover { color: var(--signal); border-color: var(--signal); }
+
+@media (prefers-reduced-motion: reduce) { .intro-root { display: none; } }
+
+/* ---------- Cinematic cursor ---------- */
+.has-custom-cursor,
+.has-custom-cursor a,
+.has-custom-cursor button { cursor: none; }
+
+.cur-dot, .cur-ring {
+  position: fixed; left: 0; top: 0; z-index: 300; pointer-events: none;
+  will-change: transform;
+  /* parked off-screen until the first pointermove writes a real transform */
+  transform: translate3d(-100px, -100px, 0);
+}
+.cur-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 12px rgba(255, 176, 58, 0.9);
+}
+.cur-ring {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid rgba(79, 209, 224, 0.55);
+  display: grid; place-items: center;
+  transition: width 0.3s var(--ease), height 0.3s var(--ease),
+              border-color 0.3s var(--ease), background-color 0.3s var(--ease);
+}
+.cur-ring-on {
+  width: 74px; height: 74px;
+  border-color: var(--signal);
+  background: rgba(255, 176, 58, 0.07);
+}
+.cur-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.52rem; letter-spacing: 0.22em;
+  color: var(--signal);
+}
+
+/* ---------- Floating node HUD (rendered inside the canvas via drei Html) ---------- */
+.node-hud {
+  width: 210px; text-align: center; user-select: none;
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.node-hud-kicker {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.46rem; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--current); opacity: 0.85;
+}
+.node-hud-label {
+  display: block; margin-top: 4px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.98rem; font-weight: 600; color: var(--paper);
+}
+.node-hud-blurb {
+  display: block; margin-top: 6px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.62rem; line-height: 1.5; color: var(--muted);
+}
+.node-hud-on .node-hud-label { color: var(--signal); }
+
 .mono-label {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.75rem;
@@ -122,4 +289,60 @@ body {
     transition-duration: 150ms !important;
   }
   .grain::after { display: none; }
+}
+
+/* ---------- Machine backdrop (site-wide) ---------- */
+/* z-index:-1 keeps the plate behind all content without touching siblings.
+   An earlier `.machine-bg ~ *` rule did this by forcing position:relative on
+   every sibling, which silently broke position:fixed on the nav and intro. */
+.machine-bg {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+}
+.machine-plate {
+  position: absolute; inset: -6% 0 -12%;
+  will-change: transform;
+  animation: plateDrift 34s ease-in-out infinite alternate;
+}
+.machine-plate img {
+  width: 100%; height: 100%; object-fit: cover;
+  /* dimmed hard: this is atmosphere, body copy must stay legible over it */
+  filter: brightness(0.24) saturate(0.8) contrast(1.05);
+}
+@keyframes plateDrift {
+  from { transform: scale(1.08) translate3d(0, 0, 0); }
+  to   { transform: scale(1.14) translate3d(-1.5%, -1%, 0); }
+}
+
+/* Gold current sweeping the circuitry */
+.machine-pulse {
+  position: absolute; border-radius: 50%;
+  mix-blend-mode: screen; opacity: 0;
+}
+.machine-pulse-a {
+  width: 60vmax; height: 60vmax; left: -10vmax; top: -14vmax;
+  background: radial-gradient(circle, rgba(255,176,58,0.16), transparent 62%);
+  animation: pulseWander 19s ease-in-out infinite;
+}
+.machine-pulse-b {
+  width: 46vmax; height: 46vmax; right: -8vmax; bottom: -10vmax;
+  background: radial-gradient(circle, rgba(79,209,224,0.13), transparent 62%);
+  animation: pulseWander 24s ease-in-out infinite 6s;
+}
+@keyframes pulseWander {
+  0%, 100% { opacity: 0.25; transform: translate3d(0, 0, 0) scale(1); }
+  50%      { opacity: 0.7;  transform: translate3d(6%, 5%, 0) scale(1.25); }
+}
+
+/* Veil keeps text contrast on top of the plate */
+.machine-veil {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 90% 65% at 50% 38%, rgba(6,8,13,0.5), rgba(6,8,13,0.93) 78%),
+    linear-gradient(180deg, rgba(6,8,13,0.66), rgba(6,8,13,0.88));
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .machine-plate { animation: none; transform: scale(1.08); }
+  .machine-pulse { animation: none; opacity: 0.3; }
 }
