@@ -13,64 +13,6 @@ const BLUEPRINT = new THREE.Color('#1E3A5F');
 const CURRENT = new THREE.Color('#4FD1E0');
 const SIGNAL = new THREE.Color('#FFB03A');
 
-/* ---------------------------------------------------------------- lens core */
-function LensCore({ dimmed }: { dimmed: boolean }) {
-  const group = useRef<THREE.Group>(null);
-  const iris = useRef<THREE.Group>(null);
-  const glow = useRef<THREE.Mesh>(null);
-
-  useFrame((s) => {
-    const t = s.clock.elapsedTime;
-    if (group.current) {
-      group.current.rotation.z = t * 0.06;
-      group.current.scale.setScalar(dimmed ? 0.82 : 1 + Math.sin(t * 0.9) * 0.015);
-    }
-    if (iris.current) iris.current.rotation.z = -t * 0.22;
-    if (glow.current) {
-      const m = glow.current.material as THREE.MeshBasicMaterial;
-      m.opacity = (dimmed ? 0.1 : 0.26) + Math.sin(t * 1.6) * 0.05;
-    }
-  });
-
-  // Aperture blades around the lens, echoing the intro
-  const blades = useMemo(() => Array.from({ length: 8 }, (_, i) => (i / 8) * Math.PI * 2), []);
-
-  return (
-    <group ref={group}>
-      <mesh ref={glow}>
-        <circleGeometry args={[2.3, 48]} />
-        <meshBasicMaterial color={SIGNAL} transparent opacity={0.22} blending={THREE.AdditiveBlending} depthWrite={false} />
-      </mesh>
-
-      <mesh>
-        <torusGeometry args={[1.25, 0.035, 16, 96]} />
-        <meshStandardMaterial color={CURRENT} emissive={CURRENT} emissiveIntensity={1.6} roughness={0.3} metalness={0.7} />
-      </mesh>
-      <mesh>
-        <torusGeometry args={[1.62, 0.014, 12, 96]} />
-        <meshStandardMaterial color={BLUEPRINT} emissive={CURRENT} emissiveIntensity={0.5} />
-      </mesh>
-
-      <group ref={iris}>
-        {blades.map((a, i) => (
-          <mesh key={i} rotation={[0, 0, a]} position={[Math.cos(a) * 0.62, Math.sin(a) * 0.62, 0]}>
-            <planeGeometry args={[0.62, 0.16]} />
-            <meshStandardMaterial
-              color="#0C1119" emissive={SIGNAL} emissiveIntensity={0.35}
-              side={THREE.DoubleSide} transparent opacity={0.92}
-            />
-          </mesh>
-        ))}
-      </group>
-
-      <mesh>
-        <circleGeometry args={[0.5, 40]} />
-        <meshBasicMaterial color={SIGNAL} transparent opacity={0.85} blending={THREE.AdditiveBlending} />
-      </mesh>
-    </group>
-  );
-}
-
 /* -------------------------------------------------------------- glass nodes */
 function PillarNode({
   pillar, active, dimmed, onFocus,
@@ -256,7 +198,7 @@ function Effects({ tier, focus }: { tier: Tier; focus: Pillar | null }) {
   if (tier === 'mobile') {
     return (
       <EffectComposer>
-        <Bloom intensity={0.5} luminanceThreshold={0.35} luminanceSmoothing={0.9} mipmapBlur />
+        <Bloom intensity={0.32} luminanceThreshold={0.35} luminanceSmoothing={0.9} mipmapBlur />
         <Vignette eskil={false} offset={0.28} darkness={0.85} />
       </EffectComposer>
     );
@@ -265,7 +207,7 @@ function Effects({ tier, focus }: { tier: Tier; focus: Pillar | null }) {
   return (
     <EffectComposer>
       <DepthOfField focusDistance={focus ? 0.012 : 0.02} focalLength={0.05} bokehScale={focus ? 5.5 : 3.2} />
-      <Bloom intensity={0.72} luminanceThreshold={0.3} luminanceSmoothing={0.9} mipmapBlur />
+      <Bloom intensity={0.45} luminanceThreshold={0.3} luminanceSmoothing={0.9} mipmapBlur />
       <ChromaticAberration
         blendFunction={BlendFunction.NORMAL}
         offset={ca.current}
@@ -304,7 +246,6 @@ export default function HeroScene({
       <pointLight position={[-8, -4, 6]} intensity={18} color="#FFB03A" distance={44} />
 
       <CameraRig focus={focus} />
-      <LensCore dimmed={!!focus} />
       {pillars.map((p) => (
         <PillarNode
           key={p.id} pillar={p}

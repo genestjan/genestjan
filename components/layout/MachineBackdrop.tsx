@@ -3,27 +3,38 @@ import { useEffect, useRef } from 'react';
 import { usePrefersReducedMotion } from '@/lib/useReducedMotion';
 
 /**
- * The machine plate as a living site background.
+ * The machine plate as the site background, scroll-synced.
  *
- * Fixed behind everything, drifting slowly and parallaxing against scroll, with
- * gold energy pulses tracing over the circuitry. Heavily dimmed so body copy
- * keeps its contrast ratio; the plate is atmosphere, not decoration competing
- * with the text.
+ * It starts exactly where the intro leaves it (scale 1.08, brightness 0.6) so
+ * the hand-off is a continuous shot rather than a cut. As the page scrolls it
+ * pulls back and dims, letting the plate recede behind the content instead of
+ * competing with body copy.
  */
 export default function MachineBackdrop() {
   const plate = useRef<HTMLDivElement>(null);
+  const img = useRef<HTMLImageElement>(null);
   const reduced = usePrefersReducedMotion();
 
   useEffect(() => {
     if (reduced) return;
     let raf = 0;
     let cur = 0;
+
     const loop = () => {
-      // Parallax: the plate moves at a fraction of scroll so it sits "behind".
-      const target = window.scrollY * 0.055;
-      cur += (target - cur) * 0.08;
+      const max = Math.max(document.documentElement.scrollHeight - innerHeight, 1);
+      const target = Math.min(scrollY / max, 1);
+      cur += (target - cur) * 0.07;
+
       if (plate.current) {
-        plate.current.style.transform = `translate3d(0, ${-cur}px, 0) scale(1.08)`;
+        // pull back and drift up as the page advances
+        const scale = 1.08 - cur * 0.1;
+        const y = -cur * 90;
+        plate.current.style.transform = `translate3d(0, ${y}px, 0) scale(${scale})`;
+      }
+      if (img.current) {
+        // recede: the plate is loudest at the top of the page and quiet by the end
+        const b = 0.34 - cur * 0.2;
+        img.current.style.filter = `brightness(${b.toFixed(3)}) saturate(0.85) contrast(1.05)`;
       }
       raf = requestAnimationFrame(loop);
     };
@@ -36,7 +47,7 @@ export default function MachineBackdrop() {
       <div ref={plate} className="machine-plate">
         <picture>
           <source srcSet="/machine-sm.webp" media="(max-width: 800px)" />
-          <img src="/machine.webp" alt="" width={1408} height={768} loading="eager" />
+          <img ref={img} src="/machine.webp" alt="" width={1408} height={768} />
         </picture>
       </div>
       {/* Gold current tracing the circuitry */}
