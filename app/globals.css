@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tokens from BRIEF.md 6.2 */
+:root {
+  --ink: #06080D;
+  --ink-2: #0C1119;
+  --ink-3: #141B27;
+  --blueprint: #1E3A5F;
+  --signal: #FFB03A;
+  --signal-dim: #B87A1F;
+  --current: #4FD1E0;
+  --paper: #E8EDF2;
+  /* lightened from the brief's #7C8BA1 to clear 4.5:1 against --ink (6.8) */
+  --muted: #8A99AF;
+  --line: rgba(232, 237, 242, 0.08);
+  --glass: rgba(20, 27, 39, 0.55);
+  --glass-edge: rgba(232, 237, 242, 0.10);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body), system-ui, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--signal); color: var(--ink); }
+
+/* Focus ring, BRIEF 6.8: 2px cyan with 2px offset on every interactive element */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--current);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 999;
+  background: var(--signal); color: var(--ink); padding: 12px 20px;
+  font-weight: 600; border-radius: 0 0 8px 0;
+}
+.skip-link:focus { left: 0; }
+
+/* Glass recipe, BRIEF 6.4 */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid var(--glass-edge);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform 400ms var(--ease), border-color 400ms var(--ease);
+}
+.glass:hover { border-color: rgba(79, 209, 224, 0.35); }
+
+/* Blueprint grid backdrop */
+.blueprint-grid {
+  background-image:
+    linear-gradient(rgba(30, 58, 95, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 95, 0.22) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Film grain, BRIEF 6.x cinematic treatment */
+.grain::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+.vignette::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 40%, transparent 45%, rgba(3, 4, 7, 0.75) 100%);
+}
+
+/* Entrance animations run in CSS, not JS, so the markup paints immediately.
+   A JS-driven opacity:0 would make the H1 (the LCP element) invisible until
+   hydration, which breaks the LCP requirement in BRIEF 6.7. */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(0.4em); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fadeUpIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+.rise-in {
+  animation: riseIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.fade-up-in {
+  animation: fadeUpIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise-in, .fade-up-in { animation: none; opacity: 1; transform: none; }
+}
+
+.mono-label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--blueprint); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--signal-dim); }
+
+/* BRIEF 6.8: reduced motion is not optional. Kill canvas, parallax, tilt,
+   magnetic hover and float; entrances become a sub-200ms fade. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+  }
+  .grain::after { display: none; }
+}
