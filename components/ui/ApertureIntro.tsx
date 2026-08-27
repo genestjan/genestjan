@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import GearMachine from '@/components/canvas/GearMachine';
 
 /**
  * Three-act cinematic entrance.
@@ -65,10 +66,8 @@ export default function ApertureIntro() {
     >
       {/* ACT 2: the machine powering up behind the mark */}
       <div className="intro-machine">
-        <picture>
-          <source srcSet="/machine-sm.webp" media="(max-width: 800px)" />
-          <img src="/machine.webp" alt="" width={1408} height={768} fetchPriority="high" />
-        </picture>
+        <GearMachine />
+        <div className="intro-shade" />
         <span className="intro-sheen" />
       </div>
 

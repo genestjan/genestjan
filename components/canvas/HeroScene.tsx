@@ -194,15 +194,10 @@ function Effects({ tier, focus }: { tier: Tier; focus: Pillar | null }) {
     ca.current.set(amt, amt);
   });
 
-  // Mobile gets bloom only; DoF is the expensive pass.
-  if (tier === 'mobile') {
-    return (
-      <EffectComposer>
-        <Bloom intensity={0.32} luminanceThreshold={0.35} luminanceSmoothing={0.9} mipmapBlur />
-        <Vignette eskil={false} offset={0.28} darkness={0.85} />
-      </EffectComposer>
-    );
-  }
+  // No post-processing at all on phones. The gear plate now carries the look,
+  // and an extra full-screen render pass is the difference between smooth and
+  // janky on a mid-range device.
+  if (tier === 'mobile') return null;
 
   return (
     <EffectComposer>
