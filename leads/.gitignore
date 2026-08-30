@@ -10,3 +10,6 @@ extract.log
 indiv.log
 chain.log
 sites_todo.json
+site_emails.json
+final.log
+waitfinal.sh
