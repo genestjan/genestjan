@@ -1,0 +1,6 @@
+# 12MB raw API dump - regenerate with: python3 harvest_nppes.py
+raw_nppes.json
+sample*.json
+enrich.log
+diag.py
+__pycache__/
