@@ -102,6 +102,8 @@ def audit_email(email):
 
 
 def audit_phone(phone, state, corroboration=1):
+    if not (phone or "").strip():
+        return {"phone_status": "NO PHONE", "phone_detail": "no number on record"}
     d = re.sub(r"\D", "", phone or "")
     if len(d) != 10:
         return {"phone_status": "INVALID", "phone_detail": "not 10 digits"}

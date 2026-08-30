@@ -4,7 +4,26 @@ Call-ready dental lead list for MedSafe outreach across eight states:
 Connecticut, New York, Rhode Island, Massachusetts, Maryland, Maine,
 Vermont and Virginia.
 
-Built 30 August 2026. Live counts are on the **Summary** tab of the workbook.
+Built 30 August 2026.
+
+## Final counts
+
+| | |
+|---|---|
+| **Total leads** | **21,628** |
+| With a phone number | 17,895 |
+| With a named owner / decision maker | 16,042 |
+| With a website | 4,635 |
+| With an email | 1,376 (1,332 passed the deliverability audit) |
+| Corroborated by a Google Maps listing | 9,246 |
+| Duplicate phone numbers | **0** |
+
+By state: New York 6,786 · Virginia 4,442 · Massachusetts 3,443 ·
+Maryland 3,364 · Connecticut 1,933 · Maine 795 · Rhode Island 533 ·
+Vermont 361.
+
+Phone audit: 17,408 valid · 423 to check (area code doesn't match the state) ·
+64 invalid · 3,733 with no number on record.
 
 ---
 
@@ -139,6 +158,17 @@ registry record was last updated is a useful proxy:
 - **Recent** — updated 2022 or later. Call these first.
 - **Ageing** — 2015–2021.
 - **Stale** — untouched since 2014. Expect more dead numbers.
+
+---
+
+## Trading name vs registered name
+
+The registry holds the **legal entity** — "Forella And Donahue Dentistry LLC" —
+while the practice actually trades as "Fairfield Dental Arts". Asking for the
+legal name on a cold call sounds like a cold call.
+
+Where Google Maps gave a different public name, it is in the **`Trading Name`**
+column. That applies to **3,444 rows**. Use it for the opening line.
 
 ---
 

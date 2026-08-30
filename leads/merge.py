@@ -23,8 +23,15 @@ def name_key(s):
     return {w for w in t if w not in NOISE and len(w) > 2}
 
 
-def addr_key(addr, city):
+def norm_addr(addr):
+    """Queens writes house numbers as 33-16; the registry writes 3316.
+    Strip the hyphen so both key identically."""
     a = (addr or "").lower()
+    return re.sub(r"^\s*(\d+)-(\d+)", r"\1\2", a)
+
+
+def addr_key(addr, city):
+    a = norm_addr(addr)
     m = re.match(r"\s*(\d+)\s+([a-z0-9]+)", a)
     return (m.group(1), m.group(2), (city or "").lower()) if m else None
 
@@ -32,7 +39,7 @@ def addr_key(addr, city):
 def street_key(addr):
     """Street number + first word only. Maps infers city from the search
     query, so a neighbouring-town label must not block a real match."""
-    m = re.match(r"\s*(\d+)\s+([a-z0-9]+)", (addr or "").lower())
+    m = re.match(r"\s*(\d+)\s+([a-z0-9]+)", norm_addr(addr))
     return (m.group(1), m.group(2)) if m else None
 
 
@@ -89,6 +96,9 @@ def main():
                 e["rating"] = m["rating"]
             if m["category"]:
                 e["category"] = m["category"]
+            # the name on the door, which is often not the registered entity
+            if m["name"] and not e.get("trading_name"):
+                e["trading_name"] = m["name"]
         else:
             # collapse duplicate Maps listings for the same business
             nk2 = frozenset(name_key(m["name"])) or frozenset([m["name"].lower()])

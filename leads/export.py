@@ -71,6 +71,9 @@ for b in base:
     srcs = 1 + (1 if mx.get("maps_url") else 0) + (1 if website else 0)
     rows.append({
         "Priority": prio, "Practice Name": b["practice_name"],
+        "Trading Name": (mx.get("trading_name", "")
+                         if mx.get("trading_name", "").strip().lower()
+                         != b["practice_name"].strip().lower() else ""),
         "City": b["city"], "State": b["state"], "Phone": b["phone"],
         "Owner / Decision Maker": b["owner_name"], "Owner Title": b["owner_title"],
         "Email": email, "Email Source": esrc, "Website": website,
@@ -94,7 +97,8 @@ for m in mnew:
     s = semail.get(key, {})
     website = m.get("website", "")
     rows.append({
-        "Priority": "D", "Practice Name": m["name"], "City": m["city"],
+        "Priority": "D", "Practice Name": m["name"], "Trading Name": "",
+        "City": m["city"],
         "State": m["state"], "Phone": m["phone"], "Owner / Decision Maker": "",
         "Owner Title": "", "Email": s.get("email", ""),
         "Email Source": "Practice website" if s.get("email") else "",
@@ -124,7 +128,7 @@ for r, c in zip(rows, checks):
         r["Data Flag"] = "CHECK - likely typo in the practice's own filing"
     r.pop("_corro", None)
 
-COLS = ["Priority", "Practice Name", "City", "State", "Phone", "Phone Check",
+COLS = ["Priority", "Practice Name", "Trading Name", "City", "State", "Phone", "Phone Check",
         "Phone Note", "Owner / Decision Maker", "Owner Title", "Email",
         "Email Check", "Email Type", "Mail Host", "Email Note", "Email Source",
         "Website", "Address", "ZIP", "Practice Type", "Record Type",
