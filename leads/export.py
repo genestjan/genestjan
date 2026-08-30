@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Merge every source into call-ready deliverables, with provenance on each row."""
-import json, csv, re
+import json, csv, re, time
 from pathlib import Path
 from collections import Counter
 import audit
@@ -22,7 +22,13 @@ enr = {e["npi"]: e for e in load("enriched.json", []) if e.get("npi")}
 eps = load("endpoint_emails.json", {})
 mextra = load("maps_extra.json", {})            # npi -> maps fields
 mnew = load("maps_new.json", [])                # maps-only businesses
-semail = load("site_emails.json", {})           # key -> email found on site
+# the extractor may be mid-write; retry rather than silently losing every email
+semail = {}
+for _ in range(6):
+    semail = load("site_emails.json", {})
+    if semail:
+        break
+    time.sleep(2)           # key -> email found on site
 
 STATE_NAME = {"CT": "Connecticut", "NY": "New York", "RI": "Rhode Island",
               "MA": "Massachusetts", "MD": "Maryland", "ME": "Maine",
