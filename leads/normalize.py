@@ -21,20 +21,54 @@ SKIP_NAME = re.compile(r"\b(SUPPLY|LABORATOR|LAB LLC|BILLING|CONSULT|STAFFING|"
                        r"INSURANCE|UNIVERSITY|COLLEGE|SCHOOL OF)\b", re.I)
 
 
+KEEP_UPPER = {"DDS", "DMD", "PC", "PLLC", "LLC", "LLP", "PA", "MD", "MS", "DPM",
+              "II", "III", "IV", "USA", "NE", "NW", "SE", "SW", "MSD", "PHD",
+              "TMJ", "TMD", "NYC", "USC", "NYU", "VA", "DC", "OMS"}
+# street suffixes and similar that must NOT be shouted
+LOWER_ABBR = {"ST": "St", "RD": "Rd", "DR": "Dr", "AVE": "Ave", "LN": "Ln",
+              "CT": "Ct", "PL": "Pl", "BLVD": "Blvd", "PKWY": "Pkwy", "HWY": "Hwy",
+              "TPKE": "Tpke", "STE": "Ste", "APT": "Apt", "FL": "Fl", "RM": "Rm",
+              "SQ": "Sq", "TER": "Ter", "CIR": "Cir", "EXT": "Ext", "BLDG": "Bldg",
+              "PLZ": "Plz", "TRL": "Trl", "WAY": "Way", "PT": "Pt", "MT": "Mt"}
+
+
 def title(s):
     if not s:
         return ""
-    s = " ".join(s.split())
     out = []
-    for w in s.split(" "):
-        if w.upper() in ("DDS", "DMD", "PC", "PLLC", "LLC", "LLP", "PA", "MD",
-                         "II", "III", "IV", "DPM", "USA", "NY", "CT"):
+    for w in " ".join(s.split()).split(" "):
+        u = w.upper().rstrip(".")
+        if u in KEEP_UPPER:
+            out.append(u)
+        elif u in LOWER_ABBR:
+            out.append(LOWER_ABBR[u])
+        elif re.fullmatch(r"[A-Za-z]\.?", w):        # lone letter: initial or "A Plus"
+            out.append(w.upper().rstrip("."))
+        elif re.fullmatch(r"(?:[A-Za-z]\.){2,}", w):  # D.D.S. style
             out.append(w.upper())
-        elif re.match(r"^[A-Z]\.?[A-Z]?\.?$", w):
-            out.append(w.upper())
+        elif any(ch.isdigit() for ch in w):
+            out.append(w.upper() if len(w) <= 3 else w)
+        elif "'" in w:                                # O'Brien, D'Amico
+            a, _, b = w.partition("'")
+            out.append(a.capitalize() + "'" + b.capitalize())
+        elif "-" in w:                                # Smith-Jones
+            out.append("-".join(x.capitalize() for x in w.split("-")))
+        elif u.startswith("MC") and len(u) > 3:
+            out.append("Mc" + w[2:].capitalize())
         else:
             out.append(w.capitalize())
     return " ".join(out)
+
+
+def fix_title(s):
+    """Owner job titles: CEO / DDS stay shouted, the rest sentence-cased."""
+    if not s:
+        return ""
+    t = title(s)
+    for a, b in (("Ceo", "CEO"), ("Cfo", "CFO"), ("Coo", "COO"),
+                 ("Dds", "DDS"), ("Dmd", "DMD"), ("Md", "MD"), ("Rdh", "RDH")):
+        t = re.sub(rf"\b{a}\b", b, t)
+    return t
 
 
 def phone(p):
@@ -92,7 +126,7 @@ for r in raw:
         "kind": kind,
         "tier": tier,
         "owner_name": owner,
-        "owner_title": (b.get("authorized_official_title_or_position") or "").strip().title(),
+        "owner_title": fix_title((b.get("authorized_official_title_or_position") or "").strip()),
         "phone": tel,
         "address": title(loc.get("address_1", "")) + (
             " " + title(loc.get("address_2", "")) if loc.get("address_2") else ""),
