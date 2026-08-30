@@ -23,19 +23,25 @@ def scrape_site(url):
         url = "https://" + url
     base = url.rstrip("/")
     dom = re.sub(r"^https?://", "", base).split("/")[0]
-    first_ok = None
-    for p in PATHS:
-        html, final = E.get(base + p, timeout=12)
+    # If the homepage doesn't answer the host is down -- don't burn eight more
+    # timeouts walking contact paths that cannot exist.
+    home, final = E.get(base, timeout=10)
+    if not home:
+        return "", "", ""
+    if E.PARKED.search(home[:6000]):
+        return "", "", ""
+    mails = E.emails_from(home, dom)
+    if mails:
+        return mails[0], ", ".join(mails[1:3]), final
+    root = final.rstrip("/")
+    for pth in PATHS[1:5]:
+        html, fin = E.get(root + pth, timeout=10)
         if not html:
             continue
-        if first_ok is None:
-            first_ok = final
-        if E.PARKED.search(html[:6000]):
-            return "", "", ""
         mails = E.emails_from(html, dom)
         if mails:
-            return mails[0], ", ".join(mails[1:3]), final
-    return "", "", (first_ok or "")
+            return mails[0], ", ".join(mails[1:3]), fin
+    return "", "", final
 
 
 def main():
@@ -45,7 +51,7 @@ def main():
     print(f"scraping {len(todo)} known websites for emails", flush=True)
 
     out, t0 = {}, time.time()
-    with ThreadPoolExecutor(max_workers=40) as ex:
+    with ThreadPoolExecutor(max_workers=60) as ex:
         futs = {ex.submit(scrape_site, t["website"]): t for t in todo}
         for i, f in enumerate(as_completed(futs), 1):
             t = futs[f]

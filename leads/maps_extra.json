@@ -105,13 +105,19 @@
  },
  "1881048080": {
   "website": "https://bridgeportbraces.com/",
-  "maps_url": "https://www.google.com/maps/place/Children%27s+Dental+Health+of+Bridgeport/data=!4m7!3m6!1s0x89e80eea1338c039:0xe02383d1019418e9!8m2!3d41.2116059!4d-73.2104371!16s%2Fg%2F1v1kqx60!19sChIJOcA4E-oO6IkR6RiUAdGDI-A",
-  "category": "Pediatric dentist"
+  "maps_url": "https://www.google.com/maps/place/Bridgeport+Braces/data=!4m7!3m6!1s0x89e80eea1372e3c3:0x2043de2dc04e2435!8m2!3d41.211696!4d-73.2103098!16s%2Fg%2F11cmbq49m7!19sChIJw-NyE-oO6IkRNSROwC3eQyA",
+  "category": "Orthodontist"
  },
  "1407570146": {
   "website": "https://www.modernfamilydentalct.com/",
   "maps_url": "https://www.google.com/maps/place/Modern+Family+Dental/data=!4m7!3m6!1s0x89e80c48bc7a3fd9:0x23a6748731d62077!8m2!3d41.1938959!4d-73.1535228!16s%2Fg%2F11btvwlz50!19sChIJ2T96vEgM6IkRdyDWMYd0piM",
   "category": "Dentist"
+ },
+ "1255696845": {
+  "website": "http://www.newtunxishilldental.com/",
+  "maps_url": "https://www.google.com/maps/place/Tunxis+Hill+Dental/data=!4m7!3m6!1s0x89e80e4a43da1b77:0x587f0891ecb7cc61!8m2!3d41.176834!4d-73.2247257!16s%2Fg%2F1tnpggq9!19sChIJdxvaQ0oO6IkRYcy37JEIf1g",
+  "category": "Dentist",
+  "rating": "4.8"
  },
  "1437234523": {
   "website": "http://www.commerceparkdental.com/",
@@ -161,9 +167,18 @@
   "category": "Dentist",
   "rating": "4.9"
  },
+ "1578730578": {
+  "website": "https://hawleylanedental.com/stratford-ct-new-dentist-specials-near-you/",
+  "maps_url": "https://www.google.com/maps/place/Hawley+Lane+Dental+-+Dentist+Stratford+CT/data=!4m7!3m6!1s0x89e80b9002e287eb:0x837cf76d2b75437!8m2!3d41.2325674!4d-73.1472932!16s%2Fg%2F1td2vy9f!19sChIJ64fiApAL6IkRN1S30nbPNwg",
+  "category": "Dentist"
+ },
  "1285648931": {
   "website": "https://www.cpdentistry.com/",
   "maps_url": "https://www.google.com/maps/place/Jeffrey+Babushkin/data=!4m7!3m6!1s0x89e80944a636ef09:0xa701a61deb7de796!8m2!3d41.244233!4d-73.1947756!16s%2Fg%2F11pkfs45_t!19sChIJCe82pkQJ6IkRlud96x2mAac",
+  "category": "Dentist"
+ },
+ "1710342050": {
+  "maps_url": "https://www.google.com/maps/place/Family+Dental+Group+of+Fairfield/data=!4m7!3m6!1s0x89e80e356b5be8ad:0x29d562dc55443de7!8m2!3d41.1744241!4d-73.2286787!16s%2Fg%2F1tmbx4b0!19sChIJrehbazUO6IkR5z1EVdxi1Sk",
   "category": "Dentist"
  },
  "1891159026": {
@@ -171,13 +186,19 @@
   "maps_url": "https://www.google.com/maps/place/Advanced+Dentistry+of+Connecticut/data=!4m7!3m6!1s0x89e80cf723bd4fd1:0xf2cbaddd865cd78d!8m2!3d41.2001771!4d-73.1298601!16s%2Fg%2F1tdy0xtw!19sChIJ0U-9I_cM6IkRjddcht2ty_I",
   "category": "Dentist"
  },
+ "1578709671": {
+  "website": "https://perfectsmilesoffairfield.com/",
+  "maps_url": "https://www.google.com/maps/place/Fairfield-Monroe+Orthodontics/data=!4m7!3m6!1s0x89e80fb8b6698db7:0xfef2e72410c48639!8m2!3d41.1797232!4d-73.2468629!16s%2Fg%2F1thx0gp1!19sChIJt41ptrgP6IkROYbEECTn8v4",
+  "category": "Orthodontist",
+  "rating": "4.9"
+ },
  "1720318272": {
   "maps_url": "https://www.google.com/maps/place/Jose+Madera/data=!4m7!3m6!1s0x89e80e8db4c08f31:0x6f4409d26d9d5faa!8m2!3d41.1990643!4d-73.2016083!16s%2Fg%2F11pkfrz161!19sChIJMY_AtI0O6IkRql-dbdIJRG8",
   "category": "Dentist"
  },
  "1003969775": {
   "website": "http://www.tiberifamilydentistry.com/",
-  "maps_url": "https://www.google.com/maps/place/Thomas+J.+Tiberi,+D.M.D./data=!4m7!3m6!1s0x89e80e92c0eccb21:0x923fbbbbafda79!8m2!3d41.2030796!4d-73.2047306!16s%2Fg%2F1vqthtrd!19sChIJIcvswJIO6IkRedqvu7s_kgA",
+  "maps_url": "https://www.google.com/maps/place/Tiberi+Family+Dentistry/data=!4m7!3m6!1s0x89e80e92b896bda5:0x474b65e52dab6919!8m2!3d41.2030931!4d-73.2047498!16s%2Fg%2F11cjp9q4ry!19sChIJpb2WuJIO6IkRGWmrLeVlS0c",
   "category": "Dentist"
  },
  "1376696567": {
@@ -292,7 +313,8 @@
  },
  "1891128575": {
   "maps_url": "https://www.google.com/maps/place/Dental+Solutions/data=!4m7!3m6!1s0x89e81c2ed45171cf:0x8df3e4d970f845eb!8m2!3d41.1103575!4d-73.4094114!16s%2Fg%2F11b5wmr4r2!19sChIJz3FR1C4c6IkR60X4cNnk840",
-  "category": "Dentist"
+  "category": "Dentist",
+  "website": "http://dentalsolutionsct.com/"
  },
  "1366890105": {
   "maps_url": "https://www.google.com/maps/place/Norwalk+Dental+Associates/data=!4m7!3m6!1s0x89e81c370d798111:0xf6f010ea74e1944a!8m2!3d41.1217848!4d-73.4079325!16s%2Fg%2F1tkf1_x3!19sChIJEYF5DTcc6IkRSpThdOoQ8PY",
@@ -354,6 +376,16 @@
   "maps_url": "https://www.google.com/maps/place/Norwalk+Dental+Arts/data=!4m7!3m6!1s0x89e81c328f3e2333:0x35ecb4da9f584a69!8m2!3d41.1163889!4d-73.4169485!16s%2Fg%2F1tfjm4p7!19sChIJMyM-jzIc6IkRaUpYn9q07DU",
   "category": "Dentist"
  },
+ "1225463268": {
+  "maps_url": "https://www.google.com/maps/place/Dental+Center+of+Westport/data=!4m7!3m6!1s0x89e81b7accb5915b:0xb1ff6cf5ad312540!8m2!3d41.1362407!4d-73.369375!16s%2Fg%2F1tl7prjf!19sChIJW5G1zHob6IkRQCUxrfVs_7E",
+  "category": "Dentist",
+  "website": "https://www.dentalcenterwestport.com/"
+ },
+ "1669795381": {
+  "maps_url": "https://www.google.com/maps/place/Imperial+Dental+Associates/data=!4m7!3m6!1s0x89e81b774283d90b:0xd55cd23a3ab70e30!8m2!3d41.1404608!4d-73.3578997!16s%2Fg%2F1tf5r7_y!19sChIJC9mDQncb6IkRMA63OjrSXNU",
+  "category": "Dentist",
+  "website": "https://www.imperialdentalassociates.com/"
+ },
  "1710386933": {
   "maps_url": "https://www.google.com/maps/place/Westwalk+Orthodontic+Group+Norwalk/data=!4m7!3m6!1s0x89e81c2f6a6e3523:0x62b56eeda3306c3f!8m2!3d41.109915!4d-73.409673!16s%2Fg%2F1tg_y3g8!19sChIJIzVuai8c6IkRP2wwo-1utWI",
   "category": "Orthodontist"
@@ -362,6 +394,11 @@
   "website": "https://www.zocdoc.com/dentist/edward-paul-dds-342243",
   "maps_url": "https://www.google.com/maps/place/Dr.+Edward+D.+Paul+DDS/data=!4m7!3m6!1s0x89e81c328f3e2333:0xc61be15e45a17419!8m2!3d41.1099926!4d-73.4065898!16s%2Fg%2F1tjs5zq3!19sChIJMyM-jzIc6IkRGXShRV7hG8Y",
   "category": "Cosmetic dentist"
+ },
+ "1457899874": {
+  "maps_url": "https://www.google.com/maps/place/Advanced+Dental+of+Westport+CT/data=!4m7!3m6!1s0x89e81b72dd0b7ae5:0xccd6b02f770f1aa1!8m2!3d41.1425206!4d-73.3499498!16s%2Fg%2F1tg2lp_8!19sChIJ5XoL3XIb6IkRoRoPdy-w1sw",
+  "category": "Dentist",
+  "website": "https://www.westportfairfielddentalgroup.com/"
  },
  "1497060008": {
   "maps_url": "https://www.google.com/maps/place/A%2B+Dental/data=!4m7!3m6!1s0x89e81c2f4d7d76af:0x46df1d16654be21a!8m2!3d41.1099474!4d-73.4075413!16s%2Fg%2F1v3gsypm!19sChIJr3Z9TS8c6IkRGuJLZRYd30Y",
@@ -391,6 +428,11 @@
   "maps_url": "https://www.google.com/maps/place/Advanced+Aesthetics+%26+Family+Dentistry/data=!4m7!3m6!1s0x89e81c2f4e3fe0b1:0xce554bbc298b39c4!8m2!3d41.110358!4d-73.409411!16s%2Fg%2F1tmg7l76!19sChIJseA_Ti8c6IkRxDmLKbxLVc4",
   "category": "Dentist"
  },
+ "1003947425": {
+  "maps_url": "https://www.google.com/maps/place/Mark+S+Roisman,+DMD/data=!4m7!3m6!1s0x89e81b7ae689a4ff:0xbacec0d50da62ea5!8m2!3d41.1454795!4d-73.3615583!16s%2Fg%2F1tdq_rk3!19sChIJ_6SJ5nob6IkRpS6mDdXAzro",
+  "category": "Dentist",
+  "website": "https://www.mywestportdentist.com/"
+ },
  "1982720025": {
   "maps_url": "https://www.google.com/maps/place/Joseph+P+Suarez+DDS/data=!4m7!3m6!1s0x89e81c2f6a6e3523:0xb53d8cbf70a83137!8m2!3d41.1106381!4d-73.4070476!16s%2Fg%2F1tz76_ym!19sChIJIzVuai8c6IkRNzGocL-MPbU",
   "category": "Dentist"
@@ -409,7 +451,7 @@
   "category": "Dentist"
  },
  "1912523903": {
-  "maps_url": "https://www.google.com/maps/place/Perimenis+Dental+Group/data=!4m7!3m6!1s0x89e7e27a24c9095d:0x4df4aa7ac1340d80!8m2!3d41.2962724!4d-73.2299478!16s%2Fg%2F1tvdktz8!19sChIJXQnJJHri54kRgA00wXqq9E0",
+  "maps_url": "https://www.google.com/maps/place/Tyler+Perimenis/data=!4m7!3m6!1s0x89e809cb3022517f:0x71c6b3c4cdff03c1!8m2!3d41.2965127!4d-73.2287191!16s%2Fg%2F11pkfr_lxc!19sChIJf1EiMMsJ6IkRwQP_zcSzxnE",
   "category": "Dentist",
   "website": "http://www.perimenisdentalgroup.com/"
  },
@@ -422,9 +464,19 @@
   "maps_url": "https://www.google.com/maps/place/Orthodontic+Boutique+of+Connecticut+-+Trumbull/data=!4m7!3m6!1s0x89e808354ea4b623:0xe4cd88b95cc3572a!8m2!3d41.2463358!4d-73.1970444!16s%2Fg%2F1yg58n617!19sChIJI7akTjUI6IkRKlfDXLmIzeQ",
   "category": "Orthodontist"
  },
+ "1962617506": {
+  "website": "https://forms.cloud.microsoft/r/b6SyGK7y5C",
+  "maps_url": "https://www.google.com/maps/place/Brush+%26+Floss+Dental+Center/data=!4m7!3m6!1s0x89e80b66b1460373:0x7eccc927161a2d99!8m2!3d41.2233295!4d-73.1162026!16s%2Fg%2F1tywyzpp!19sChIJcwNGsWYL6IkRmS0aFifJzH4",
+  "category": "Dentist"
+ },
  "1770393977": {
   "maps_url": "https://www.google.com/maps/place/Huza+Endodontics/data=!4m7!3m6!1s0x89e8093173ef9ca1:0x2dcf7c9bb08a543b!8m2!3d41.2965072!4d-73.2316128!16s%2Fg%2F11tbxqd204!19sChIJoZzvczEJ6IkRO1SKsJt8zy0",
   "category": "Endodontist"
+ },
+ "1265657779": {
+  "website": "https://schedule.jarvisanalytics.com/frame/dental-care-alliance-ct",
+  "maps_url": "https://www.google.com/maps/place/Adams+a+DDS/data=!4m7!3m6!1s0x89e80a79e45a0135:0x9ee2e151376b12c7!8m2!3d41.2962803!4d-73.1461056!16s%2Fg%2F1vysxkft!19sChIJNQFa5HkK6IkRxxJrN1Hh4p4",
+  "category": "Dental implants periodontist"
  },
  "1144356338": {
   "maps_url": "https://www.google.com/maps/place/Dr.+Ronald+J.+Klinkowize,+DMD/data=!4m7!3m6!1s0x89e809cb1f6e5151:0xfb343aad1258674d!8m2!3d41.2966986!4d-73.2276772!16s%2Fg%2F1vmr2dk8!19sChIJUVFuH8sJ6IkRTWdYEq06NPs",
@@ -432,11 +484,6 @@
  },
  "1720134851": {
   "maps_url": "https://www.google.com/maps/place/Nielsen+Marcia+L+DDS/data=!4m7!3m6!1s0x89e8091b176d6b53:0xe442a12ff325c670!8m2!3d41.261703!4d-73.2209863!16s%2Fg%2F1tfv_5hd!19sChIJU2ttFxsJ6IkRcMYl8y-hQuQ",
-  "category": "Dentist"
- },
- "1225463268": {
-  "website": "https://www.dentalcenterwestport.com/",
-  "maps_url": "https://www.google.com/maps/place/Dental+Center+of+Westport/data=!4m7!3m6!1s0x89e81b7accb5915b:0xb1ff6cf5ad312540!8m2!3d41.1362407!4d-73.369375!16s%2Fg%2F1tl7prjf!19sChIJW5G1zHob6IkRQCUxrfVs_7E",
   "category": "Dentist"
  },
  "1891244950": {
@@ -449,16 +496,6 @@
   "maps_url": "https://www.google.com/maps/place/Westport+Family+Dental/data=!4m7!3m6!1s0x89e81afa93361bbf:0xa01e2fd0f782798d!8m2!3d41.1401011!4d-73.3485971!16s%2Fg%2F11ckvbz4cc!19sChIJvxs2k_oa6IkRjXmC99AvHqA",
   "category": "Dentist"
  },
- "1457899874": {
-  "website": "https://www.westportfairfielddentalgroup.com/",
-  "maps_url": "https://www.google.com/maps/place/Advanced+Dental+of+Westport+CT/data=!4m7!3m6!1s0x89e81b72dd0b7ae5:0xccd6b02f770f1aa1!8m2!3d41.1425206!4d-73.3499498!16s%2Fg%2F1tg2lp_8!19sChIJ5XoL3XIb6IkRoRoPdy-w1sw",
-  "category": "Dentist"
- },
- "1669795381": {
-  "website": "https://www.imperialdentalassociates.com/",
-  "maps_url": "https://www.google.com/maps/place/Imperial+Dental+Associates/data=!4m7!3m6!1s0x89e81b774283d90b:0xd55cd23a3ab70e30!8m2!3d41.1404608!4d-73.3578997!16s%2Fg%2F1tf5r7_y!19sChIJC9mDQncb6IkRMA63OjrSXNU",
-  "category": "Dentist"
- },
  "1619016102": {
   "website": "https://www.distinctivedentalservice.net/",
   "maps_url": "https://www.google.com/maps/place/Distinctive+Dental+Service/data=!4m7!3m6!1s0x89e81b81e06d4d25:0xc6083c73494d3926!8m2!3d41.1392718!4d-73.3572794!16s%2Fg%2F1pp2wx9rg!19sChIJJU1t4IEb6IkRJjlNSXM8CMY",
@@ -467,11 +504,6 @@
  "1740641323": {
   "website": "http://www.southportsmiles.com/",
   "maps_url": "https://www.google.com/maps/place/Southport+Smiles+Dentistry/data=!4m7!3m6!1s0x89e81a9af6537d57:0x31a5ea20fa10f75!8m2!3d41.1380734!4d-73.2865217!16s%2Fg%2F1tdj57hf!19sChIJV31T9poa6IkRdQ-hD6JeGgM",
-  "category": "Dentist"
- },
- "1003947425": {
-  "website": "https://www.mywestportdentist.com/",
-  "maps_url": "https://www.google.com/maps/place/Mark+S+Roisman,+DMD/data=!4m7!3m6!1s0x89e81b7ae689a4ff:0xbacec0d50da62ea5!8m2!3d41.1454795!4d-73.3615583!16s%2Fg%2F1tdq_rk3!19sChIJ_6SJ5nob6IkRpS6mDdXAzro",
   "category": "Dentist"
  },
  "1689729576": {
@@ -493,6 +525,12 @@
   "website": "https://www.fairfieldcosmeticdentistry.com/",
   "maps_url": "https://www.google.com/maps/place/Cosmetic+%26+Reconstructive+Dentistry/data=!4m7!3m6!1s0x89e810150e232443:0xf5ed4764166a3898!8m2!3d41.1422837!4d-73.2541571!16s%2Fg%2F1td7jsd9!19sChIJQyQjDhUQ6IkRmDhqFmRH7fU",
   "category": "Dentist"
+ },
+ "1063386969": {
+  "website": "https://www.premierdentalconnecticut.com/dentist-office/fairfield-ct-06824",
+  "maps_url": "https://www.google.com/maps/place/Premier+Dental+of+Connecticut+in+Fairfield/data=!4m7!3m6!1s0x89e8106cdab87637:0x4ba323b738d56eef!8m2!3d41.141224!4d-73.261345!16s%2Fg%2F1tdq24w6!19sChIJN3a42mwQ6IkR727VOLcjo0s",
+  "category": "Dentist",
+  "rating": "4.8"
  },
  "1295954469": {
   "website": "https://fairfieldsmiles.com/",
@@ -630,6 +668,10 @@
   "maps_url": "https://www.google.com/maps/place/Capitol+Dental+Associates+LLC/data=!4m7!3m6!1s0x89e6537b258d2355:0x4b656c499b1e6d41!8m2!3d41.7654984!4d-72.6739275!16s%2Fg%2F1wk4f22p!19sChIJVSONJXtT5okRQW0em0lsZUs",
   "category": "Dentist"
  },
+ "1487838330": {
+  "maps_url": "https://www.google.com/maps/place/Roy+Shakun,+DMD+%7C+Dentist+in+West+Hartford+CT+-+West+Hartford+Family+Dental/data=!4m7!3m6!1s0x89e7ab7d3b533e17:0xbc991fc09f4a306d!8m2!3d41.785304!4d-72.7462599!16s%2Fg%2F11sh2cckf5!19sChIJFz5TO32r54kRbTBKn8Afmbw",
+  "category": "Dentist"
+ },
  "1053444794": {
   "maps_url": "https://www.google.com/maps/place/Care+Dental+Center/data=!4m7!3m6!1s0x89e653105a23d12d:0x85e82f02045072fb!8m2!3d41.7455648!4d-72.6773477!16s%2Fg%2F1vcjn8h7!19sChIJLdEjWhBT5okR-3JQBAIv6IU",
   "category": "Dentist"
@@ -642,9 +684,18 @@
   "maps_url": "https://www.google.com/maps/place/Dr.+Stanley+Lee/data=!4m7!3m6!1s0x89e6536b696f2183:0x7df40c6d4737813c!8m2!3d41.755548!4d-72.6812003!16s%2Fg%2F11rwxfl6yz!19sChIJgyFvaWtT5okRPIE3R20M9H0",
   "category": "Dentist"
  },
+ "1174814495": {
+  "maps_url": "https://www.google.com/maps/place/Blue+Back+Dental:+West+Hartford+Location/data=!4m7!3m6!1s0x89e7acec6d59703f:0xdde2a748149a86f3!8m2!3d41.7595744!4d-72.7397355!16s%2Fg%2F1trpm706!19sChIJP3BZbeys54kR84aaFEin4t0",
+  "category": "Dentist"
+ },
  "1033254602": {
   "website": "https://www.zocdoc.com/practice/hartford-dental-group-40480",
   "maps_url": "https://www.google.com/maps/place/Hartford+Dental+Group:+Bahin+Samimy+DDS/data=!4m7!3m6!1s0x89e65351a2ef80c9:0x62f9506f19c256d8!8m2!3d41.7690258!4d-72.70246!16s%2Fg%2F1tf36zzp!19sChIJyYDvolFT5okR2FbCGW9Q-WI",
+  "category": "Dentist"
+ },
+ "1467787671": {
+  "website": "https://schedule.jarvisanalytics.com/frame/dental-care-alliance-ct",
+  "maps_url": "https://www.google.com/maps/place/Yin+Qianying+Jane+Dr-+West+Hartford+Dental/data=!4m7!3m6!1s0x89e7acbfb359ab9d:0xae3225b0494a6d7a!8m2!3d41.7650564!4d-72.7315613!16s%2Fg%2F1tdmlhrj!19sChIJnatZs7-s54kRem1KSbAlMq4",
   "category": "Dentist"
  },
  "1255138186": {
@@ -672,6 +723,11 @@
   "maps_url": "https://www.google.com/maps/place/MagicLand+Dental/data=!4m7!3m6!1s0x89e653ab241144e3:0x14ed7ac3d93fa77a!8m2!3d41.7591039!4d-72.6988168!16s%2Fg%2F11vb1_k9gy!19sChIJ40QRJKtT5okReqc_2cN67RQ",
   "category": "Pediatric dentist"
  },
+ "1154960243": {
+  "website": "https://nexhealth.info/book/appt/thesmilist",
+  "maps_url": "https://www.google.com/maps/place/Contemporary+General+Dentistry+Affiliated+with+The+Smilist+Dental/data=!4m7!3m6!1s0x89e7acbfb35e956b:0x3bcf4a51ed4950e!8m2!3d41.7651738!4d-72.7315173!16s%2Fg%2F1vr3f5qm!19sChIJa5Ves7-s54kRDpXUHqX0vAM",
+  "category": "Dentist"
+ },
  "1790863603": {
   "maps_url": "https://www.google.com/maps/place/Dr.+Hang+D.+Le,+DDS/data=!4m7!3m6!1s0x89e7b4816cbbca4d:0x279d0ec636bb04ee!8m2!3d41.7657527!4d-72.7131273!16s%2Fg%2F1tcv2gwf!19sChIJTcq7bIG054kR7gS7NsYOnSc",
   "category": "Dentist"
@@ -684,6 +740,10 @@
   "maps_url": "https://www.google.com/maps/place/Care+Endodontics,+PC/data=!4m7!3m6!1s0x89e6534d8d65fddf:0xdaae503c1a64811c!8m2!3d41.7672123!4d-72.7055463!16s%2Fg%2F1262h7x1v!19sChIJ3_1ljU1T5okRHIFkGjxQrto",
   "category": "Endodontist"
  },
+ "1346269354": {
+  "maps_url": "https://www.google.com/maps/place/Central+Connecticut+Oral+Maxillofacial+%26+Implant+Surgery/data=!4m7!3m6!1s0x89e7acbfb359ab9d:0xf8c25a76d1afe3a2!8m2!3d41.7652195!4d-72.7314917!16s%2Fg%2F1vbl8m75!19sChIJnatZs7-s54kRouOv0XZawvg",
+  "category": "Oral surgeon"
+ },
  "1487859070": {
   "maps_url": "https://www.google.com/maps/place/Merkouriou+John+DDS./data=!4m7!3m6!1s0x89e6531d51261a1d:0xcee5f2af180aacc1!8m2!3d41.7342308!4d-72.674466!16s%2Fg%2F1w2y_glk!19sChIJHRomUR1T5okRwawKGK_y5c4",
   "category": "Dentist"
@@ -692,8 +752,20 @@
   "maps_url": "https://www.google.com/maps/place/Tooth+%26+Gumz+Dentistry/data=!4m7!3m6!1s0x89e654ae5f4b60ab:0x704d3346e5d94056!8m2!3d41.784268!4d-72.7021567!16s%2Fg%2F1pxws3p2q!19sChIJq2BLX65U5okRVkDZ5UYzTXA",
   "category": "Dentist"
  },
+ "1427616812": {
+  "maps_url": "https://www.google.com/maps/place/Talcott+Dental+Care/data=!4m7!3m6!1s0x89e7acb94651ad4d:0x633c18d63bbe93bc!8m2!3d41.7651512!4d-72.726791!16s%2Fg%2F1td2vy5j!19sChIJTa1RRrms54kRvJO-O9YYPGM",
+  "category": "Dentist"
+ },
  "1750793790": {
   "maps_url": "https://www.google.com/maps/place/Dr.+Jeffrey+Cutler/data=!4m7!3m6!1s0x89e6536cb5f06efd:0x155ef6e15c02db89!8m2!3d41.7537488!4d-72.6787176!16s%2Fg%2F11p079zhhw!19sChIJ_W7wtWxT5okRidsCXOH2XhU",
+  "category": "Dentist"
+ },
+ "1588410005": {
+  "maps_url": "https://www.google.com/maps/place/Elmwood+Dental/data=!4m7!3m6!1s0x89e7ad3d4db918b5:0xcae53a58382f0540!8m2!3d41.7332634!4d-72.7328293!16s%2Fg%2F1td7pbn9!19sChIJtRi5TT2t54kRQAUvOFg65co",
+  "category": "Dentist"
+ },
+ "1225109028": {
+  "maps_url": "https://www.google.com/maps/place/Dr.+Anthony+Amato,+DMD/data=!4m7!3m6!1s0x89e7acecd0d2feeb:0x3616a4653058697d!8m2!3d41.7632446!4d-72.7415237!16s%2Fg%2F1td77lyt!19sChIJ6_7S0Oys54kRfWlYMGWkFjY",
   "category": "Dentist"
  },
  "1902053531": {
@@ -706,6 +778,10 @@
  },
  "1447316013": {
   "maps_url": "https://www.google.com/maps/place/Psaras+James+DDS/data=!4m7!3m6!1s0x89e6536b2a8967d9:0x2ddc9b0383b9c8a1!8m2!3d41.7544266!4d-72.6834505!16s%2Fg%2F1tgcsxnx!19sChIJ2WeJKmtT5okRoci5gwOb3C0",
+  "category": "Dentist"
+ },
+ "1871096123": {
+  "maps_url": "https://www.google.com/maps/place/Nadler,+Barnett,+Shoflick/data=!4m7!3m6!1s0x89e654202492a1af:0xcd0a5bac966d1ed5!8m2!3d41.757822!4d-72.7434145!16s%2Fg%2F11b6v6xc98!19sChIJr6GSJCBU5okR1R5tlqxbCs0",
   "category": "Dentist"
  },
  "1164734372": {
@@ -784,16 +860,16 @@
   "maps_url": "https://www.google.com/maps/place/James+A+Damascus,+DDS/data=!4m7!3m6!1s0x89c2aa24dada22f5:0xe18ebb04952f6435!8m2!3d41.2834692!4d-73.4968384!16s%2Fg%2F11bbrj_jp_!19sChIJ9SLa2iSqwokRNWQvlQS7juE",
   "category": "Dentist"
  },
- "1346269354": {
-  "maps_url": "https://www.google.com/maps/place/Central+Connecticut+Oral+Maxillofacial+%26+Implant+Surgery/data=!4m7!3m6!1s0x89e7acbfb359ab9d:0xf8c25a76d1afe3a2!8m2!3d41.7652195!4d-72.7314917!16s%2Fg%2F1vbl8m75!19sChIJnatZs7-s54kRouOv0XZawvg",
-  "category": "Oral surgeon"
- },
  "1437370426": {
   "maps_url": "https://www.google.com/maps/place/Dana+Cirtu,+D.M.D./data=!4m7!3m6!1s0x89e7ab6324aded93:0x8f414bf777ee7aad!8m2!3d41.7867475!4d-72.743977!16s%2Fg%2F1thzpy67!19sChIJk-2tJGOr54kRrXrud_dLQY8",
   "category": "Orthodontist"
  },
  "1558745539": {
   "maps_url": "https://www.google.com/maps/place/New+Age+Dental/data=!4m7!3m6!1s0x89e7acecdaf863bf:0x222fb325f092fe39!8m2!3d41.7627594!4d-72.7415393!16s%2Fg%2F1tfz1432!19sChIJv2P42uys54kROf6S8CWzLyI",
+  "category": "Dentist"
+ },
+ "1740489434": {
+  "maps_url": "https://www.google.com/maps/place/Community+Health+Services/data=!4m7!3m6!1s0x89e6549f425bc6ad:0x6b4e17fb8f89af88!8m2!3d41.7779961!4d-72.6847809!16s%2Fg%2F1tcvq8y8!19sChIJrcZbQp9U5okRiK-Jj_sXTms",
   "category": "Dentist"
  },
  "1952456865": {
@@ -808,8 +884,8 @@
   "maps_url": "https://www.google.com/maps/place/Odlum+Brian+H+DDS/data=!4m7!3m6!1s0x89e7acedcd473347:0x81b699e6fc5be0e8!8m2!3d41.7614109!4d-72.7425088!16s%2Fg%2F1ts3m748!19sChIJRzNHze2s54kR6OBb_OaZtoE",
   "category": "Dentist"
  },
- "1487838330": {
-  "maps_url": "https://www.google.com/maps/place/Roy+Shakun,+DMD+%7C+Dentist+in+West+Hartford+CT+-+West+Hartford+Family+Dental/data=!4m7!3m6!1s0x89e7ab7d3b533e17:0xbc991fc09f4a306d!8m2!3d41.785304!4d-72.7462599!16s%2Fg%2F11sh2cckf5!19sChIJFz5TO32r54kRbTBKn8Afmbw",
+ "1518256643": {
+  "maps_url": "https://www.google.com/maps/place/Hartford+Cosmetic+Dental+Center/data=!4m7!3m6!1s0x89e7acb3ae4755d5:0xb42cff492b07ab6b!8m2!3d41.7656837!4d-72.7131578!16s%2Fg%2F119v9qz4z!19sChIJ1VVHrrOs54kRa6sHK0n_LLQ",
   "category": "Dentist"
  },
  "1972824225": {
@@ -1567,6 +1643,11 @@
   "maps_url": "https://www.google.com/maps/place/Sano+Dental/data=!4m7!3m6!1s0x89c2ed58ae979c4b:0xeed410caf4ae1e57!8m2!3d40.9349998!4d-73.8591568!16s%2Fg%2F11gxjssl_c!19sChIJS5yXrljtwokRVx6u9MoQ1O4",
   "category": "Dentist"
  },
+ "1245497163": {
+  "website": "https://smilescarsdale.com/",
+  "maps_url": "https://www.google.com/maps/place/Scarsdale+Plaza+Dental+Services,+PLLC/data=!4m7!3m6!1s0x89c2934711fbcacd:0xa2a99f1a982e4c44!8m2!3d40.9880461!4d-73.824945!16s%2Fg%2F11nl54h5jh!19sChIJzcr7EUeTwokRREwumBqfqaI",
+  "category": "Dentist"
+ },
  "1760574073": {
   "maps_url": "https://www.google.com/maps/place/Calvo-Cruz+Hermann+DDS/data=!4m7!3m6!1s0x89c2f25c4b55ae9b:0xa6936cc5440791a9!8m2!3d40.9179156!4d-73.8968041!16s%2Fg%2F1tf6y8pj!19sChIJm65VS1zywokRqZEHRMVsk6Y",
   "category": "Dentist"
@@ -1660,11 +1741,6 @@
  "1497087639": {
   "website": "https://www.scarsdaleoralsurg.com/scarsdale-oral-surgery",
   "maps_url": "https://www.google.com/maps/place/Scarsdale+Oral+Surgery/data=!4m7!3m6!1s0x89c29338b1399e15:0xa3da967fa4b3102!8m2!3d40.988042!4d-73.8249727!16s%2Fg%2F1tdh9cg0!19sChIJFZ45sTiTwokRAjFL-mepPQo",
-  "category": "Dentist"
- },
- "1245497163": {
-  "website": "https://smilescarsdalefamilydental.com/",
-  "maps_url": "https://www.google.com/maps/place/Scarsdale+Plaza+Dental+Services,+PLLC/data=!4m7!3m6!1s0x89c2934711fbcacd:0xa2a99f1a982e4c44!8m2!3d40.9880461!4d-73.824945!16s%2Fg%2F11nl54h5jh!19sChIJzcr7EUeTwokRREwumBqfqaI",
   "category": "Dentist"
  },
  "1942584198": {
@@ -2007,6 +2083,11 @@
   "maps_url": "https://www.google.com/maps/place/Garden+City+Dental/data=!4m7!3m6!1s0x89c27d3ccd6b3737:0x68ad5bb00b64f8f4!8m2!3d40.714934!4d-73.633842!16s%2Fg%2F1tftxwns!19sChIJNzdrzTx9wokR9PhkC7BbrWg",
   "category": "Dentist"
  },
+ "1174651244": {
+  "website": "https://www.gardencitysmiles.com/locations/garden-city-office/",
+  "maps_url": "https://www.google.com/maps/place/Garden+City+Smiles:+Louis+J.+Buono,+DDS/data=!4m7!3m6!1s0x89c27d40628dbc73:0x997766ef8b90e8d9!8m2!3d40.7253189!4d-73.6329051!16s%2Fg%2F1vfn7l1d!19sChIJc7yNYkB9wokR2eiQi-9md5k",
+  "category": "Dentist"
+ },
  "1104226638": {
   "website": "https://www.harmonyhealthcareli.org/health-care-locations/#hempstead",
   "maps_url": "https://www.google.com/maps/place/Harmony+Healthcare+Long+Island+at+Hempstead/data=!4m7!3m6!1s0x89c27d190b7d3f35:0xad50a9bb353c908d!8m2!3d40.7117306!4d-73.6109184!16s%2Fg%2F113dp016s!19sChIJNT99Cxl9wokRjZA8NbupUK0",
@@ -2019,8 +2100,8 @@
  },
  "1265312151": {
   "website": "https://www.islandoralsurgerygroup.com/",
-  "maps_url": "https://www.google.com/maps/place/Eisenberger+and+Bindiger+Orthodontics/data=!4m7!3m6!1s0x89c27ddcf46e51eb:0x6ca7b77d5a358d48!8m2!3d40.7149342!4d-73.6338421!16s%2Fg%2F11xs7pt0w8!19sChIJ61Fu9Nx9wokRSI01Wn23p2w",
-  "category": "Orthodontist"
+  "maps_url": "https://www.google.com/maps/place/Island+Oral+Surgery+%26+Implant+Group:+Joseph+W.+Como+DDS/data=!4m7!3m6!1s0x89c27d3ccd6b3737:0x785160009053e01a!8m2!3d40.714934!4d-73.633842!16s%2Fg%2F1tc_0fm7!19sChIJNzdrzTx9wokRGuBTkABgUXg",
+  "category": "Dentist"
  },
  "1134390917": {
   "website": "http://gardencityendo.com/",
@@ -2635,22 +2716,6 @@
   "maps_url": "https://www.google.com/maps/place/Cranston+Cosmetic+Dentistry/data=!4m7!3m6!1s0x89e44ec3fd038287:0x5e81711aec5539c7!8m2!3d41.7549502!4d-71.4592215!16s%2Fg%2F1vzn6l5h!19sChIJh4ID_cNO5IkRxzlV7BpxgV4",
   "category": "Dentist"
  },
- "1063386969": {
-  "website": "https://schedule.jarvisanalytics.com/frame/dental-care-alliance-ct",
-  "maps_url": "https://www.google.com/maps/place/Premier+Dental+of+Connecticut+in+Fairfield/data=!4m7!3m6!1s0x89e8106cdab87637:0x4ba323b738d56eef!8m2!3d41.141224!4d-73.261345!16s%2Fg%2F1tdq24w6!19sChIJN3a42mwQ6IkR727VOLcjo0s",
-  "rating": "4.8",
-  "category": "Dentist"
- },
- "1578709671": {
-  "maps_url": "https://www.google.com/maps/place/Fairfield-Monroe+Orthodontics/data=!4m7!3m6!1s0x89e80fb8b6698db7:0xfef2e72410c48639!8m2!3d41.1797232!4d-73.2468629!16s%2Fg%2F1thx0gp1!19sChIJt41ptrgP6IkROYbEECTn8v4",
-  "rating": "4.9",
-  "category": "Orthodontist"
- },
- "1255696845": {
-  "maps_url": "https://www.google.com/maps/place/Tunxis+Hill+Dental/data=!4m7!3m6!1s0x89e80e4a43da1b77:0x587f0891ecb7cc61!8m2!3d41.176834!4d-73.2247257!16s%2Fg%2F1tnpggq9!19sChIJdxvaQ0oO6IkRYcy37JEIf1g",
-  "rating": "4.8",
-  "category": "Dentist"
- },
  "1851454979": {
   "website": "https://nexhealth.info/book/appt/cosmeticandreconstructivedentistry",
   "maps_url": "https://www.google.com/maps/place/Fairfield+Cosmetic+%26+General+Dentistry/data=!4m7!3m6!1s0x89e8119bbb657339:0xaa3e706d4ba3e977!8m2!3d41.1426727!4d-73.2547591!16s%2Fg%2F11y7189k65!19sChIJOXNlu5sR6IkRd-mjS21wPqo",
@@ -2702,6 +2767,10 @@
  "1912128869": {
   "maps_url": "https://www.google.com/maps/place/Rosenberg+Robert+D+DDS-+Connecticut+Orthodontic+Specialist/data=!4m7!3m6!1s0x89e8103db6b8dd29:0xb36fe0a578443a21!8m2!3d41.1454914!4d-73.2497034!16s%2Fg%2F1tdqjhyz!19sChIJKd24tj0Q6IkRITpEeKXgb7M",
   "category": "Orthodontist"
+ },
+ "1740626266": {
+  "maps_url": "https://www.google.com/maps/place/Downtown+Dental+CT/data=!4m7!3m6!1s0x89e80e70c3df84f5:0x984951807371fbcb!8m2!3d41.178415!4d-73.1893303!16s%2Fg%2F12mkw9fgb!19sChIJ9YTfw3AO6IkRy_txc4BRSZg",
+  "category": "Dentist"
  },
  "1033234554": {
   "maps_url": "https://www.google.com/maps/place/Sprouse+Jr+L+Henry+DDS/data=!4m7!3m6!1s0x89e80f95b124142b:0x9bdd0d752a79bdc0!8m2!3d41.1847519!4d-73.255568!16s%2Fg%2F1tdbggfs!19sChIJKxQksZUP6IkRwL15KnUN3Zs",
@@ -2776,14 +2845,9 @@
   "maps_url": "https://www.google.com/maps/place/a/data=!4m7!3m6!1s0x89e7f42c24b3e063:0x1f7e2ca0ef0d1cd6!8m2!3d41.2772335!4d-73.1208146!16s%2Fg%2F1v470css!19sChIJY-CzJCz054kR1hwN76Asfh8",
   "category": "Dentist"
  },
- "1265657779": {
-  "website": "https://www.huntingtonfamilydental.com/",
-  "maps_url": "https://www.google.com/maps/place/Adams+a+DDS/data=!4m7!3m6!1s0x89e80a79e45a0135:0x9ee2e151376b12c7!8m2!3d41.2962803!4d-73.1461056!16s%2Fg%2F1vysxkft!19sChIJNQFa5HkK6IkRxxJrN1Hh4p4",
-  "category": "Dental implants periodontist"
- },
  "1699913863": {
   "website": "https://www.dentalcenterofhuntington.com/",
-  "maps_url": "https://www.google.com/maps/place/Dental+Center+of+Huntington/data=!4m7!3m6!1s0x89e80a7a69f0b531:0xbc157dfd6f33d03e!8m2!3d41.294578!4d-73.1452725!16s%2Fg%2F1td_4sd7!19sChIJMbXwaXoK6IkRPtAzb_19Fbw",
+  "maps_url": "https://www.google.com/maps/place/Dr.+Neal+Graber/data=!4m7!3m6!1s0x89e80a7a3e83ffff:0x5d444e820b5461a1!8m2!3d41.2946125!4d-73.1450793!16s%2Fg%2F11rwxg8zhv!19sChIJ__-DPnoK6IkRoWFUC4JORF0",
   "category": "Dentist"
  },
  "1073833992": {
@@ -2837,6 +2901,11 @@
   "maps_url": "https://www.google.com/maps/place/Dr.+Maureen+O.+Sharnick,+DMD/data=!4m7!3m6!1s0x89e7e01ef66f25b7:0x62a995c04bf6d016!8m2!3d41.2961678!4d-73.1090583!16s%2Fg%2F1td4l4lh!19sChIJtyVv9h7g54kRFtD2S8CVqWI",
   "category": "Dentist"
  },
+ "1427258300": {
+  "website": "https://www.dentiststratfordct.com/",
+  "maps_url": "https://www.google.com/maps/place/Lighthouse+Dental+Care/data=!4m7!3m6!1s0x89e80b3b1f4d2e4b:0x10747952a1a84ac1!8m2!3d41.24329!4d-73.101585!16s%2Fg%2F1thl_gt6!19sChIJSy5NHzsL6IkRwUqooVJ5dBA",
+  "category": "Dentist"
+ },
  "1245158286": {
   "website": "https://waypointperio.com/",
   "maps_url": "https://www.google.com/maps/place/Waypoint+Periodontics/data=!4m7!3m6!1s0x89e80bd338956069:0xe6ad5a067e4cd5a6!8m2!3d41.2682987!4d-73.1310693!16s%2Fg%2F11ntn8w9gk!19sChIJaWCVONML6IkRptVMfgZareY",
@@ -2856,11 +2925,6 @@
   "maps_url": "https://www.google.com/maps/place/Coastal+Dental+Care+of+Milford/data=!4m7!3m6!1s0x89e87515b4cb393d:0x403a37af992b8ab5!8m2!3d41.228836!4d-73.047661!16s%2Fg%2F11k2x_6r40!19sChIJPTnLtBV16IkRtYorma83OkA",
   "category": "Dentist"
  },
- "1962617506": {
-  "website": "https://stratfordctdentist.com/",
-  "maps_url": "https://www.google.com/maps/place/Brush+%26+Floss+Dental+Center/data=!4m7!3m6!1s0x89e80b66b1460373:0x7eccc927161a2d99!8m2!3d41.2233295!4d-73.1162026!16s%2Fg%2F1tywyzpp!19sChIJcwNGsWYL6IkRmS0aFifJzH4",
-  "category": "Dentist"
- },
  "1174528483": {
   "maps_url": "https://www.google.com/maps/place/White+Hills+Family+Dental/data=!4m7!3m6!1s0x89e7e054deb49019:0xfe178834d409db86!8m2!3d41.3352041!4d-73.1338605!16s%2Fg%2F12639t5vk!19sChIJGZC03lTg54kRhtsJ1DSIF_4",
   "category": "Dentist"
@@ -2878,6 +2942,11 @@
  "1417073438": {
   "website": "https://dentistintrumbull.com/",
   "maps_url": "https://www.google.com/maps/place/Vaughn+Family+Dentistry/data=!4m7!3m6!1s0x89e809cb2f5e3221:0x81e138828f986ddf!8m2!3d41.2955761!4d-73.2280734!16s%2Fg%2F1tdd1qms!19sChIJITJeL8sJ6IkR322Yj4I44YE",
+  "category": "Dentist"
+ },
+ "1972390482": {
+  "website": "https://dworkindental.com/",
+  "maps_url": "https://www.google.com/maps/place/Dworkin+Dental+-+Milford/data=!4m7!3m6!1s0x89e875cc44ee69b1:0xb880b5cb19678b5d!8m2!3d41.2238073!4d-73.0714255!16s%2Fg%2F11sn7rzg2h!19sChIJsWnuRMx16IkRXYtnGcu1gLg",
   "category": "Dentist"
  },
  "1215365283": {
@@ -3009,6 +3078,11 @@
   "maps_url": "https://www.google.com/maps/place/Stamford+Dental+Spa/data=!4m7!3m6!1s0x89c2a1e7d9b4a9f9:0x42cf2b73c1427ff1!8m2!3d41.0554031!4d-73.5381459!16s%2Fg%2F1tdnm16g!19sChIJ-am02eehwokR8X9CwXMrz0I",
   "category": "Dentist"
  },
+ "1033510474": {
+  "website": "http://www.pearlcares.com/",
+  "maps_url": "https://www.google.com/maps/place/Pearl+Dental/data=!4m7!3m6!1s0x89c2a1e95f41b6ef:0x7c0f872794289b1d!8m2!3d41.0605584!4d-73.5405251!16s%2Fg%2F12hpbmwrp!19sChIJ77ZBX-mhwokRHZsolCeHD3w",
+  "category": "Dentist"
+ },
  "1780722306": {
   "maps_url": "https://www.google.com/maps/place/Pogoda+Donald+A+DDS/data=!4m7!3m6!1s0x89c298b7b5ec1761:0x811326caf2e1982e!8m2!3d41.031272!4d-73.5689051!16s%2Fg%2F1td4qmwm!19sChIJYRfstbeYwokRLpjh8somE4E",
   "category": "Dentist"
@@ -3043,6 +3117,11 @@
   "maps_url": "https://www.google.com/maps/place/Michael+D.+Gentile,+D.D.S./data=!4m7!3m6!1s0x89c298475dbd2c31:0xbafa07cc61f74daa!8m2!3d41.0345863!4d-73.6313148!16s%2Fg%2F1ty755mt!19sChIJMSy9XUeYwokRqk33YcwH-ro",
   "category": "Dentist"
  },
+ "1285040469": {
+  "website": "http://www.newfielddental.com/",
+  "maps_url": "https://www.google.com/maps/place/Lasting+Smiles+of+Stratford+-+aka+Barnum+Dental/data=!4m7!3m6!1s0x89e80cf511fbfd5b:0x18b8ae7cd9a93070!8m2!3d41.1992074!4d-73.1339637!16s%2Fg%2F1ygvt04gm!19sChIJW_37EfUM6IkRcDCp2XyuuBg",
+  "category": "Dentist"
+ },
  "1295824720": {
   "website": "https://www.thetownpractice.com/",
   "maps_url": "https://www.google.com/maps/place/Dr.+Douglas+M.+Trepp,+DMD/data=!4m7!3m6!1s0x89c299d2f12c63c3:0x60999613db5a9dd2!8m2!3d41.0180096!4d-73.6451295!16s%2Fg%2F1tppsx5k!19sChIJw2Ms8dKZwokR0p1a2xOWmWA",
@@ -3061,6 +3140,11 @@
  "1528379039": {
   "website": "https://www.stamfordfamilydentist.com/",
   "maps_url": "https://www.google.com/maps/place/Merritt+Family+Dental,+Dr.+Amutha+Raguram+DDS/data=!4m7!3m6!1s0x89c2a1e95deb7f07:0x610f62991864feab!8m2!3d41.06017!4d-73.540341!16s%2Fg%2F1hm6llc9z!19sChIJB3_rXemhwokRq_5kGJliD2E",
+  "category": "Dentist"
+ },
+ "1154952513": {
+  "website": "https://www.clearsmiledentalstudio.com/",
+  "maps_url": "https://www.google.com/maps/place/Stamford+Dentistry+%26+Implants+-+Clear+Smile+Dental+Studio/data=!4m7!3m6!1s0x89c2a14abc46ae39:0x47ea8094fd89357f!8m2!3d41.0553493!4d-73.5281294!16s%2Fg%2F11j8xyn2p2!19sChIJOa5GvEqhwokRfzWJ_ZSA6kc",
   "category": "Dentist"
  },
  "1437709821": {
@@ -3290,6 +3374,10 @@
   "maps_url": "https://www.google.com/maps/place/Chadys+Jon+David+DDS/data=!4m7!3m6!1s0x89e8083d18170b0d:0x46a244e8d94535c5!8m2!3d41.3055486!4d-73.2507998!16s%2Fg%2F1tjz4dk1!19sChIJDQsXGD0I6IkRxTVF2ehEokY",
   "category": "Dentist"
  },
+ "1285752923": {
+  "maps_url": "https://www.google.com/maps/place/Maria+A.+Smith,+DMD,+PC/data=!4m7!3m6!1s0x89e7e071c17d95dd:0x32523c16edda097e!8m2!3d41.3189921!4d-73.0988214!16s%2Fg%2F1tczrcyl!19sChIJ3ZV9wXHg54kRfgna7RY8UjI",
+  "category": "Dentist"
+ },
  "1740514421": {
   "maps_url": "https://www.google.com/maps/place/Gomez+Joseph+a+DDS/data=!4m7!3m6!1s0x89e7e26e0b129dbb:0x443c5972e67a6be6!8m2!3d41.3210249!4d-73.2124126!16s%2Fg%2F1tfvtzm7!19sChIJu50SC27i54kR5mt65nJZPEQ",
   "category": "Dentist"
@@ -3440,6 +3528,11 @@
   "maps_url": "https://www.google.com/maps/place/My+NYC+Dentist+-+Hudson+Street+Dental/data=!4m7!3m6!1s0x89c259af08078d97:0xeca9313f12dc29be!8m2!3d40.7265687!4d-74.0081224!16s%2Fg%2F11fsx99wgt!19sChIJl40HCK9ZwokRvincEj8xqew",
   "category": "Dentist"
  },
+ "1790420578": {
+  "website": "https://nexhealth.info/book/appt/glow-dental-nyc",
+  "maps_url": "https://www.google.com/maps/place/Glow+Dental+of+Midtown+Manhattan:+Dr.+Alina+Huang/data=!4m7!3m6!1s0x89c259f441cdaf83:0x2e60e690b3c1be0c!8m2!3d40.7487274!4d-73.9847307!16s%2Fg%2F11h_z9tw2b!19sChIJg6_NQfRZwokRDL7Bs5DmYC4",
+  "category": "Dentist"
+ },
  "1205066412": {
   "website": "https://www.zocdoc.com/practice/my-nyc-dentist-5956",
   "maps_url": "https://www.google.com/maps/place/My+NYC+Dentist+-+23rd+Street+Dental/data=!4m7!3m6!1s0x89c259a48a1aabf9:0x5475ce6440e38ed8!8m2!3d40.7425871!4d-73.9913111!16s%2Fg%2F1tqg17m1!19sChIJ-asaiqRZwokR2I7jQGTOdVQ",
@@ -3468,6 +3561,10 @@
   "website": "https://www.zocdoc.com/practice/dental-serenity-of-manhattan-p-c-18076",
   "maps_url": "https://www.google.com/maps/place/Dental+Serenity+of+Manhattan/data=!4m7!3m6!1s0x89c258fb8bc3e887:0x919692beb8f435b4!8m2!3d40.7597372!4d-73.9738141!16s%2Fg%2F1pzqmmqm3!19sChIJh-jDi_tYwokRtDX0uL6SlpE",
   "category": "Dental clinic"
+ },
+ "1285227140": {
+  "maps_url": "https://www.google.com/maps/place/NYC+Dental+of+Upper+East+Side/data=!4m7!3m6!1s0x89c259dce27a3761:0xace6b2a5dda3a638!8m2!3d40.7718654!4d-73.9586489!16s%2Fg%2F11rhw26b62!19sChIJYTd64txZwokROKaj3aWy5qw",
+  "category": "Dentist"
  },
  "1699764753": {
   "website": "https://www.zocdoc.com/dentist/john-vargas-dds-39138",
@@ -3705,8 +3802,8 @@
  },
  "1891755682": {
   "website": "http://eastchesterdentalcare.com/",
-  "maps_url": "https://www.google.com/maps/place/Eastchester+Dental+Care/data=!4m7!3m6!1s0x89c2f331576ed4d1:0x515522da2f406cf2!8m2!3d40.8794911!4d-73.8480473!16s%2Fg%2F1tfcv4kj!19sChIJ0dRuVzHzwokR8mxAL9oiVVE",
-  "category": "Dentist"
+  "maps_url": "https://www.google.com/maps/place/Mc+Lean+Ronald+DDS/data=!4m7!3m6!1s0x89c2f331576ed4d1:0x6aafe8f9954ff1f0!8m2!3d40.8794861!4d-73.8480377!16s%2Fg%2F1w4vkw2f!19sChIJ0dRuVzHzwokR8PFPlfnor2o",
+  "category": "Dental clinic"
  },
  "1750374278": {
   "website": "http://www.smiledentalofnewrochelle.com/",
@@ -3721,6 +3818,11 @@
  "1144234469": {
   "website": "https://www.concerneddentalcare.com/locations/bronx-ny-dental-office/",
   "maps_url": "https://www.google.com/maps/place/Concerned+Dental+Care+of+the+Bronx/data=!4m7!3m6!1s0x89c2f30cab822eb5:0xe18fc3e5b9936eef!8m2!3d40.8790944!4d-73.8827255!16s%2Fg%2F1tg79ztr!19sChIJtS6CqwzzwokR726TueXDj-E",
+  "category": "Dentist"
+ },
+ "1922794429": {
+  "website": "https://www.newrochelle-dental.com/",
+  "maps_url": "https://www.google.com/maps/place/New+Rochelle+Dental+Arts/data=!4m7!3m6!1s0x89c28d3fd2b4f469:0x705e149b08af28b7!8m2!3d40.9095599!4d-73.7802618!16s%2Fg%2F11h6f_hbrt!19sChIJafS00j-NwokRtyivCJsUXnA",
   "category": "Dentist"
  },
  "1295275220": {
@@ -3747,6 +3849,11 @@
   "maps_url": "https://www.google.com/maps/place/Perler+Dental/data=!4m7!3m6!1s0x89c28d9bae929e75:0xf6e7fe631ef74131!8m2!3d40.9135533!4d-73.7861373!16s%2Fg%2F1tcwgxw6!19sChIJdZ6SrpuNwokRMUH3HmP-5_Y",
   "category": "Dentist"
  },
+ "1306599543": {
+  "website": "https://familydentistnewrochelle.com/",
+  "maps_url": "https://www.google.com/maps/place/Westchester+Dental+Care,+P.C./data=!4m7!3m6!1s0x89c28d4550c195e1:0xa89b7295aae9dfab!8m2!3d40.9138962!4d-73.7779434!16s%2Fg%2F11k3rkbsf1!19sChIJ4ZXBUEWNwokRq9_pqpVym6g",
+  "category": "Dentist"
+ },
  "1376766782": {
   "website": "https://www.newrochelle-dentist.com/",
   "maps_url": "https://www.google.com/maps/place/Todd+Wortman,+DDS/data=!4m7!3m6!1s0x89c28d9cf282ce47:0x4e16051c1aa1e8a4!8m2!3d40.9132008!4d-73.7904268!16s%2Fg%2F1v3kjfpr!19sChIJR86C8pyNwokRpOihGhwFFk4",
@@ -3768,6 +3875,11 @@
  "1235266040": {
   "website": "http://www.nidasorianodds.com/",
   "maps_url": "https://www.google.com/maps/place/Southside+Dental/data=!4m7!3m6!1s0x89c28d9cf282ce47:0x5003fcfa26921f2d!8m2!3d40.9130984!4d-73.7906712!16s%2Fg%2F1tk6r7gw!19sChIJR86C8pyNwokRLR-SJvr8A1A",
+  "category": "Dentist"
+ },
+ "1427733815": {
+  "website": "http://dentalsmiles26.com/",
+  "maps_url": "https://www.google.com/maps/place/Baychester+Pediatric+Dentistry/data=!4m7!3m6!1s0x89c2f32b2996f2e5:0x8231e07170e47881!8m2!3d40.8903337!4d-73.8423841!16s%2Fg%2F1tcv_bsg!19sChIJ5fKWKSvzwokRgXjkcHHgMYI",
   "category": "Dentist"
  },
  "1730515164": {
@@ -4004,6 +4116,10 @@
  "1669461638": {
   "maps_url": "https://www.google.com/maps/place/Garden+City+Endodontics:+Bremer+Eric+DDS/data=!4m7!3m6!1s0x89c27d3f9c34ae03:0x1a67f625b2a2e57c!8m2!3d40.7240142!4d-73.6324238!16s%2Fg%2F1tdwr04g!19sChIJA640nD99wokRfOWisiX2Zxo",
   "category": "Endodontist"
+ },
+ "1912080631": {
+  "maps_url": "https://www.google.com/maps/place/Ferng+Richard+C+DDS/data=!4m7!3m6!1s0x89c27d40628dbc73:0x60e09232c9d9e708!8m2!3d40.725326!4d-73.63294!16s%2Fg%2F1tf03dj3!19sChIJc7yNYkB9wokRCOfZyTKS4GA",
+  "category": "Dentist"
  },
  "1316026735": {
   "maps_url": "https://www.google.com/maps/place/Krecko+Andrejs+DDS/data=!4m7!3m6!1s0x89c27d5e19059015:0xb7ef4094fb87838c!8m2!3d40.7400697!4d-73.6304183!16s%2Fg%2F1tv3pm1q!19sChIJFZAFGV59wokRjIOH-5RA77c",
@@ -4414,6 +4530,11 @@
   "maps_url": "https://www.google.com/maps/place/Hazelton+Family+Dental/data=!4m7!3m6!1s0x89e44f18d105e637:0xf9c6b4292a1f2215!8m2!3d41.7736999!4d-71.4512386!16s%2Fg%2F1tj2ph0j!19sChIJN-YF0RhP5IkRFSIfKim0xvk",
   "category": "Dentist"
  },
+ "1639564891": {
+  "website": "https://www.nedentalri.com/",
+  "maps_url": "https://www.google.com/maps/place/New+England+Dental+advanced+cosmetic+dentistry/data=!4m7!3m6!1s0x89e44fed67a96c57:0x9ebe9902e93c0df0!8m2!3d41.789068!4d-71.4045459!16s%2Fg%2F11b8v9_wm3!19sChIJV2ypZ-1P5IkR8A086QKZvp4",
+  "category": "Dentist"
+ },
  "1285773259": {
   "website": "http://www.drnap.com/",
   "maps_url": "https://www.google.com/maps/place/Napolillo+David+M+DMD/data=!4m7!3m6!1s0x89e44f10a79c22d9:0x5d456c41d70fdc3a!8m2!3d41.7774131!4d-71.4468341!16s%2Fg%2F1tmxgkwf!19sChIJ2SKcpxBP5IkROtwP10FsRV0",
@@ -4684,11 +4805,6 @@
   "maps_url": "https://www.google.com/maps/place/Astra+Dental+-+Stratford/data=!4m7!3m6!1s0x89e80d15b950d385:0x86f398b4b1c2e93a!8m2!3d41.194285!4d-73.1320518!16s%2Fg%2F11kj79q8ss!19sChIJhdNQuRUN6IkROunCsbSY84Y",
   "category": "Dentist"
  },
- "1285040469": {
-  "website": "http://www.barnumdental.com/",
-  "maps_url": "https://www.google.com/maps/place/Lasting+Smiles+of+Stratford+-+aka+Barnum+Dental/data=!4m7!3m6!1s0x89e80cf511fbfd5b:0x18b8ae7cd9a93070!8m2!3d41.1992074!4d-73.1339637!16s%2Fg%2F1ygvt04gm!19sChIJW_37EfUM6IkRcDCp2XyuuBg",
-  "category": "Dentist"
- },
  "1912461526": {
   "website": "http://asmiledentistry.com/",
   "maps_url": "https://www.google.com/maps/place/A-Smile+Family+Dentistry+of+Stratford/data=!4m7!3m6!1s0x89e80cfbe24f0e9f:0x493a76b587cc2ccd!8m2!3d41.1864664!4d-73.1289141!16s%2Fg%2F11f08jc4dh!19sChIJnw5P4vsM6IkRzSzMh7V2Okk",
@@ -4893,6 +5009,10 @@
   "maps_url": "https://www.google.com/maps/place/Yale-New+Haven+Hospital+Dental+Services./data=!4m7!3m6!1s0x89e7d8520d579737:0xb0b93e10ad7c814c!8m2!3d41.302154!4d-72.9341603!16s%2Fg%2F11b7gv0v2v!19sChIJN5dXDVLY54kRTIF8rRA-ubA",
   "category": "Dentist"
  },
+ "1679363618": {
+  "maps_url": "https://www.google.com/maps/place/East+Haven+Dentistry/data=!4m7!3m6!1s0x89e7d6da82c4f07d:0x65f828437bbdcea2!8m2!3d41.3230242!4d-72.8405881!16s%2Fg%2F1tfdfhd9!19sChIJffDEgtrW54kRos69e0Mo-GU",
+  "category": "Dentist"
+ },
  "1275540916": {
   "maps_url": "https://www.google.com/maps/place/Dr.+Yiming+King,+DMD/data=!4m7!3m6!1s0x89e7d84d22ed83ab:0x5e40de0cd5f06d59!8m2!3d41.3061397!4d-72.9323109!16s%2Fg%2F1vc_rd2r!19sChIJq4PtIk3Y54kRWW3w1QzeQF4",
   "category": "Endodontist"
@@ -5046,6 +5166,10 @@
   "maps_url": "https://www.google.com/maps/place/Borbon+Yolanda+I+DDS/data=!4m7!3m6!1s0x89e60e6f6bb1a591:0xeeafd3adc7e316a5!8m2!3d41.3601945!4d-72.1070861!16s%2Fg%2F1tgx7msh!19sChIJkaWxa28O5okRpRbjx63Tr-4",
   "category": "Dentist"
  },
+ "1922214592": {
+  "maps_url": "https://www.google.com/maps/place/Dr.+John+Turick/data=!4m7!3m6!1s0x89e60ebad573ffff:0xdba7009318b5b18f!8m2!3d41.3558636!4d-72.0615542!16s%2Fg%2F11p07b824h!19sChIJ__9z1boO5okRj7G1GJMAp9s",
+  "category": "Dentist"
+ },
  "1124355060": {
   "website": "https://www.aspendental.com/dentist/ct/waterford/909-hartford-tpke-ste-d5",
   "maps_url": "https://www.google.com/maps/place/Aspen+Dental+-+Waterford,+CT/data=!4m7!3m6!1s0x89e612029dca666b:0x710b3bc8dda2c178!8m2!3d41.3803991!4d-72.1506116!16s%2Fg%2F1th1drds!19sChIJa2bKnQIS5okReMGi3cg7C3E",
@@ -5075,10 +5199,6 @@
   "maps_url": "https://www.google.com/maps/place/Advantage+Dental+Group,+LLC/data=!4m7!3m6!1s0x89e613f2621eb1b7:0x255920b56f1db6cf!8m2!3d41.3657611!4d-72.2083972!16s%2Fg%2F1tfh5pgy!19sChIJt7EeYvIT5okRz7Ydb7UgWSU",
   "category": "Dentist"
  },
- "1922214592": {
-  "maps_url": "https://www.google.com/maps/place/Dr.+John+Turick/data=!4m7!3m6!1s0x89e60ebad573ffff:0xdba7009318b5b18f!8m2!3d41.3558636!4d-72.0615542!16s%2Fg%2F11p07b824h!19sChIJ__9z1boO5okRj7G1GJMAp9s",
-  "category": "Dentist"
- },
  "1427563956": {
   "website": "https://www.moderndentalartsct.com/",
   "maps_url": "https://www.google.com/maps/place/Modern+Dental+Arts/data=!4m7!3m6!1s0x89e60f47bc768e4f:0x7728f438beda119d!8m2!3d41.3411043!4d-72.1165729!16s%2Fg%2F11y1srvdgj!19sChIJT452vEcP5okRnRHavjj0KHc",
@@ -5089,6 +5209,10 @@
   "maps_url": "https://www.google.com/maps/place/Dr.+Milos+R.+Janicek,+DMD/data=!4m7!3m6!1s0x89e60e5c124be8a7:0x7a8ccc14d102b7b2!8m2!3d41.3737356!4d-72.1632575!16s%2Fg%2F1tc_s0pl!19sChIJp-hLElwO5okRsrcC0RTMjHo",
   "category": "Endodontist"
  },
+ "1134564156": {
+  "maps_url": "https://www.google.com/maps/place/Brooklyn+Oak+Dental+Care/data=!4m7!3m6!1s0x89c25b0199670123:0x2c37e114be3f7efb!8m2!3d40.6806786!4d-73.9805883!16s%2Fg%2F12hqb6m8g!19sChIJIwFnmQFbwokR-34_vhThNyw",
+  "category": "Dentist"
+ },
  "1932546231": {
   "maps_url": "https://www.google.com/maps/place/Empire+Dental+NY+PC/data=!4m7!3m6!1s0x89c244c8c659c42d:0x77ffd7f1eb237b1b!8m2!3d40.625331!4d-73.964552!16s%2Fg%2F11b6mdzfmw!19sChIJLcRZxshEwokRG3sj6_HX_3c",
   "category": "Cosmetic dentist"
@@ -5098,8 +5222,16 @@
   "maps_url": "https://www.google.com/maps/place/Advanced+Dental+Care/data=!4m7!3m6!1s0x89c25ccc236eb963:0x8f6560045927e58e!8m2!3d40.692708!4d-73.993561!16s%2Fg%2F1tk8phyq!19sChIJY7luI8xcwokRjuUnWQRgZY8",
   "category": "Dentist"
  },
+ "1205229044": {
+  "maps_url": "https://www.google.com/maps/place/Brooklyn+Smile+%26+Dental+Implants/data=!4m7!3m6!1s0x89c24f89c8fed10f:0x33c14375f453411e!8m2!3d40.6165142!4d-74.0312628!16s%2Fg%2F1vk6_45b!19sChIJD9H-yIlPwokRHkFT9HVDwTM",
+  "category": "Dentist"
+ },
  "1295290351": {
   "maps_url": "https://www.google.com/maps/place/Wellspring+Dental/data=!4m7!3m6!1s0x89c25a591c010f03:0x29d487bbb0475f85!8m2!3d40.6810583!4d-73.9986374!16s%2Fg%2F11clzs4b0s!19sChIJAw8BHFlawokRhV9HsLuH1Ck",
+  "category": "Dentist"
+ },
+ "1770977506": {
+  "maps_url": "https://www.google.com/maps/place/Park+Dentistry/data=!4m7!3m6!1s0x89c25b558b1b276d:0x106d0b47d6d731d3!8m2!3d40.6738635!4d-73.9725277!16s%2Fg%2F1vyn4s73!19sChIJbScbi1VbwokR0zHX1kcLbRA",
   "category": "Dentist"
  },
  "1871012559": {
@@ -5124,8 +5256,16 @@
   "maps_url": "https://www.google.com/maps/place/Brooklyn+Comfortable+Dental+Care+-+Dr.+Christopher+Bowers/data=!4m7!3m6!1s0x89c25a46280e55e5:0x8bf79759077b3576!8m2!3d40.6943587!4d-73.9948543!16s%2Fg%2F1tkbz42b!19sChIJ5VUOKEZawokRdjV7B1mX94s",
   "category": "Dentist"
  },
+ "1386004463": {
+  "maps_url": "https://www.google.com/maps/place/Park+Slope+Dental+Arts/data=!4m7!3m6!1s0x89c25b03e0e894c5:0x29190b4cb8e56de!8m2!3d40.670195!4d-73.978463!16s%2Fg%2F11cnbk9ljv!19sChIJxZTo4ANbwokR3laOy7SQkQI",
+  "category": "Dentist"
+ },
  "1225364425": {
   "maps_url": "https://www.google.com/maps/place/Willoughby+Dental/data=!4m7!3m6!1s0x89c25a4b9cc5a9d1:0x4ff724357bed93fd!8m2!3d40.6919256!4d-73.9861166!16s%2Fg%2F1tf7ng_3!19sChIJ0anFnEtawokR_ZPtezUk908",
+  "category": "Dentist"
+ },
+ "1841612173": {
+  "maps_url": "https://www.google.com/maps/place/Cosmopolitan+Dental+of+Brooklyn/data=!4m7!3m6!1s0x89c245600e8cb7c5:0xc95c2d5d868430a7!8m2!3d40.6227979!4d-74.0289836!16s%2Fg%2F1txc7yqh!19sChIJxbeMDmBFwokRpzCEhl0tXMk",
   "category": "Dentist"
  },
  "1093958282": {
@@ -5148,6 +5288,10 @@
  "1447109137": {
   "maps_url": "https://www.google.com/maps/place/Family+Smile+Dental/data=!4m7!3m6!1s0x89c244be09ef124b:0x9f26ddafef7cc892!8m2!3d40.6134015!4d-73.9537871!16s%2Fg%2F1263pvm8f!19sChIJSxLvCb5EwokRksh876_dJp8",
   "category": "Cosmetic dentist"
+ },
+ "1942997697": {
+  "maps_url": "https://www.google.com/maps/place/Noble+Dental+Care/data=!4m7!3m6!1s0x89c25afd05cdec6d:0x745a4270237e6250!8m2!3d40.6683075!4d-73.9872324!16s%2Fg%2F1v3_3lyf!19sChIJbezNBf1awokRUGJ-I3BCWnQ",
+  "category": "Dentist"
  },
  "1124295282": {
   "website": "https://flexbook.me/75fd9ec1",
@@ -5580,11 +5724,6 @@
  "1215180039": {
   "website": "https://www.zocdoc.com/practice/american-dental-care-10680",
   "maps_url": "https://www.google.com/maps/place/American+Dental+Care/data=!4m7!3m6!1s0x89c26176de00b3b7:0xf551e39f68a7abc6!8m2!3d40.7198853!4d-73.7628477!16s%2Fg%2F1tnbm1cq!19sChIJt7MA3nZhwokRxqunaJ_jUfU",
-  "category": "Dentist"
- },
- "1306599543": {
-  "website": "http://westchester-dentalcare.com/",
-  "maps_url": "https://www.google.com/maps/place/Westchester+Dental+Care,+P.C./data=!4m7!3m6!1s0x89c28d4550c195e1:0xa89b7295aae9dfab!8m2!3d40.9138962!4d-73.7779434!16s%2Fg%2F11k3rkbsf1!19sChIJ4ZXBUEWNwokRq9_pqpVym6g",
   "category": "Dentist"
  },
  "1639389851": {

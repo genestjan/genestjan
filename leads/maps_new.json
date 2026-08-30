@@ -60,18 +60,6 @@
   "query": "dentist in Bridgeport, CT"
  },
  {
-  "name": "Tunxis Hill Dental",
-  "phone": "(203) 873-0970",
-  "address": "71 Tunxis Hill Rd",
-  "city": "Bridgeport",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://www.newtunxishilldental.com/",
-  "maps_url": "https://www.google.com/maps/place/Tunxis+Hill+Dental/data=!4m7!3m6!1s0x89e80e4a43da1b77:0x587f0891ecb7cc61!8m2!3d41.176834!4d-73.2247257!16s%2Fg%2F1tnpggq9!19sChIJdxvaQ0oO6IkRYcy37JEIf1g",
-  "query": "dentist in Bridgeport, CT"
- },
- {
   "name": "Presto Dental",
   "phone": "(203) 604-6333",
   "address": "3101 Main St",
@@ -105,42 +93,6 @@
   "rating": "",
   "website": "https://optimushealthcare.org/",
   "maps_url": "https://www.google.com/maps/place/Park+City+Primary+Care+Center/data=!4m7!3m6!1s0x89e80e132bd062db:0x4a771df75ff4c46f!8m2!3d41.1712455!4d-73.197278!16s%2Fg%2F1tcxf73x!19sChIJ22LQKxMO6IkRb8T0X_cdd0o",
-  "query": "dentist in Bridgeport, CT"
- },
- {
-  "name": "Hawley Lane Dental - Dentist Stratford CT",
-  "phone": "(475) 335-8404",
-  "address": "475 Hawley Ln Ste 9",
-  "city": "Bridgeport",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://hawleylanedental.com/stratford-ct-new-dentist-specials-near-you/",
-  "maps_url": "https://www.google.com/maps/place/Hawley+Lane+Dental+-+Dentist+Stratford+CT/data=!4m7!3m6!1s0x89e80b9002e287eb:0x837cf76d2b75437!8m2!3d41.2325674!4d-73.1472932!16s%2Fg%2F1td2vy9f!19sChIJ64fiApAL6IkRN1S30nbPNwg",
-  "query": "dentist in Bridgeport, CT"
- },
- {
-  "name": "Family Dental Group of Fairfield",
-  "phone": "",
-  "address": "320 Kings Hwy E",
-  "city": "Bridgeport",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Family+Dental+Group+of+Fairfield/data=!4m7!3m6!1s0x89e80e356b5be8ad:0x29d562dc55443de7!8m2!3d41.1744241!4d-73.2286787!16s%2Fg%2F1tmbx4b0!19sChIJrehbazUO6IkR5z1EVdxi1Sk",
-  "query": "dentist in Bridgeport, CT"
- },
- {
-  "name": "Perfect Smiles of Fairfield",
-  "phone": "(203) 366-7655",
-  "address": "1817 Black Rock Tpke Ste 103",
-  "city": "Bridgeport",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://perfectsmilesoffairfield.com/",
-  "maps_url": "https://www.google.com/maps/place/Perfect+Smiles+of+Fairfield/data=!4m7!3m6!1s0x89e80fbf50dd0643:0x2d5483459a504119!8m2!3d41.1797335!4d-73.2468182!16s%2Fg%2F1tf03dnq!19sChIJQwbdUL8P6IkRGUFQmkWDVC0",
   "query": "dentist in Bridgeport, CT"
  },
  {
@@ -265,13 +217,13 @@
  },
  {
   "name": "Daniel Dental Studio",
-  "phone": "",
+  "phone": "(475) 265-6590",
   "address": "515 West Ave",
   "city": "Norwalk",
   "state": "CT",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://danieldentalstudio.com/",
   "maps_url": "https://www.google.com/maps/place/Daniel+Dental+Studio/data=!4m7!3m6!1s0x89e81d2d3389388f:0x48f9613e551a9614!8m2!3d41.1121688!4d-73.4158986!16s%2Fg%2F11nmq65934!19sChIJjziJMy0d6IkRFJYaVT5h-Ug",
   "query": "dentist in Norwalk, CT"
  },
@@ -397,7 +349,7 @@
  },
  {
   "name": "Sunshine Dental Care LLC.",
-  "phone": "",
+  "phone": "(203) 227-8500",
   "address": "18 Imperial Ave",
   "city": "Norwalk",
   "state": "CT",
@@ -432,18 +384,6 @@
   "query": "dentist in Norwalk, CT"
  },
  {
-  "name": "Dental Center of Westport",
-  "phone": "",
-  "address": "175 Post Rd W",
-  "city": "Norwalk",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dental+Center+of+Westport/data=!4m7!3m6!1s0x89e81b7accb5915b:0xb1ff6cf5ad312540!8m2!3d41.1362407!4d-73.369375!16s%2Fg%2F1tl7prjf!19sChIJW5G1zHob6IkRQCUxrfVs_7E",
-  "query": "dentist in Norwalk, CT"
- },
- {
   "name": "Kids First Dentistry & Orthodontics Norwalk",
   "phone": "",
   "address": "493 Westport Ave",
@@ -453,18 +393,6 @@
   "rating": "",
   "website": "https://www.certify.care/NADG",
   "maps_url": "https://www.google.com/maps/place/Kids+First+Dentistry+%26+Orthodontics+Norwalk/data=!4m7!3m6!1s0x89e81c6e8cf9b177:0x4042cb2d48f1822c!8m2!3d41.1276302!4d-73.3865585!16s%2Fg%2F1tfc317w!19sChIJd7H5jG4c6IkRLILxSC3LQkA",
-  "query": "dentist in Norwalk, CT"
- },
- {
-  "name": "Imperial Dental Associates",
-  "phone": "",
-  "address": "15 Imperial Ave",
-  "city": "Norwalk",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Imperial+Dental+Associates/data=!4m7!3m6!1s0x89e81b774283d90b:0xd55cd23a3ab70e30!8m2!3d41.1404608!4d-73.3578997!16s%2Fg%2F1tf5r7_y!19sChIJC9mDQncb6IkRMA63OjrSXNU",
   "query": "dentist in Norwalk, CT"
  },
  {
@@ -505,13 +433,13 @@
  },
  {
   "name": "Esthetic Dental Group of Westport: Dr. Steven Regenstein",
-  "phone": "",
+  "phone": "(475) 284-8705",
   "address": "327 Riverside Ave",
   "city": "Norwalk",
   "state": "CT",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://edgw.us/",
   "maps_url": "https://www.google.com/maps/place/Esthetic+Dental+Group+of+Westport:+Dr.+Steven+Regenstein/data=!4m7!3m6!1s0x89e81b7acdfdcb0d:0xea780f45f3324b72!8m2!3d41.1283972!4d-73.369742!16s%2Fg%2F1vd72c0f!19sChIJDcv9zXob6IkRcksy80UPeOo",
   "query": "dentist in Norwalk, CT"
  },
@@ -553,13 +481,13 @@
  },
  {
   "name": "Efren Cortes, D.D.S, P.C.",
-  "phone": "",
+  "phone": "(203) 557-8388",
   "address": "29 Imperial Ave",
   "city": "Norwalk",
   "state": "CT",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "http://westportctdentist.com/",
   "maps_url": "https://www.google.com/maps/place/Efren+Cortes,+D.D.S,+P.C./data=!4m7!3m6!1s0x89c2a1e95f4035b3:0x2cae682f18633e28!8m2!3d41.1391268!4d-73.3579511!16s%2Fg%2F1td77hsf!19sChIJszVAX-mhwokRKD5jGC9oriw",
   "query": "dentist in Norwalk, CT"
  },
@@ -573,18 +501,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Alan+R+Rissolo,+DMD:+Oral+Surgeons+Associates,+PC/data=!4m7!3m6!1s0x89e81c328f3e2333:0xd77a2ace99da450c!8m2!3d41.11634!4d-73.4168363!16s%2Fg%2F1tdksvb7!19sChIJMyM-jzIc6IkRDEXamc4qetc",
-  "query": "dentist in Norwalk, CT"
- },
- {
-  "name": "Advanced Dental of Westport CT",
-  "phone": "",
-  "address": "7 Whitney St",
-  "city": "Norwalk",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Advanced+Dental+of+Westport+CT/data=!4m7!3m6!1s0x89e81b72dd0b7ae5:0xccd6b02f770f1aa1!8m2!3d41.1425206!4d-73.3499498!16s%2Fg%2F1tg2lp_8!19sChIJ5XoL3XIb6IkRoRoPdy-w1sw",
   "query": "dentist in Norwalk, CT"
  },
  {
@@ -621,18 +537,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Richard+A.+Epstein,+DMD/data=!4m7!3m6!1s0x89e81ca6b0508083:0x189ddac0b1dee805!8m2!3d41.1284251!4d-73.3693071!16s%2Fg%2F1tcv_g2r!19sChIJg4BQsKYc6IkRBejescDanRg",
-  "query": "dentist in Norwalk, CT"
- },
- {
-  "name": "Commerce Park Cosmetic Dentistry LLC",
-  "phone": "",
-  "address": "4699 Main Street",
-  "city": "Norwalk",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Commerce+Park+Cosmetic+Dentistry+LLC/data=!4m7!3m6!1s0x89e80ed0087c4b21:0xbff1d53732ba0740!8m2!3d41.224857!4d-73.220783!16s%2Fg%2F1thsgz7h!19sChIJIUt8CNAO6IkRQAe6MjfV8b8",
   "query": "dentist in Norwalk, CT"
  },
  {
@@ -744,18 +648,6 @@
   "query": "dentist in Norwalk, CT"
  },
  {
-  "name": "Mark S Roisman, DMD",
-  "phone": "",
-  "address": "225 Main St #304",
-  "city": "Norwalk",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Mark+S+Roisman,+DMD/data=!4m7!3m6!1s0x89e81b7ae689a4ff:0xbacec0d50da62ea5!8m2!3d41.1454795!4d-73.3615583!16s%2Fg%2F1tdq_rk3!19sChIJ_6SJ5nob6IkRpS6mDdXAzro",
-  "query": "dentist in Norwalk, CT"
- },
- {
   "name": "Chandwani Brijesh DDS",
   "phone": "",
   "address": "83 East Ave Ste 205",
@@ -816,26 +708,14 @@
   "query": "dentist in Trumbull, CT"
  },
  {
-  "name": "Westfield Dental Center",
-  "phone": "",
-  "address": "5065 Main St #1118",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Westfield+Dental+Center/data=!4m7!3m6!1s0x89e80ed425aa4357:0xc6e487984c959118!8m2!3d41.2293532!4d-73.226474!16s%2Fg%2F1tc_xn0p!19sChIJV0OqJdQO6IkRGJGVTJiH5MY",
-  "query": "dentist in Trumbull, CT"
- },
- {
   "name": "Children's Dentistry of Trumbull",
-  "phone": "",
+  "phone": "(203) 590-1588",
   "address": "999 Silver Ln Ste 2D",
   "city": "Trumbull",
   "state": "CT",
   "category": "Pediatric dentist",
   "rating": "",
-  "website": "",
+  "website": "http://www.childrensdentistryoftrumbull.com/",
   "maps_url": "https://www.google.com/maps/place/Children%27s+Dentistry+of+Trumbull/data=!4m7!3m6!1s0x89e80b8c4267a91f:0xfb46ba8e6b756b53!8m2!3d41.2299668!4d-73.1549165!16s%2Fg%2F11b7jxqh4f!19sChIJH6lnQowL6IkRU2t1a466Rvs",
   "query": "dentist in Trumbull, CT"
  },
@@ -888,18 +768,6 @@
   "query": "dentist in Trumbull, CT"
  },
  {
-  "name": "DeJesus Dental Group - Bridgeport/Trumbull",
-  "phone": "",
-  "address": "4131 Main St",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/DeJesus+Dental+Group+-+Bridgeport%2FTrumbull/data=!4m7!3m6!1s0x89e80ec3a296fdeb:0x8eabda2fb287c1b1!8m2!3d41.2166648!4d-73.2140187!16s%2Fg%2F1tycxpgy!19sChIJ6_2WosMO6IkRscGHsi_aq44",
-  "query": "dentist in Trumbull, CT"
- },
- {
   "name": "Radiant Smiles Family and Aesthetic Dentistry",
   "phone": "",
   "address": "2240 Madison Ave",
@@ -909,18 +777,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Radiant+Smiles+Family+and+Aesthetic+Dentistry/data=!4m7!3m6!1s0x89e80ee496a99cf9:0x73a511fdfac60e9f!8m2!3d41.2061273!4d-73.2220752!16s%2Fg%2F1tfzc6gm!19sChIJ-ZypluQO6IkRnw7G-v0RpXM",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Long Ridge Dental Bridgeport",
-  "phone": "",
-  "address": "3741 Main St",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Long+Ridge+Dental+Bridgeport/data=!4m7!3m6!1s0x89e80eea0e611479:0xc02eb31872b3960f!8m2!3d41.2120042!4d-73.2106627!16s%2Fg%2F11b6vjp27f!19sChIJeRRhDuoO6IkRD5azchizLsA",
   "query": "dentist in Trumbull, CT"
  },
  {
@@ -936,66 +792,6 @@
   "query": "dentist in Trumbull, CT"
  },
  {
-  "name": "Hawley Lane Dental - Dentist Stratford CT",
-  "phone": "",
-  "address": "475 Hawley Ln Ste 9",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://book.modento.io/hawleylanedental/g/google-schedule-link",
-  "maps_url": "https://www.google.com/maps/place/Hawley+Lane+Dental+-+Dentist+Stratford+CT/data=!4m7!3m6!1s0x89e80b9002e287eb:0x837cf76d2b75437!8m2!3d41.2325674!4d-73.1472932!16s%2Fg%2F1td2vy9f!19sChIJ64fiApAL6IkRN1S30nbPNwg",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Bridgeport Dental Partners",
-  "phone": "",
-  "address": "161 Boston Ave",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Bridgeport+Dental+Partners/data=!4m7!3m6!1s0x89e80e9c5e059a5d:0x4cf11cca6ced1fb9!8m2!3d41.2027282!4d-73.1857223!16s%2Fg%2F1tfgqf7c!19sChIJXZoFXpwO6IkRuR_tbMoc8Uw",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Stratford Dental Care",
-  "phone": "",
-  "address": "373 Nichols Ave",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Stratford+Dental+Care/data=!4m7!3m6!1s0x89e80c5e20710349:0x4af8854879336090!8m2!3d41.20191!4d-73.1396233!16s%2Fg%2F1tx48210!19sChIJSQNxIF4M6IkRkGAzeUiF-Eo",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Edward Kozinn DMD",
-  "phone": "",
-  "address": "961 Huntington Turnpike",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Edward+Kozinn+DMD/data=!4m7!3m6!1s0x89e80c08b684e145:0xaaff718b99c7b7c3!8m2!3d41.2211671!4d-73.169644!16s%2Fg%2F1tmqh757!19sChIJReGEtggM6IkRw7fHmYtx_6o",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Dr. Kristy Gretzula, DDS - Emergency Dentist Stratford",
-  "phone": "",
-  "address": "475 Hawley Ln Ste 9",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Emergency dental service",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dr.+Kristy+Gretzula,+DDS+-+Emergency+Dentist+Stratford/data=!4m7!3m6!1s0x89e80b90039bfc27:0x2b2bc25206c324ef!8m2!3d41.2326501!4d-73.1472905!16s%2Fg%2F11pkfrsf2s!19sChIJJ_ybA5AL6IkR7yTDBlLCKys",
-  "query": "dentist in Trumbull, CT"
- },
- {
   "name": "Allure Dental Group",
   "phone": "",
   "address": "4699 Main St #101",
@@ -1005,42 +801,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Allure+Dental+Group/data=!4m7!3m6!1s0x89e80e34b4d86557:0x86fb592d41256214!8m2!3d41.2246866!4d-73.2207458!16s%2Fg%2F1tfrsz6v!19sChIJV2XYtDQO6IkRFGIlQS1Z-4Y",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Oral Surgery Associates",
-  "phone": "",
-  "address": "",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Oral+Surgery+Associates/data=!4m7!3m6!1s0x89e80ed0103cd411:0x79e61fe3c04bf111!8m2!3d41.2241457!4d-73.2188618!16s%2Fg%2F1vwlq4kh!19sChIJEdQ8ENAO6IkREfFLwOMf5nk",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Bridgeport Braces",
-  "phone": "",
-  "address": "3715 Main St Ste 100",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Orthodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Bridgeport+Braces/data=!4m7!3m6!1s0x89e80eea1372e3c3:0x2043de2dc04e2435!8m2!3d41.211696!4d-73.2103098!16s%2Fg%2F11cmbq49m7!19sChIJw-NyE-oO6IkRNSROwC3eQyA",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Neat Dental",
-  "phone": "",
-  "address": "4270 Main St Ste 310",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://schedule.jarvisanalytics.com/frame/neat-dental",
-  "maps_url": "https://www.google.com/maps/place/Neat+Dental/data=!4m7!3m6!1s0x89e80f4a8db2f80f:0x8cf206d808054c56!8m2!3d41.2186625!4d-73.2149112!16s%2Fg%2F11ww0n7_6p!19sChIJD_iyjUoP6IkRVkwFCNgG8ow",
   "query": "dentist in Trumbull, CT"
  },
  {
@@ -1080,51 +840,15 @@
   "query": "dentist in Trumbull, CT"
  },
  {
-  "name": "Stratford Family Dental",
-  "phone": "",
-  "address": "2261 Broadbridge Ave",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://nexhealth.info/book/appt/stratford_family_dental",
-  "maps_url": "https://www.google.com/maps/place/Stratford+Family+Dental/data=!4m7!3m6!1s0x89e80c681b0235d3:0xdbf020a636610431!8m2!3d41.2031702!4d-73.1476377!16s%2Fg%2F1tmy6265!19sChIJ0zUCG2gM6IkRMQRhNqYg8Ns",
-  "query": "dentist in Trumbull, CT"
- },
- {
   "name": "Willow Tree Pediatric Dentistry",
-  "phone": "",
+  "phone": "(203) 220-6000",
   "address": "35 Corporate Dr Ste 110",
   "city": "Trumbull",
   "state": "CT",
   "category": "Pediatric dentist",
   "rating": "",
-  "website": "",
+  "website": "https://www.willowtreedentistry.com/",
   "maps_url": "https://www.google.com/maps/place/Willow+Tree+Pediatric+Dentistry/data=!4m7!3m6!1s0x89e8095d5c15cb2b:0x2f3ebd63c9d0833a!8m2!3d41.2968365!4d-73.2254569!16s%2Fg%2F11shlr1bhk!19sChIJK8sVXF0J6IkROoPQyWO9Pi8",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Brush & Floss Dental Center",
-  "phone": "",
-  "address": "4949 Main St",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://forms.cloud.microsoft/r/b6SyGK7y5C",
-  "maps_url": "https://www.google.com/maps/place/Brush+%26+Floss+Dental+Center/data=!4m7!3m6!1s0x89e80b66b1460373:0x7eccc927161a2d99!8m2!3d41.2233295!4d-73.1162026!16s%2Fg%2F1tywyzpp!19sChIJcwNGsWYL6IkRmS0aFifJzH4",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Tiberi Family Dentistry",
-  "phone": "",
-  "address": "3015 Main St",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Tiberi+Family+Dentistry/data=!4m7!3m6!1s0x89e80e92b896bda5:0x474b65e52dab6919!8m2!3d41.2030931!4d-73.2047498!16s%2Fg%2F11cjp9q4ry!19sChIJpb2WuJIO6IkRGWmrLeVlS0c",
   "query": "dentist in Trumbull, CT"
  },
  {
@@ -1140,18 +864,6 @@
   "query": "dentist in Trumbull, CT"
  },
  {
-  "name": "Commerce Park Children's Dentistry & Orthodontics",
-  "phone": "",
-  "address": "4702 Main St",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Commerce+Park+Children%27s+Dentistry+%26+Orthodontics/data=!4m7!3m6!1s0x89e80ed00701c8b7:0x6a9c853451f902fc!8m2!3d41.2237226!4d-73.217867!16s%2Fg%2F1tmqh75h!19sChIJt8gBB9AO6IkR_AL5UTSFnGo",
-  "query": "dentist in Trumbull, CT"
- },
- {
   "name": "Dr. Jeffrey O\u2019Connell",
   "phone": "",
   "address": "115 Technology Dr",
@@ -1161,18 +873,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+Jeffrey+O%E2%80%99Connell/data=!4m7!3m6!1s0x89e81015854e7641:0xb937b7abb9798a41!8m2!3d41.296445!4d-73.2313089!16s%2Fg%2F11bwh8nmy9!19sChIJQXZOhRUQ6IkRQYp5uau3N7k",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "CT Braces - Bridgeport Orthodontics",
-  "phone": "",
-  "address": "3909 Main St",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Orthodontist",
-  "rating": "",
-  "website": "https://consultation.ctbraces.com/newpatient/office/Bridgeport-Main",
-  "maps_url": "https://www.google.com/maps/place/CT+Braces+-+Bridgeport+Orthodontics/data=!4m7!3m6!1s0x89e80eea0c35a2f7:0x6e4b8d0435c4a46d!8m2!3d41.2139399!4d-73.2120458!16s%2Fg%2F1tj92l3p!19sChIJ96I1DOoO6IkRbaTENQSNS24",
   "query": "dentist in Trumbull, CT"
  },
  {
@@ -1188,18 +888,6 @@
   "query": "dentist in Trumbull, CT"
  },
  {
-  "name": "Commerce Park Cosmetic Dentistry LLC",
-  "phone": "",
-  "address": "4699 Main St Ste 200",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Commerce+Park+Cosmetic+Dentistry+LLC/data=!4m7!3m6!1s0x89e80ed0087c4b21:0xbff1d53732ba0740!8m2!3d41.224857!4d-73.220783!16s%2Fg%2F1thsgz7h!19sChIJIUt8CNAO6IkRQAe6MjfV8b8",
-  "query": "dentist in Trumbull, CT"
- },
- {
   "name": "Dr. Wayne A. Michalka",
   "phone": "",
   "address": "4699 Main St #200",
@@ -1212,18 +900,6 @@
   "query": "dentist in Trumbull, CT"
  },
  {
-  "name": "Presto Dental",
-  "phone": "",
-  "address": "3101 Main St",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Presto+Dental/data=!4m7!3m6!1s0x89e80e92d38a59b9:0x39e0acf282fa1221!8m2!3d41.2041571!4d-73.2054954!16s%2Fg%2F11xydsgqfv!19sChIJuVmK05IO6IkRIRL6gvKs4Dk",
-  "query": "dentist in Trumbull, CT"
- },
- {
   "name": "Dental Associates of Connecticut",
   "phone": "",
   "address": "680 Bridgeport Ave",
@@ -1233,30 +909,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dental+Associates+of+Connecticut/data=!4m7!3m6!1s0x89e80b7d0977cb0b:0xd0a770c448fca4dc!8m2!3d41.277158!4d-73.120865!16s%2Fg%2F11r8gq877!19sChIJC8t3CX0L6IkR3KT8SMRwp9A",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Sutton Dental & Braces",
-  "phone": "",
-  "address": "144 Boston Ave",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Sutton+Dental+%26+Braces/data=!4m7!3m6!1s0x89e80fc7fa603cdb:0x6c37db97e0204b67!8m2!3d41.2009242!4d-73.1878978!16s%2Fg%2F11gtz8xc7z!19sChIJ2zxg-scP6IkRZ0sg4JfbN2w",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Huntington Family Dental Group",
-  "phone": "",
-  "address": "534 Shelton Ave",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://schedule.jarvisanalytics.com/frame/dental-care-alliance-ct",
-  "maps_url": "https://www.google.com/maps/place/Huntington+Family+Dental+Group/data=!4m7!3m6!1s0x89e80a79e45a0135:0x8da4b93b080e099c!8m2!3d41.29648!4d-73.14464!16s%2Fg%2F1tctyl9k!19sChIJNQFa5HkK6IkRnAkOCDu5pI0",
   "query": "dentist in Trumbull, CT"
  },
  {
@@ -1321,13 +973,13 @@
  },
  {
   "name": "Children's Dentistry of Stratford",
-  "phone": "",
+  "phone": "(203) 590-1578",
   "address": "7365 Main St Unit 4",
   "city": "Trumbull",
   "state": "CT",
   "category": "Pediatric dentist",
   "rating": "",
-  "website": "",
+  "website": "http://www.ilovemypediatricdentist.com/",
   "maps_url": "https://www.google.com/maps/place/Children%27s+Dentistry+of+Stratford/data=!4m7!3m6!1s0x89e7dd987a4168e3:0xc8cde77001f0de8f!8m2!3d41.2536288!4d-73.1017868!16s%2Fg%2F11cjh_x9m4!19sChIJ42hBepjd54kRj97wAXDnzcg",
   "query": "dentist in Trumbull, CT"
  },
@@ -1341,18 +993,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Facial+Surgery+Center/data=!4m7!3m6!1s0x89e80834ce524f6b:0x789b6c094af08b8!8m2!3d41.2964392!4d-73.2313242!16s%2Fg%2F1v9lctsq!19sChIJa09SzjQI6IkRuAivlMC2iQc",
-  "query": "dentist in Trumbull, CT"
- },
- {
-  "name": "Brooklawn Dental Associates",
-  "phone": "",
-  "address": "990 Brooklawn Ave",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Cosmetic dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Brooklawn+Dental+Associates/data=!4m7!3m6!1s0x89e80e57058e1b4b:0x27b0afc1e041e8d6!8m2!3d41.1909982!4d-73.2196108!16s%2Fg%2F1tj2phj4!19sChIJSxuOBVcO6IkR1uhB4MGvsCc",
   "query": "dentist in Trumbull, CT"
  },
  {
@@ -1416,26 +1056,14 @@
   "query": "dentist in Trumbull, CT"
  },
  {
-  "name": "All Kids Dental",
-  "phone": "",
-  "address": "2566 Main St",
-  "city": "Trumbull",
-  "state": "CT",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/All+Kids+Dental/data=!4m7!3m6!1s0x89e80e8c17d20651:0x2e3a8275c30cb35e!8m2!3d41.1976607!4d-73.2007671!16s%2Fg%2F11bwd8wjl1!19sChIJUQbSF4wO6IkRXrMMw3WCOi4",
-  "query": "dentist in Trumbull, CT"
- },
- {
   "name": "Advanced Periodontics & Dental Implant Center of Connecticut",
-  "phone": "",
+  "phone": "(475) 255-2205",
   "address": "324 Elm St Ste 103A",
   "city": "Trumbull",
   "state": "CT",
   "category": "Dental implants periodontist",
   "rating": "",
-  "website": "",
+  "website": "https://www.connecticutperiodontist.com/",
   "maps_url": "https://www.google.com/maps/place/Advanced+Periodontics+%26+Dental+Implant+Center+of+Connecticut/data=!4m7!3m6!1s0x89e7e27a24c9095d:0xcd8154e9fc40dde5!8m2!3d41.3168105!4d-73.2187864!16s%2Fg%2F1tlmpb_3!19sChIJXQnJJHri54kR5d1A_OlUgc0",
   "query": "dentist in Trumbull, CT"
  },
@@ -1476,42 +1104,6 @@
   "query": "dentist in Westport, CT"
  },
  {
-  "name": "Esthetic Dental Group of Westport: Dr. Steven Regenstein",
-  "phone": "(475) 284-8705",
-  "address": "327 Riverside Ave",
-  "city": "Westport",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://edgw.us/",
-  "maps_url": "https://www.google.com/maps/place/Esthetic+Dental+Group+of+Westport:+Dr.+Steven+Regenstein/data=!4m7!3m6!1s0x89e81b7acdfdcb0d:0xea780f45f3324b72!8m2!3d41.1283972!4d-73.369742!16s%2Fg%2F1vd72c0f!19sChIJDcv9zXob6IkRcksy80UPeOo",
-  "query": "dentist in Westport, CT"
- },
- {
-  "name": "Sunshine Dental Care LLC.",
-  "phone": "(203) 227-8500",
-  "address": "18 Imperial Ave",
-  "city": "Westport",
-  "state": "CT",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Sunshine+Dental+Care+LLC./data=!4m7!3m6!1s0x89e81b776789753f:0x29768df6386f6c67!8m2!3d41.1398119!4d-73.3581936!16s%2Fg%2F1tls3w75!19sChIJP3WJZ3cb6IkRZ2xvOPaNdik",
-  "query": "dentist in Westport, CT"
- },
- {
-  "name": "Efren Cortes, D.D.S, P.C.",
-  "phone": "(203) 557-8388",
-  "address": "29 Imperial Ave",
-  "city": "Westport",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://westportctdentist.com/",
-  "maps_url": "https://www.google.com/maps/place/Efren+Cortes,+D.D.S,+P.C./data=!4m7!3m6!1s0x89c2a1e95f4035b3:0x2cae682f18633e28!8m2!3d41.1391268!4d-73.3579511!16s%2Fg%2F1td77hsf!19sChIJszVAX-mhwokRKD5jGC9oriw",
-  "query": "dentist in Westport, CT"
- },
- {
   "name": "Pediatric Dentistry At Westport Dental Associates",
   "phone": "(203) 635-7070",
   "address": "329 Riverside Ave",
@@ -1533,18 +1125,6 @@
   "rating": "",
   "website": "http://www.zerocavityzone.com/",
   "maps_url": "https://www.google.com/maps/place/Westport+Pediatric+Dentistry/data=!4m7!3m6!1s0x89e81b76cb0823f3:0xdb5c88fee914a37b!8m2!3d41.1412333!4d-73.3549391!16s%2Fg%2F11cffzfny!19sChIJ8yMIy3Yb6IkRe6MU6f6IXNs",
-  "query": "dentist in Westport, CT"
- },
- {
-  "name": "Premier Dental of Connecticut in Fairfield",
-  "phone": "(203) 693-1760",
-  "address": "1700 Post Rd",
-  "city": "Westport",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.premierdentalconnecticut.com/dentist-office/fairfield-ct-06824",
-  "maps_url": "https://www.google.com/maps/place/Premier+Dental+of+Connecticut+in+Fairfield/data=!4m7!3m6!1s0x89e8106cdab87637:0x4ba323b738d56eef!8m2!3d41.141224!4d-73.261345!16s%2Fg%2F1tdq24w6!19sChIJN3a42mwQ6IkR727VOLcjo0s",
   "query": "dentist in Westport, CT"
  },
  {
@@ -1728,18 +1308,6 @@
   "query": "dentist in Hartford, CT"
  },
  {
-  "name": "West Hartford Family Dental | Dentist in West Hartford CT | DMD",
-  "phone": "",
-  "address": "342 N Main St #300",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/West+Hartford+Family+Dental+%7C+Dentist+in+West+Hartford+CT+%7C+DMD/data=!4m7!3m6!1s0x89e7ab7d3b104719:0xaa8563da9848abc3!8m2!3d41.7853164!4d-72.7464141!16s%2Fg%2F1tdzxrqn!19sChIJGUcQO32r54kRw6tImNpjhao",
-  "query": "dentist in Hartford, CT"
- },
- {
   "name": "Bright Dental LLC",
   "phone": "",
   "address": "18 Kane St",
@@ -1752,18 +1320,6 @@
   "query": "dentist in Hartford, CT"
  },
  {
-  "name": "Blue Back Dental: West Hartford Location",
-  "phone": "",
-  "address": "65 Memorial Rd Ste 400",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Blue+Back+Dental:+West+Hartford+Location/data=!4m7!3m6!1s0x89e7acec6d59703f:0xdde2a748149a86f3!8m2!3d41.7595744!4d-72.7397355!16s%2Fg%2F1trpm706!19sChIJP3BZbeys54kR84aaFEin4t0",
-  "query": "dentist in Hartford, CT"
- },
- {
   "name": "Tooth Time Dentistry",
   "phone": "",
   "address": "1000 Albany Ave Ste 1",
@@ -1773,18 +1329,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Tooth+Time+Dentistry/data=!4m7!3m6!1s0x89e656ac875dc813:0x474ba30959b4e2a3!8m2!3d41.7812048!4d-72.6929744!16s%2Fg%2F11b7fxx1km!19sChIJE8hdh6xW5okRo-K0WQmjS0c",
-  "query": "dentist in Hartford, CT"
- },
- {
-  "name": "Premier Dental of Connecticut in West Hartford",
-  "phone": "",
-  "address": "836 Farmington Ave Ste 105",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://schedule.jarvisanalytics.com/frame/dental-care-alliance-ct",
-  "maps_url": "https://www.google.com/maps/place/Premier+Dental+of+Connecticut+in+West+Hartford/data=!4m7!3m6!1s0x89e7acbfb359abb5:0x5a6eeed1316ef7ae!8m2!3d41.7649104!4d-72.7314233!16s%2Fg%2F1tdb59jj!19sChIJtatZs7-s54kRrvduMdHublo",
   "query": "dentist in Hartford, CT"
  },
  {
@@ -1932,30 +1476,6 @@
   "query": "dentist in Hartford, CT"
  },
  {
-  "name": "West Hartford Dental PC",
-  "phone": "",
-  "address": "836 Farmington Ave Suite 217A",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/West+Hartford+Dental+PC/data=!4m7!3m6!1s0x89e7acbfb359ab9d:0x2b950f8a9ecc2ba3!8m2!3d41.7650004!4d-72.7317283!16s%2Fg%2F1w4f93yj!19sChIJnatZs7-s54kRoyvMnooPlSs",
-  "query": "dentist in Hartford, CT"
- },
- {
-  "name": "Contemporary General Dentistry Affiliated with The Smilist Dental",
-  "phone": "",
-  "address": "836 Farmington Ave Suite 131",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://nexhealth.info/book/appt/thesmilist",
-  "maps_url": "https://www.google.com/maps/place/Contemporary+General+Dentistry+Affiliated+with+The+Smilist+Dental/data=!4m7!3m6!1s0x89e7acbfb35e956b:0x3bcf4a51ed4950e!8m2!3d41.7651738!4d-72.7315173!16s%2Fg%2F1vr3f5qm!19sChIJa5Ves7-s54kRDpXUHqX0vAM",
-  "query": "dentist in Hartford, CT"
- },
- {
   "name": "JawFixers",
   "phone": "",
   "address": "928 Farmington Ave",
@@ -2076,18 +1596,6 @@
   "query": "dentist in Hartford, CT"
  },
  {
-  "name": "Central Connecticut Endodontics",
-  "phone": "",
-  "address": "836 Farmington Ave #115",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Endodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Central+Connecticut+Endodontics/data=!4m7!3m6!1s0x89e7acbfb359ab9d:0x86c2628e42b47391!8m2!3d41.7650138!4d-72.7316139!16s%2Fg%2F1tcvq916!19sChIJnatZs7-s54kRkXO0Qo5iwoY",
-  "query": "dentist in Hartford, CT"
- },
- {
   "name": "Pucci James DDS",
   "phone": "",
   "address": "1 Financial Plaza #1975",
@@ -2109,18 +1617,6 @@
   "rating": "",
   "website": "https://schedule.jarvisanalytics.com/frame/42-north-dental",
   "maps_url": "https://www.google.com/maps/place/Comprehensive+Dental+Associates+of+Central+Connecticut/data=!4m7!3m6!1s0x89e653c3fbe6396f:0x6801d9759cdc3bcf!8m2!3d41.7355699!4d-72.6271686!16s%2Fg%2F11g8v5g1l3!19sChIJbznm-8NT5okRzzvcnHXZAWg",
-  "query": "dentist in Hartford, CT"
- },
- {
-  "name": "Talcott Dental Care",
-  "phone": "",
-  "address": "780 Farmington Ave",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Talcott+Dental+Care/data=!4m7!3m6!1s0x89e7acb94651ad4d:0x633c18d63bbe93bc!8m2!3d41.7651512!4d-72.726791!16s%2Fg%2F1td2vy5j!19sChIJTa1RRrms54kRvJO-O9YYPGM",
   "query": "dentist in Hartford, CT"
  },
  {
@@ -2244,18 +1740,6 @@
   "query": "dentist in Hartford, CT"
  },
  {
-  "name": "Elmwood Dental",
-  "phone": "",
-  "address": "1132 New Britain Ave",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Elmwood+Dental/data=!4m7!3m6!1s0x89e7ad3d4db918b5:0xcae53a58382f0540!8m2!3d41.7332634!4d-72.7328293!16s%2Fg%2F1td7pbn9!19sChIJtRi5TT2t54kRQAUvOFg65co",
-  "query": "dentist in Hartford, CT"
- },
- {
   "name": "Dr. Mashid Hedayati",
   "phone": "",
   "address": "242 Trumbull St",
@@ -2280,18 +1764,6 @@
   "query": "dentist in Hartford, CT"
  },
  {
-  "name": "Dr. Anthony Amato, DMD",
-  "phone": "",
-  "address": "18 N Main St",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dr.+Anthony+Amato,+DMD/data=!4m7!3m6!1s0x89e7acecd0d2feeb:0x3616a4653058697d!8m2!3d41.7632446!4d-72.7415237!16s%2Fg%2F1td77lyt!19sChIJ6_7S0Oys54kRfWlYMGWkFjY",
-  "query": "dentist in Hartford, CT"
- },
- {
   "name": "Morgan Prince N DDS",
   "phone": "",
   "address": "21 Grand St #1",
@@ -2313,18 +1785,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+Richard+Benoit/data=!4m7!3m6!1s0x89e653635a155555:0x2d8970b350fe4f3b!8m2!3d41.7680352!4d-72.6750769!16s%2Fg%2F11k3_jc_lg!19sChIJVVUVWmNT5okRO0_-ULNwiS0",
-  "query": "dentist in Hartford, CT"
- },
- {
-  "name": "Yin Qianying Jane Dr- West Hartford Dental",
-  "phone": "",
-  "address": "836 Farmington Ave Suite 217A",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Yin+Qianying+Jane+Dr-+West+Hartford+Dental/data=!4m7!3m6!1s0x89e7acbfb359ab9d:0xae3225b0494a6d7a!8m2!3d41.7650564!4d-72.7315613!16s%2Fg%2F1tdmlhrj!19sChIJnatZs7-s54kRem1KSbAlMq4",
   "query": "dentist in Hartford, CT"
  },
  {
@@ -2685,18 +2145,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Vital+Savings+by+Aetna/data=!4m7!3m6!1s0x89e6535c62382d4f:0x9cae4853322ecbf9!8m2!3d41.7678126!4d-72.6909539!16s%2Fg%2F11g0k2fypt!19sChIJTy04YlxT5okR-csuMlNIrpw",
-  "query": "dentist in Hartford, CT"
- },
- {
-  "name": "Nadler, Barnett, Shoflick",
-  "phone": "",
-  "address": "155 S Main St",
-  "city": "Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Nadler,+Barnett,+Shoflick/data=!4m7!3m6!1s0x89e654202492a1af:0xcd0a5bac966d1ed5!8m2!3d41.757822!4d-72.7434145!16s%2Fg%2F11b6v6xc98!19sChIJr6GSJCBU5okR1R5tlqxbCs0",
   "query": "dentist in Hartford, CT"
  },
  {
@@ -3108,18 +2556,6 @@
   "query": "dentist in West Hartford, CT"
  },
  {
-  "name": "Community Health Services",
-  "phone": "",
-  "address": "500 Albany Ave",
-  "city": "West Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Community+Health+Services/data=!4m7!3m6!1s0x89e6549f425bc6ad:0x6b4e17fb8f89af88!8m2!3d41.7779961!4d-72.6847809!16s%2Fg%2F1tcvq8y8!19sChIJrcZbQp9U5okRiK-Jj_sXTms",
-  "query": "dentist in West Hartford, CT"
- },
- {
   "name": "Cipes Monica H Dmd",
   "phone": "",
   "address": "798 Farmington Ave",
@@ -3453,18 +2889,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/PearlWhite+Dentistry/data=!4m7!3m6!1s0x89e7adf2d21a586f:0x5eb70edec447c308!8m2!3d41.7610242!4d-72.7439811!16s%2Fg%2F11vlxcw2_8!19sChIJb1ga0vKt54kRCMNHxN4Ot14",
-  "query": "dentist in West Hartford, CT"
- },
- {
-  "name": "Hartford Cosmetic Dental Center",
-  "phone": "",
-  "address": "609 Farmington Ave",
-  "city": "West Hartford",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Hartford+Cosmetic+Dental+Center/data=!4m7!3m6!1s0x89e7acb3ae4755d5:0xb42cff492b07ab6b!8m2!3d41.7656837!4d-72.7131578!16s%2Fg%2F119v9qz4z!19sChIJ1VVHrrOs54kRa6sHK0n_LLQ",
   "query": "dentist in West Hartford, CT"
  },
  {
@@ -4033,13 +3457,13 @@
  },
  {
   "name": "Dental Group NY - Bronx",
-  "phone": "",
+  "phone": "(929) 543-0299",
   "address": "140 De Kruif Pl #1",
   "city": "Bronx",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://dentalgroupny.com/",
   "maps_url": "https://www.google.com/maps/place/Dental+Group+NY+-+Bronx/data=!4m7!3m6!1s0x89c28cc60c43ec41:0x44815ca3816c2e9f!8m2!3d40.8755111!4d-73.8294982!16s%2Fg%2F1tgp1qxs!19sChIJQexDDMaMwokRny5sgaNcgUQ",
   "query": "dentist in Bronx, NY"
  },
@@ -5073,18 +4497,6 @@
   "rating": "",
   "website": "https://modo-dental.com/locations/dental-arts-of-pelham/",
   "maps_url": "https://www.google.com/maps/place/Dental+Arts+of+Pelham+%7C+Part+of+the+Roligo+Network/data=!4m7!3m6!1s0x89c28d6cf0d3862f:0x4350ea2f9d2cc8f!8m2!3d40.9101371!4d-73.8105229!16s%2Fg%2F1tj5m2bd!19sChIJL4bT8GyNwokRj8zS-aIONQQ",
-  "query": "dentist in Yonkers, NY"
- },
- {
-  "name": "Smile Scarsdale Pediatric Dentistry & Family Orthodontics",
-  "phone": "(914) 241-5842",
-  "address": "1075 Central Park Ave Ste 400",
-  "city": "Yonkers",
-  "state": "NY",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "https://smilescarsdale.com/",
-  "maps_url": "https://www.google.com/maps/place/Smile+Scarsdale+Pediatric+Dentistry+%26+Family+Orthodontics/data=!4m7!3m6!1s0x89c29338b1399e15:0x9a44be267c40a147!8m2!3d40.9880461!4d-73.824945!16s%2Fg%2F1tcx2g3l!19sChIJFZ45sTiTwokRR6FAfCa-RJo",
   "query": "dentist in Yonkers, NY"
  },
  {
@@ -6492,18 +5904,6 @@
   "query": "dentist in Hempstead, NY"
  },
  {
-  "name": "Garden City Smiles: Louis J. Buono, DDS",
-  "phone": "(516) 202-5701",
-  "address": "226 7th St Ste 303",
-  "city": "Hempstead",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.gardencitysmiles.com/locations/garden-city-office/",
-  "maps_url": "https://www.google.com/maps/place/Garden+City+Smiles:+Louis+J.+Buono,+DDS/data=!4m7!3m6!1s0x89c27d40628dbc73:0x997766ef8b90e8d9!8m2!3d40.7253189!4d-73.6329051!16s%2Fg%2F1vfn7l1d!19sChIJc7yNYkB9wokR2eiQi-9md5k",
-  "query": "dentist in Hempstead, NY"
- },
- {
   "name": "Platinum Pediatric Dentistry",
   "phone": "(516) 272-4072",
   "address": "230 Hilton Ave #117",
@@ -6873,18 +6273,6 @@
   "rating": "",
   "website": "https://www.clocktower-dental.com/",
   "maps_url": "https://www.google.com/maps/place/Clock+Tower+Dental+Associates/data=!4m7!3m6!1s0x89c26320102de04f:0x3fda5d8c983b59be!8m2!3d40.7104766!4d-73.6758327!16s%2Fg%2F1td_62z0!19sChIJT-AtECBjwokRvlk7mIxd2j8",
-  "query": "dentist in Hempstead, NY"
- },
- {
-  "name": "Zen Dentistry Kids - Garden City",
-  "phone": "(332) 699-6649",
-  "address": "601 Franklin Ave Ste 211",
-  "city": "Hempstead",
-  "state": "NY",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "https://zenkidzdentistry.com/",
-  "maps_url": "https://www.google.com/maps/place/Zen+Dentistry+Kids+-+Garden+City/data=!4m7!3m6!1s0x89c27d0468e187c5:0x138f940d7238472!8m2!3d40.7240034!4d-73.6324771!16s%2Fg%2F11y6bf2s18!19sChIJxYfhaAR9wokRcoQj10D5OAE",
   "query": "dentist in Hempstead, NY"
  },
  {
@@ -8844,30 +8232,6 @@
   "query": "dentist in Fairfield, CT"
  },
  {
-  "name": "Boutique Dentistry",
-  "phone": "",
-  "address": "111 Beach Rd",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Boutique+Dentistry/data=!4m7!3m6!1s0x89e8103e5d6a4899:0xdd10c8034dc741d6!8m2!3d41.1445494!4d-73.2510995!16s%2Fg%2F1tlc92ty!19sChIJmUhqXT4Q6IkR1kHHTQPIEN0",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "Joseph Zerella DMD, MDS, LLC dba Zerella Endodontics",
-  "phone": "",
-  "address": "21 Sherman Ct",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Endodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Joseph+Zerella+DMD,+MDS,+LLC+dba+Zerella+Endodontics/data=!4m7!3m6!1s0x89e810150fb46629:0x5ec04b3f5fc86235!8m2!3d41.1397496!4d-73.2587399!16s%2Fg%2F1wc328fn!19sChIJKWa0DxUQ6IkRNWLIXz9LwF4",
-  "query": "dentist in Fairfield, CT"
- },
- {
   "name": "Kids First Dentistry & Orthodontics",
   "phone": "",
   "address": "1478 Post Rd",
@@ -8877,18 +8241,6 @@
   "rating": "",
   "website": "https://www.certify.care/NADG",
   "maps_url": "https://www.google.com/maps/place/Kids+First+Dentistry+%26+Orthodontics/data=!4m7!3m6!1s0x89e8106b4baf8089:0x96174a43c3449026!8m2!3d41.1412988!4d-73.2576079!16s%2Fg%2F1vhkll5l!19sChIJiYCvS2sQ6IkRJpBEw0NKF5Y",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "Oral Surgery Associates",
-  "phone": "",
-  "address": "1305 Post Rd",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Oral+Surgery+Associates/data=!4m7!3m6!1s0x89e810151a412d69:0x1611973a053b0cf7!8m2!3d41.1422086!4d-73.2548816!16s%2Fg%2F1w0sdxcs!19sChIJaS1BGhUQ6IkR9ww7BTqXERY",
   "query": "dentist in Fairfield, CT"
  },
  {
@@ -8928,18 +8280,6 @@
   "query": "dentist in Fairfield, CT"
  },
  {
-  "name": "Dr Luis Brea at North Avenue Advanced Dental Center",
-  "phone": "",
-  "address": "2260 North Ave",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dr+Luis+Brea+at+North+Avenue+Advanced+Dental+Center/data=!4m7!3m6!1s0x89e80e442e6c2ee7:0xcb0d2335e8692f8c!8m2!3d41.179968!4d-73.2142!16s%2Fg%2F1tfbd5qm!19sChIJ5y5sLkQO6IkRjC9p6DUjDcs",
-  "query": "dentist in Fairfield, CT"
- },
- {
   "name": "First Impressions Orthodontics Fairfield",
   "phone": "",
   "address": "1478 Post Rd",
@@ -8949,18 +8289,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/First+Impressions+Orthodontics+Fairfield/data=!4m7!3m6!1s0x89e8106b4b20d80f:0x5bfa3f3777291d89!8m2!3d41.1413126!4d-73.257494!16s%2Fg%2F1260ss3d9!19sChIJD9ggS2sQ6IkRiR0pdzc_-ls",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "Gary Horblitt, D.D.S.",
-  "phone": "",
-  "address": "2226 Black Rock Tpke #1",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Prosthodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Gary+Horblitt,+D.D.S./data=!4m7!3m6!1s0x89e80fcdd47bbaf9:0x6e0150a27fdb71ce!8m2!3d41.1826328!4d-73.2530616!16s%2Fg%2F11h3n8yyqt!19sChIJ-bp71M0P6IkRznHbf6JQAW4",
   "query": "dentist in Fairfield, CT"
  },
  {
@@ -8988,18 +8316,6 @@
   "query": "dentist in Fairfield, CT"
  },
  {
-  "name": "Brian Amoroso, D.D.S.",
-  "phone": "",
-  "address": "259 Stillson Rd",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Endodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Brian+Amoroso,+D.D.S./data=!4m7!3m6!1s0x89e8101599827ab7:0x7cfe76f121af5ea!8m2!3d41.1827115!4d-73.2511842!16s%2Fg%2F1tk68q8w!19sChIJt3qCmRUQ6IkR6vUaEm_nzwc",
-  "query": "dentist in Fairfield, CT"
- },
- {
   "name": "Fontana Family Dental Care",
   "phone": "",
   "address": "1100 Kings Hwy E #3a",
@@ -9009,18 +8325,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Fontana+Family+Dental+Care/data=!4m7!3m6!1s0x89e80fb8b6698db7:0xdff8580f1dd4dc60!8m2!3d41.1664468!4d-73.2347463!16s%2Fg%2F1tl8lr9s!19sChIJt41ptrgP6IkRYNzUHQ9Y-N8",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "Sasco Pediatric Dentistry",
-  "phone": "",
-  "address": "1 Sasco Hill Rd Ste 3",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Sasco+Pediatric+Dentistry/data=!4m7!3m6!1s0x89e81175e9b1418d:0xcb85a40cdf9cde59!8m2!3d41.1396519!4d-73.2723476!16s%2Fg%2F11pyc2smrg!19sChIJjUGx6XUR6IkRWd6c3wykhcs",
   "query": "dentist in Fairfield, CT"
  },
  {
@@ -9072,18 +8376,6 @@
   "query": "dentist in Fairfield, CT"
  },
  {
-  "name": "Smile Ark Pediatric Dentistry",
-  "phone": "",
-  "address": "2480 Black Rock Tpke #1",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "https://flexbook.me/smileark",
-  "maps_url": "https://www.google.com/maps/place/Smile+Ark+Pediatric+Dentistry/data=!4m7!3m6!1s0x89e80f1a6dbdf25b:0x7342f95ee2b2c71d!8m2!3d41.184536!4d-73.25562!16s%2Fg%2F11rvjwl9d8!19sChIJW_K9bRoP6IkRHcey4l75QnM",
-  "query": "dentist in Fairfield, CT"
- },
- {
   "name": "Fairfield Beach Orthodontics",
   "phone": "",
   "address": "111 Beach Rd",
@@ -9093,42 +8385,6 @@
   "rating": "",
   "website": "https://www.zocdoc.com/practice/fairfield-beach-orthodontics-74753",
   "maps_url": "https://www.google.com/maps/place/Fairfield+Beach+Orthodontics/data=!4m7!3m6!1s0x89e8103e5d6a4899:0xdbe699409664df87!8m2!3d41.1444958!4d-73.251156!16s%2Fg%2F1tflh7w0!19sChIJmUhqXT4Q6IkRh99klkCZ5ts",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "Dr. Todd E. Bloom, DDS",
-  "phone": "",
-  "address": "760 Kings Hwy W",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dr.+Todd+E.+Bloom,+DDS/data=!4m7!3m6!1s0x89e810151a412d69:0x409c36eecb223065!8m2!3d41.1386655!4d-73.2931267!16s%2Fg%2F1td_j8td!19sChIJaS1BGhUQ6IkRZTAiy-42nEA",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "You Tooth",
-  "phone": "",
-  "address": "1261 Post Rd #202B",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/You+Tooth/data=!4m7!3m6!1s0x89e810150c413e13:0x1d8ae22f5c87f2f4!8m2!3d41.1426634!4d-73.2542836!16s%2Fg%2F11g9nrhshz!19sChIJEz5BDBUQ6IkR9PKHXC_iih0",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "Family Dentistry of Bridgeport",
-  "phone": "",
-  "address": "90 Brooklawn Ave",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Family+Dentistry+of+Bridgeport/data=!4m7!3m6!1s0x89e80e45c784a32d:0x40147ce0c9eb8171!8m2!3d41.1803817!4d-73.2153258!16s%2Fg%2F1q66sxf9k!19sChIJLaOEx0UO6IkRcYHryeB8FEA",
   "query": "dentist in Fairfield, CT"
  },
  {
@@ -9429,30 +8685,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+Gregory+Mokotoff,+DMD/data=!4m7!3m6!1s0x89e8106b4b3d0757:0xd2c7199cf0a5cd9d!8m2!3d41.1412759!4d-73.2575764!16s%2Fg%2F113k11yjw!19sChIJVwc9S2sQ6IkRnc2l8JwZx9I",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "Downtown Dental CT",
-  "phone": "",
-  "address": "1023 Main St",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Downtown+Dental+CT/data=!4m7!3m6!1s0x89e80e70c3df84f5:0x984951807371fbcb!8m2!3d41.178415!4d-73.1893303!16s%2Fg%2F12mkw9fgb!19sChIJ9YTfw3AO6IkRy_txc4BRSZg",
-  "query": "dentist in Fairfield, CT"
- },
- {
-  "name": "Connecticut Dental Group",
-  "phone": "",
-  "address": "4699 Main St Ste 203",
-  "city": "Fairfield",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Connecticut+Dental+Group/data=!4m7!3m6!1s0x89e80ed0087c4b21:0xf190e1451bd4fabe!8m2!3d41.224857!4d-73.220783!16s%2Fg%2F1vm_yx_n!19sChIJIUt8CNAO6IkRvvrUG0XhkPE",
   "query": "dentist in Fairfield, CT"
  },
  {
@@ -10512,18 +9744,6 @@
   "query": "dentist in Shelton, CT"
  },
  {
-  "name": "Lighthouse Dental Care",
-  "phone": "(203) 308-5751",
-  "address": "88 Ryders Ln",
-  "city": "Shelton",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.dentiststratfordct.com/",
-  "maps_url": "https://www.google.com/maps/place/Lighthouse+Dental+Care/data=!4m7!3m6!1s0x89e80b3b1f4d2e4b:0x10747952a1a84ac1!8m2!3d41.24329!4d-73.101585!16s%2Fg%2F1thl_gt6!19sChIJSy5NHzsL6IkRwUqooVJ5dBA",
-  "query": "dentist in Shelton, CT"
- },
- {
   "name": "Commerce Park Dental Group: Ritter Mary E DDS",
   "phone": "(203) 926-9929",
   "address": "27 Huntington St",
@@ -10533,18 +9753,6 @@
   "rating": "",
   "website": "https://www.commerceparkdental.com/",
   "maps_url": "https://www.google.com/maps/place/Commerce+Park+Dental+Group:+Ritter+Mary+E+DDS/data=!4m7!3m6!1s0x89e80a637657df15:0x75d361e09739526f!8m2!3d41.295816!4d-73.1449182!16s%2Fg%2F1tgd7kkr!19sChIJFd9XdmMK6IkRb1I5l-Bh03U",
-  "query": "dentist in Shelton, CT"
- },
- {
-  "name": "Children's Dentistry of Stratford",
-  "phone": "(203) 590-1578",
-  "address": "7365 Main St Unit 4",
-  "city": "Shelton",
-  "state": "CT",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "http://www.ilovemypediatricdentist.com/",
-  "maps_url": "https://www.google.com/maps/place/Children%27s+Dentistry+of+Stratford/data=!4m7!3m6!1s0x89e7dd987a4168e3:0xc8cde77001f0de8f!8m2!3d41.2536288!4d-73.1017868!16s%2Fg%2F11cjh_x9m4!19sChIJ42hBepjd54kRj97wAXDnzcg",
   "query": "dentist in Shelton, CT"
  },
  {
@@ -10668,18 +9876,6 @@
   "query": "dentist in Shelton, CT"
  },
  {
-  "name": "Children's Dentistry of Trumbull",
-  "phone": "(203) 590-1588",
-  "address": "999 Silver Ln Ste 2D",
-  "city": "Shelton",
-  "state": "CT",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "http://www.childrensdentistryoftrumbull.com/",
-  "maps_url": "https://www.google.com/maps/place/Children%27s+Dentistry+of+Trumbull/data=!4m7!3m6!1s0x89e80b8c4267a91f:0xfb46ba8e6b756b53!8m2!3d41.2299668!4d-73.1549165!16s%2Fg%2F11b7jxqh4f!19sChIJH6lnQowL6IkRU2t1a466Rvs",
-  "query": "dentist in Shelton, CT"
- },
- {
   "name": "Valley Orthopedic Specialists | Shelton",
   "phone": "(203) 734-7900",
   "address": "2 Trap Falls Rd Ste 404",
@@ -10740,18 +9936,6 @@
   "query": "dentist in Shelton, CT"
  },
  {
-  "name": "Dworkin Dental - Milford",
-  "phone": "(203) 712-5364",
-  "address": "321 Boston Post Rd Ste 12",
-  "city": "Shelton",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://dworkindental.com/",
-  "maps_url": "https://www.google.com/maps/place/Dworkin+Dental+-+Milford/data=!4m7!3m6!1s0x89e875cc44ee69b1:0xb880b5cb19678b5d!8m2!3d41.2238073!4d-73.0714255!16s%2Fg%2F11sn7rzg2h!19sChIJsWnuRMx16IkRXYtnGcu1gLg",
-  "query": "dentist in Shelton, CT"
- },
- {
   "name": "Woll Margo Y DDS",
   "phone": "(203) 402-7261",
   "address": "4 Research Dr Ste 402",
@@ -10788,18 +9972,6 @@
   "query": "dentist in Shelton, CT"
  },
  {
-  "name": "Advanced Periodontics & Dental Implant Center of Connecticut",
-  "phone": "(475) 255-2205",
-  "address": "324 Elm St Ste 103A",
-  "city": "Shelton",
-  "state": "CT",
-  "category": "Dental implants periodontist",
-  "rating": "",
-  "website": "https://www.connecticutperiodontist.com/",
-  "maps_url": "https://www.google.com/maps/place/Advanced+Periodontics+%26+Dental+Implant+Center+of+Connecticut/data=!4m7!3m6!1s0x89e7e27a24c9095d:0xcd8154e9fc40dde5!8m2!3d41.3168105!4d-73.2187864!16s%2Fg%2F1tlmpb_3!19sChIJXQnJJHri54kR5d1A_OlUgc0",
-  "query": "dentist in Shelton, CT"
- },
- {
   "name": "Song Kigon DDS",
   "phone": "",
   "address": "169 Center St",
@@ -10833,18 +10005,6 @@
   "rating": "",
   "website": "https://monroe.premieroralsurgeryct.com/",
   "maps_url": "https://www.google.com/maps/place/Premier+Oral+Surgery+%26+Implantology+Center/data=!4m7!3m6!1s0x89e7e3f061557ffb:0x95e4e09102489e34!8m2!3d41.3167854!4d-73.2187328!16s%2Fg%2F11fnqmfd1d!19sChIJ-39VYfDj54kRNJ5IApHg5JU",
-  "query": "dentist in Shelton, CT"
- },
- {
-  "name": "Willow Tree Pediatric Dentistry",
-  "phone": "(203) 220-6000",
-  "address": "35 Corporate Dr Ste 110",
-  "city": "Shelton",
-  "state": "CT",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "https://www.willowtreedentistry.com/",
-  "maps_url": "https://www.google.com/maps/place/Willow+Tree+Pediatric+Dentistry/data=!4m7!3m6!1s0x89e8095d5c15cb2b:0x2f3ebd63c9d0833a!8m2!3d41.2968365!4d-73.2254569!16s%2Fg%2F11shlr1bhk!19sChIJK8sVXF0J6IkROoPQyWO9Pi8",
   "query": "dentist in Shelton, CT"
  },
  {
@@ -11040,18 +10200,6 @@
   "query": "dentist in Greenwich, CT"
  },
  {
-  "name": "Pearl Dental",
-  "phone": "(203) 252-2000",
-  "address": "1055 Summer St #3",
-  "city": "Greenwich",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://www.pearlcares.com/",
-  "maps_url": "https://www.google.com/maps/place/Pearl+Dental/data=!4m7!3m6!1s0x89c2a1e95f41b6ef:0x7c0f872794289b1d!8m2!3d41.0605584!4d-73.5405251!16s%2Fg%2F12hpbmwrp!19sChIJ77ZBX-mhwokRHZsolCeHD3w",
-  "query": "dentist in Greenwich, CT"
- },
- {
   "name": "Garrick F. Wong DMD Orthodontics",
   "phone": "(203) 625-9888",
   "address": "453 E Putnam Ave #2",
@@ -11148,18 +10296,6 @@
   "query": "dentist in Greenwich, CT"
  },
  {
-  "name": "Newfield Dental of Stamford",
-  "phone": "(203) 883-6967",
-  "address": "579 Newfield Ave",
-  "city": "Greenwich",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://www.newfielddental.com/",
-  "maps_url": "https://www.google.com/maps/place/Newfield+Dental+of+Stamford/data=!4m7!3m6!1s0x89c2a1a225106f3f:0x964661fb37776826!8m2!3d41.0802847!4d-73.5325747!16s%2Fg%2F11b6hm0hbq!19sChIJP28QJaKhwokRJmh3N_thRpY",
-  "query": "dentist in Greenwich, CT"
- },
- {
   "name": "Waterfront Dental Care PC",
   "phone": "(914) 481-1500",
   "address": "30 N Main St",
@@ -11217,18 +10353,6 @@
   "rating": "",
   "website": "https://aroundtheworldsmiles.com/",
   "maps_url": "https://www.google.com/maps/place/Around+The+World+Pediatric+Dentistry+%7C+Dr.+Hannah+Ahn/data=!4m7!3m6!1s0x89c2a1e7f6fc6639:0x9621e61d1e1937a5!8m2!3d41.0493467!4d-73.5639207!16s%2Fg%2F1vzv4lb8!19sChIJOWb89uehwokRpTcZHh3mIZY",
-  "query": "dentist in Greenwich, CT"
- },
- {
-  "name": "Stamford Dentistry & Implants - Clear Smile Dental Studio",
-  "phone": "(203) 883-4451",
-  "address": "800 E Main St",
-  "city": "Greenwich",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.clearsmiledentalstudio.com/",
-  "maps_url": "https://www.google.com/maps/place/Stamford+Dentistry+%26+Implants+-+Clear+Smile+Dental+Studio/data=!4m7!3m6!1s0x89c2a14abc46ae39:0x47ea8094fd89357f!8m2!3d41.0553493!4d-73.5281294!16s%2Fg%2F11j8xyn2p2!19sChIJOa5GvEqhwokRfzWJ_ZSA6kc",
   "query": "dentist in Greenwich, CT"
  },
  {
@@ -12061,13 +11185,13 @@
  },
  {
   "name": "Nova Dental",
-  "phone": "",
+  "phone": "(860) 358-9040",
   "address": "136 Berlin Road",
   "city": "Waterbury",
   "state": "CT",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://novadentistry.com/",
   "maps_url": "https://www.google.com/maps/place/Nova+Dental/data=!4m7!3m6!1s0x89e64b4b37ce435d:0x68dc57d0279372b8!8m2!3d41.607008!4d-72.709315!16s%2Fg%2F1tpllrpw!19sChIJXUPON0tL5okRuHKTJ9BX3Gg",
   "query": "dentist in Waterbury, CT"
  },
@@ -12288,18 +11412,6 @@
   "query": "dentist in Monroe, CT"
  },
  {
-  "name": "Premier Oral Surgery & Implantology Center",
-  "phone": "",
-  "address": "324 Elm St #201a",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Oral and maxillofacial surgeon",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Premier+Oral+Surgery+%26+Implantology+Center/data=!4m7!3m6!1s0x89e7e3f061557ffb:0x95e4e09102489e34!8m2!3d41.3167854!4d-73.2187328!16s%2Fg%2F11fnqmfd1d!19sChIJ-39VYfDj54kRNJ5IApHg5JU",
-  "query": "dentist in Monroe, CT"
- },
- {
   "name": "Silveria Marmolejos, DDS",
   "phone": "",
   "address": "324 Elm St Ste 202A",
@@ -12348,30 +11460,6 @@
   "query": "dentist in Monroe, CT"
  },
  {
-  "name": "Shelton Dental Group",
-  "phone": "",
-  "address": "169 Center St",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Shelton+Dental+Group/data=!4m7!3m6!1s0x89e7e0731aa5548b:0x662a129ba516cc74!8m2!3d41.3143853!4d-73.0961364!16s%2Fg%2F11h17hvg7!19sChIJi1SlGnPg54kRdMwWpZsSKmY",
-  "query": "dentist in Monroe, CT"
- },
- {
-  "name": "Dental Associates of Shelton",
-  "phone": "",
-  "address": "190 Coram Ave",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dental+Associates+of+Shelton/data=!4m7!3m6!1s0x89e7e075347fe68f:0x6b481d2847902218!8m2!3d41.3116135!4d-73.0897481!16s%2Fg%2F1tctsq45!19sChIJj-Z_NHXg54kRGCKQRygdSGs",
-  "query": "dentist in Monroe, CT"
- },
- {
   "name": "Dynamic Smiles Orthodontics",
   "phone": "",
   "address": "315 Center Rock Green #10",
@@ -12393,18 +11481,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+Sarah+Balaster/data=!4m7!3m6!1s0x89e7e3cfe7ff8567:0x67c0028e0b1b1c0e!8m2!3d41.3167225!4d-73.2185088!16s%2Fg%2F11wnmw_cmh!19sChIJZ4X_58_j54kRDhwbC44CwGc",
-  "query": "dentist in Monroe, CT"
- },
- {
-  "name": "Oleynik Dental",
-  "phone": "",
-  "address": "74 Wooster St",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Oleynik+Dental/data=!4m7!3m6!1s0x89e7e071e76a7bff:0x55caf4c1f50bc1e5!8m2!3d41.3189459!4d-73.0987619!16s%2Fg%2F1hbpwsmk9!19sChIJ_3tq53Hg54kR5cEL9cH0ylU",
   "query": "dentist in Monroe, CT"
  },
  {
@@ -12456,18 +11532,6 @@
   "query": "dentist in Monroe, CT"
  },
  {
-  "name": "Sunflower Dental Care",
-  "phone": "",
-  "address": "69 Elizabeth St",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Sunflower+Dental+Care/data=!4m7!3m6!1s0x89e7e0778b183de9:0x2444158f9b928def!8m2!3d41.3210983!4d-73.0891366!16s%2Fg%2F1tht2h06!19sChIJ6T0Yi3fg54kR742Sm48VRCQ",
-  "query": "dentist in Monroe, CT"
- },
- {
   "name": "Baum Braces - Newtown",
   "phone": "",
   "address": "23 Church Hill Rd",
@@ -12489,42 +11553,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+David+M+Kessler+-+Dental+Associates+of+Connecticut/data=!4m7!3m6!1s0x89e7fb6f32b2e5ff:0x51b0452221b9d64f!8m2!3d41.4147371!4d-73.3000098!16s%2Fg%2F1td18wjp!19sChIJ_-WyMm_754kRT9a5ISJFsFE",
-  "query": "dentist in Monroe, CT"
- },
- {
-  "name": "Maria A. Smith, DMD, PC",
-  "phone": "",
-  "address": "72 Wooster St",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Maria+A.+Smith,+DMD,+PC/data=!4m7!3m6!1s0x89e7e071c17d95dd:0x32523c16edda097e!8m2!3d41.3189921!4d-73.0988214!16s%2Fg%2F1tczrcyl!19sChIJ3ZV9wXHg54kRfgna7RY8UjI",
-  "query": "dentist in Monroe, CT"
- },
- {
-  "name": "Dr. Maureen O. Sharnick, DMD",
-  "phone": "",
-  "address": "375 Bridgeport Ave #4",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dr.+Maureen+O.+Sharnick,+DMD/data=!4m7!3m6!1s0x89e7e01ef66f25b7:0x62a995c04bf6d016!8m2!3d41.2961678!4d-73.1090583!16s%2Fg%2F1td4l4lh!19sChIJtyVv9h7g54kRFtD2S8CVqWI",
-  "query": "dentist in Monroe, CT"
- },
- {
-  "name": "Shelton Dentist",
-  "phone": "",
-  "address": "488 Howe Ave",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Medical clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Shelton+Dentist/data=!4m7!3m6!1s0x89e7e0714fc8b59f:0xa55574e207074918!8m2!3d41.317825!4d-73.094274!16s%2Fg%2F1tf29qhm!19sChIJn7XIT3Hg54kRGEkHB-J0VaU",
   "query": "dentist in Monroe, CT"
  },
  {
@@ -12576,30 +11604,6 @@
   "query": "dentist in Monroe, CT"
  },
  {
-  "name": "Richard O. Belden Dental Clinic",
-  "phone": "",
-  "address": "30 Elizabeth St",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Richard+O.+Belden+Dental+Clinic/data=!4m7!3m6!1s0x89e7e077eaa4fa9f:0x22ab38f12615626e!8m2!3d41.3201413!4d-73.0895733!16s%2Fg%2F11btvgbf28!19sChIJn_qk6nfg54kRbmIVJvE4qyI",
-  "query": "dentist in Monroe, CT"
- },
- {
-  "name": "Tyler Perimenis",
-  "phone": "",
-  "address": "105 Technology Dr FL 2",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Tyler+Perimenis/data=!4m7!3m6!1s0x89e809cb3022517f:0x71c6b3c4cdff03c1!8m2!3d41.2965127!4d-73.2287191!16s%2Fg%2F11pkfr_lxc!19sChIJf1EiMMsJ6IkRwQP_zcSzxnE",
-  "query": "dentist in Monroe, CT"
- },
- {
   "name": "Nowacki David C DDS",
   "phone": "",
   "address": "10 Queen St",
@@ -12621,18 +11625,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Lawrence+DeLibero,+DMD-Fairfield+County+Periodontics+%26+Dental+Implants./data=!4m7!3m6!1s0x89e80834ce524f6b:0xc2450d10ea7593e5!8m2!3d41.2965072!4d-73.2316128!16s%2Fg%2F1tg8krw7!19sChIJa09SzjQI6IkR5ZN16hANRcI",
-  "query": "dentist in Monroe, CT"
- },
- {
-  "name": "Dr. Neal Graber",
-  "phone": "",
-  "address": "66 Huntington St #1",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dr.+Neal+Graber/data=!4m7!3m6!1s0x89e80a7a3e83ffff:0x5d444e820b5461a1!8m2!3d41.2946125!4d-73.1450793!16s%2Fg%2F11rwxg8zhv!19sChIJ__-DPnoK6IkRoWFUC4JORF0",
   "query": "dentist in Monroe, CT"
  },
  {
@@ -12681,18 +11673,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+Suhae+Jang/data=!4m7!3m6!1s0x89e7fca5117aaaab:0x3425a1a48759066a!8m2!3d41.3920496!4d-73.2902188!16s%2Fg%2F11mxdndc22!19sChIJq6p6EaX854kRagZZh6ShJTQ",
-  "query": "dentist in Monroe, CT"
- },
- {
-  "name": "McNeish Lee W DMD",
-  "phone": "",
-  "address": "22 Westfield Ave",
-  "city": "Monroe",
-  "state": "CT",
-  "category": "Oral surgeon",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/McNeish+Lee+W+DMD/data=!4m7!3m6!1s0x89e7e082d72e8ac7:0xc5f9229e4b0e7d68!8m2!3d41.3402888!4d-73.0916069!16s%2Fg%2F1vhkll4d!19sChIJx4ou14Lg54kRaH0OS54i-cU",
   "query": "dentist in Monroe, CT"
  },
  {
@@ -12861,18 +11841,6 @@
   "rating": "",
   "website": "https://coastaldentalsolutions.com/",
   "maps_url": "https://www.google.com/maps/place/Laura+Miller,+DDS+at+Coastal+Dental+Solutions/data=!4m7!3m6!1s0x89e64a684221a99b:0x28da1ab8df652583!8m2!3d41.5541468!4d-72.6484649!16s%2Fg%2F1tl0yccj!19sChIJm6khQmhK5okRgyVl37ga2ig",
-  "query": "dentist in Middletown, CT"
- },
- {
-  "name": "Nova Dental",
-  "phone": "(860) 358-9040",
-  "address": "136 Berlin Rd #101",
-  "city": "Middletown",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://novadentistry.com/",
-  "maps_url": "https://www.google.com/maps/place/Nova+Dental/data=!4m7!3m6!1s0x89e64b4b37ce435d:0x68dc57d0279372b8!8m2!3d41.6070079!4d-72.7093149!16s%2Fg%2F1tpllrpw!19sChIJXUPON0tL5okRuHKTJ9BX3Gg",
   "query": "dentist in Middletown, CT"
  },
  {
@@ -13356,18 +12324,6 @@
   "query": "dentist in New York, NY"
  },
  {
-  "name": "Glow Dental of Midtown Manhattan: Dr. Alina Huang",
-  "phone": "",
-  "address": "358 5th Ave #406",
-  "city": "New York",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://nexhealth.info/book/appt/glow-dental-nyc",
-  "maps_url": "https://www.google.com/maps/place/Glow+Dental+of+Midtown+Manhattan:+Dr.+Alina+Huang/data=!4m7!3m6!1s0x89c259f441cdaf83:0x2e60e690b3c1be0c!8m2!3d40.7487274!4d-73.9847307!16s%2Fg%2F11h_z9tw2b!19sChIJg6_NQfRZwokRDL7Bs5DmYC4",
-  "query": "dentist in New York, NY"
- },
- {
   "name": "Rozenberg Dental NYC",
   "phone": "",
   "address": "45 W 54th St",
@@ -13441,7 +12397,7 @@
  },
  {
   "name": "Prabha Krishnan, DDS, PC",
-  "phone": "",
+  "phone": "(718) 268-5777",
   "address": "110-45 Queens Boulevard",
   "city": "New York",
   "state": "NY",
@@ -13485,18 +12441,6 @@
   "rating": "",
   "website": "https://onlineappointment.carestack.com/",
   "maps_url": "https://www.google.com/maps/place/Central+Park+West+Dentistry/data=!4m7!3m6!1s0x89c258f4ccafc231:0x33988e4bbf10151!8m2!3d40.7709628!4d-73.9824979!16s%2Fg%2F1vxg024g!19sChIJMcKvzPRYwokRUQHxu-SIOQM",
-  "query": "dentist in New York, NY"
- },
- {
-  "name": "NYC Dental of Upper East Side",
-  "phone": "",
-  "address": "1317 3rd Ave 2nd Floor",
-  "city": "New York",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/NYC+Dental+of+Upper+East+Side/data=!4m7!3m6!1s0x89c259dce27a3761:0xace6b2a5dda3a638!8m2!3d40.7718654!4d-73.9586489!16s%2Fg%2F11rhw26b62!19sChIJYTd64txZwokROKaj3aWy5qw",
   "query": "dentist in New York, NY"
  },
  {
@@ -13585,19 +12529,19 @@
  },
  {
   "name": "Modern Dental Care of Queens",
-  "phone": "",
+  "phone": "(718) 690-7221",
   "address": "80-46 Kew Gardens Rd Suite 1 Fl",
   "city": "Queens",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://www.moderndentalcareofqueens.com/",
   "maps_url": "https://www.google.com/maps/place/Modern+Dental+Care+of+Queens/data=!4m7!3m6!1s0x89c260a2acd03445:0x9783f52b00cdcec3!8m2!3d40.7131082!4d-73.8302036!16s%2Fg%2F11cn0p4yds!19sChIJRTTQrKJgwokRw87NACv1g5c",
   "query": "dentist in Queens, NY"
  },
  {
   "name": "Dental Made Easy - Forest Hills",
-  "phone": "",
+  "phone": "(718) 507-7781",
   "address": "116-20 Queens Blvd",
   "city": "Queens",
   "state": "NY",
@@ -13621,25 +12565,25 @@
  },
  {
   "name": "Richmond Hill Dentist - Gentle Dental Care",
-  "phone": "",
+  "phone": "(718) 262-0720",
   "address": "135-06A Jamaica Ave",
   "city": "Queens",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://www.nygentledentalcare.com/",
   "maps_url": "https://www.google.com/maps/place/Richmond+Hill+Dentist+-+Gentle+Dental+Care/data=!4m7!3m6!1s0x89c260c7e4fc3edf:0x1829a388abf24e75!8m2!3d40.7023092!4d-73.8174547!16s%2Fg%2F11g7np0znl!19sChIJ3z785MdgwokRdU7yq4ijKRg",
   "query": "dentist in Queens, NY"
  },
  {
   "name": "Madison Dental Art - Forest Hills",
-  "phone": "",
+  "phone": "(718) 268-8228",
   "address": "112-03 Queens Blvd Apt 211",
   "city": "Queens",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://madisondentalny.com/",
   "maps_url": "https://www.google.com/maps/place/Madison+Dental+Art+-+Forest+Hills/data=!4m7!3m6!1s0x89c2609eb0ce2041:0xa12896b43591e556!8m2!3d40.7187975!4d-73.8368557!16s%2Fg%2F1tczr8fb!19sChIJQSDOsJ5gwokRVuWRNbSWKKE",
   "query": "dentist in Queens, NY"
  },
@@ -13669,7 +12613,7 @@
  },
  {
   "name": "Jamaica Estates Dental",
-  "phone": "",
+  "phone": "(516) 559-6931",
   "address": "175-61 Hillside Ave.",
   "city": "Queens",
   "state": "NY",
@@ -13693,13 +12637,13 @@
  },
  {
   "name": "Amazing Smile Dental NY",
-  "phone": "",
+  "phone": "(718) 674-6478",
   "address": "118-16 Queens Blvd",
   "city": "Queens",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "http://www.amazingsmiledentalny.com/",
   "maps_url": "https://www.google.com/maps/place/Amazing+Smile+Dental+NY/data=!4m7!3m6!1s0x89c26199230dab6d:0xb78f90c109642462!8m2!3d40.7145178!4d-73.8321067!16s%2Fg%2F11g7nw50v7!19sChIJbasNI5lhwokRYiRkCcGQj7c",
   "query": "dentist in Queens, NY"
  },
@@ -13789,7 +12733,7 @@
  },
  {
   "name": "Open Smile Dental",
-  "phone": "",
+  "phone": "(718) 878-4648",
   "address": "107-53 Guy R Brewer Blvd",
   "city": "Queens",
   "state": "NY",
@@ -13849,7 +12793,7 @@
  },
  {
   "name": "Gentle Dental Family Care",
-  "phone": "",
+  "phone": "(718) 849-9797",
   "address": "118-60 Metropolitan Ave Suite # 1B",
   "city": "Queens",
   "state": "NY",
@@ -13873,7 +12817,7 @@
  },
  {
   "name": "Kew Gardens Dental Arts",
-  "phone": "",
+  "phone": "(332) 230-4811",
   "address": "123-20 Metropolitan Ave",
   "city": "Queens",
   "state": "NY",
@@ -13920,38 +12864,26 @@
   "query": "dentist in Queens, NY"
  },
  {
-  "name": "Roosevelt Dental Care",
-  "phone": "",
-  "address": "82-15 Roosevelt Ave",
-  "city": "Queens",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Roosevelt+Dental+Care/data=!4m7!3m6!1s0x89c25fa92c6e4d83:0xa35686a566ba97da!8m2!3d40.7478292!4d-73.8833211!16s%2Fg%2F11xflc9ls!19sChIJg01uLKlfwokR2pe6ZqWGVqM",
-  "query": "dentist in Queens, NY"
- },
- {
   "name": "Bright White Dental of Fresh Meadows",
-  "phone": "",
+  "phone": "(718) 736-0122",
   "address": "187-06 Union Tpke",
   "city": "Queens",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "http://bright-white-dental.com/",
   "maps_url": "https://www.google.com/maps/place/Bright+White+Dental+of+Fresh+Meadows/data=!4m7!3m6!1s0x89c261a634e31871:0x511947b0418f7ade!8m2!3d40.7287628!4d-73.78172!16s%2Fg%2F1tklrgw4!19sChIJcRjjNKZhwokR3nqPQbBHGVE",
   "query": "dentist in Queens, NY"
  },
  {
   "name": "Kew Dental Care: Dr. Seth Faigen",
-  "phone": "",
+  "phone": "(718) 849-9472",
   "address": "116-14 Metropolitan Ave",
   "city": "Queens",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://www.kewdentalcare.com/",
   "maps_url": "https://www.google.com/maps/place/Kew+Dental+Care:+Dr.+Seth+Faigen/data=!4m7!3m6!1s0x89c260a42a295555:0x21a59f0e801fbc9a!8m2!3d40.7072238!4d-73.8358461!16s%2Fg%2F11gg6drgj1!19sChIJVVUpKqRgwokRmrwfgA6fpSE",
   "query": "dentist in Queens, NY"
  },
@@ -14053,19 +12985,19 @@
  },
  {
   "name": "Dental Group NY",
-  "phone": "",
+  "phone": "(718) 454-7418",
   "address": "190-02 Jamaica Ave",
   "city": "Queens",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://dentalgroupny.com/locations/hollis-queens-ny/",
   "maps_url": "https://www.google.com/maps/place/Dental+Group+NY/data=!4m7!3m6!1s0x89c2616ce5aa3abd:0xa43ad8a4c2864a77!8m2!3d40.7117185!4d-73.7693644!16s%2Fg%2F1tfwff1y!19sChIJvTqq5WxhwokRd0qGwqTYOqQ",
   "query": "dentist in Queens, NY"
  },
  {
   "name": "Village Dental",
-  "phone": "",
+  "phone": "(718) 268-1028",
   "address": "110-55 72nd Rd Suite L - 1",
   "city": "Queens",
   "state": "NY",
@@ -14149,7 +13081,7 @@
  },
  {
   "name": "Woodhaven Family Dental",
-  "phone": "",
+  "phone": "(718) 847-3300",
   "address": "86-13 Jamaica Ave",
   "city": "Queens",
   "state": "NY",
@@ -14185,7 +13117,7 @@
  },
  {
   "name": "Better Living through Dentistry",
-  "phone": "",
+  "phone": "(718) 263-5991",
   "address": "125-10 Queens Blvd STE 219",
   "city": "Queens",
   "state": "NY",
@@ -14353,26 +13285,14 @@
  },
  {
   "name": "Jamaica Queens Dental",
-  "phone": "",
+  "phone": "(718) 416-6427",
   "address": "102-32 Jamaica Ave",
   "city": "Queens",
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://www.jamaicadentalny.com/",
   "maps_url": "https://www.google.com/maps/place/Jamaica+Queens+Dental/data=!4m7!3m6!1s0x89c25d5300f730ed:0x72c55cc5094175d6!8m2!3d40.6949769!4d-73.8441695!16s%2Fg%2F11fmz24gzq!19sChIJ7TD3AFNdwokR1nVBCcVcxXI",
-  "query": "dentist in Queens, NY"
- },
- {
-  "name": "Roosevelt Dental Care II",
-  "phone": "",
-  "address": "95-53 Roosevelt Ave",
-  "city": "Queens",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Roosevelt+Dental+Care+II/data=!4m7!3m6!1s0x89c25fb9e6e4ff69:0xdc24cb6a4bedc1f1!8m2!3d40.7492616!4d-73.8699656!16s%2Fg%2F1tfbjn87!19sChIJaf_k5rlfwokR8cHtS2rLJNw",
   "query": "dentist in Queens, NY"
  },
  {
@@ -14413,7 +13333,7 @@
  },
  {
   "name": "Kew Gardens Dental P.C.",
-  "phone": "",
+  "phone": "(518) 757-0854",
   "address": "119-01 Metropolitan Ave",
   "city": "Queens",
   "state": "NY",
@@ -14443,7 +13363,7 @@
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "https://www.zocdoc.com/practice/smile-dental-30944",
   "maps_url": "https://www.google.com/maps/place/Astoria+Family+Dental/data=!4m7!3m6!1s0x89c25f47eac1e159:0x1d38648556eb006d!8m2!3d40.7677205!4d-73.9234071!16s%2Fg%2F1wh4gsbv!19sChIJWeHB6kdfwokRbQDrVoVkOB0",
   "query": "dentist in Astoria, NY"
  },
@@ -14568,18 +13488,6 @@
   "query": "dentist in Astoria, NY"
  },
  {
-  "name": "Steinway Dental Associates.",
-  "phone": "",
-  "address": "31-10 37th Ave Ste 305",
-  "city": "Astoria",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Steinway+Dental+Associates./data=!4m7!3m6!1s0x89c25f3b3b5bb217:0x9ed5abdb36595de2!8m2!3d40.7544955!4d-73.9307972!16s%2Fg%2F1w96hnqy!19sChIJF7JbOztfwokR4l1ZNtur1Z4",
-  "query": "dentist in Astoria, NY"
- },
- {
   "name": "Petra Dental",
   "phone": "",
   "address": "30-44 36th St",
@@ -14640,18 +13548,6 @@
   "query": "dentist in Astoria, NY"
  },
  {
-  "name": "Smile Dental Astoria",
-  "phone": "",
-  "address": "29-04 Ditmars Blvd #1",
-  "city": "Astoria",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.zocdoc.com/practice/smile-dental-30944",
-  "maps_url": "https://www.google.com/maps/place/Smile+Dental+Astoria/data=!4m7!3m6!1s0x89c25f679b817457:0xa438fdaa74add58e!8m2!3d40.776559!4d-73.9116981!16s%2Fg%2F1th299wr!19sChIJV3SBm2dfwokRjtWtdKr9OKQ",
-  "query": "dentist in Astoria, NY"
- },
- {
   "name": "Astoria Dental Broadway",
   "phone": "",
   "address": "31-72 31st St #1",
@@ -14709,30 +13605,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Master+Dental:+Konstantine+Malafis,+DDS/data=!4m7!3m6!1s0x89c25f6625021f89:0x70ffad91470e86c8!8m2!3d40.774446!4d-73.908777!16s%2Fg%2F1tfg3_zl!19sChIJiR8CJWZfwokRyIYOR5Gt_3A",
-  "query": "dentist in Astoria, NY"
- },
- {
-  "name": "Astoria Dental Associates",
-  "phone": "",
-  "address": "30-89 36th St",
-  "city": "Astoria",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Astoria+Dental+Associates/data=!4m7!3m6!1s0x89c25f3925671cd7:0x40144eae411d275b!8m2!3d40.7627136!4d-73.9190532!16s%2Fg%2F1tffkpyd!19sChIJ1xxnJTlfwokRWycdQa5OFEA",
-  "query": "dentist in Astoria, NY"
- },
- {
-  "name": "Professional Dental Associates",
-  "phone": "",
-  "address": "31-19 Newtown Ave 8th FL -Suite#800",
-  "city": "Astoria",
-  "state": "NY",
-  "category": "Dental implants periodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Professional+Dental+Associates/data=!4m7!3m6!1s0x89c25f4714812eef:0x277ef22b7697a1dc!8m2!3d40.7671967!4d-73.9202294!16s%2Fg%2F11bxfj73cm!19sChIJ7y6BFEdfwokR3KGXdivyfic",
   "query": "dentist in Astoria, NY"
  },
  {
@@ -15492,18 +14364,6 @@
   "query": "dentist in Astoria, NY"
  },
  {
-  "name": "Diamond Braces Orthodontist: Braces & Invisalign",
-  "phone": "",
-  "address": "22-56 31st St Ste A",
-  "city": "Astoria",
-  "state": "NY",
-  "category": "Orthodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Diamond+Braces+Orthodontist:+Braces+%26+Invisalign/data=!4m7!3m6!1s0x89c25f04c5d97615:0x88130b711ab76b4f!8m2!3d40.7750966!4d-73.9123296!16s%2Fg%2F11rnk1dcl1!19sChIJFXbZxQRfwokRT2u3GnELE4g",
-  "query": "dentist in Astoria, NY"
- },
- {
   "name": "Dendac Dentist Pc",
   "phone": "",
   "address": "28-57 Steinway St",
@@ -15537,18 +14397,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Kassabian+Raffi+DDS/data=!4m7!3m6!1s0x89c25f3fa6209ac5:0xd92d9e9b2c76db6e!8m2!3d40.763377!4d-73.9151096!16s%2Fg%2F1trxfm9s!19sChIJxZogpj9fwokRbtt2LJueLdk",
-  "query": "dentist in Astoria, NY"
- },
- {
-  "name": "Steinway 26 Dentistry",
-  "phone": "",
-  "address": "30-27 Steinway St",
-  "city": "Astoria",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Steinway+26+Dentistry/data=!4m7!3m6!1s0x89c25f3fa98b99f3:0x2a98dbb7715c78a5!8m2!3d40.763076!4d-73.915301!16s%2Fg%2F1ptwcyqhk!19sChIJ85mLqT9fwokRpXhccbfbmCo",
   "query": "dentist in Astoria, NY"
  },
  {
@@ -16044,18 +14892,6 @@
   "query": "dentist in Mount Vernon, NY"
  },
  {
-  "name": "Dental Group NY - Bronx",
-  "phone": "(929) 543-0299",
-  "address": "140 De Kruif Pl #1",
-  "city": "Mount Vernon",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://dentalgroupny.com/",
-  "maps_url": "https://www.google.com/maps/place/Dental+Group+NY+-+Bronx/data=!4m7!3m6!1s0x89c28cc60c43ec41:0x44815ca3816c2e9f!8m2!3d40.8755111!4d-73.8294982!16s%2Fg%2F1tgp1qxs!19sChIJQexDDMaMwokRny5sgaNcgUQ",
-  "query": "dentist in Mount Vernon, NY"
- },
- {
   "name": "Barry Jason, D.D.S.",
   "phone": "(914) 699-8940",
   "address": "9 W Prospect Ave Ste 207",
@@ -16065,18 +14901,6 @@
   "rating": "",
   "website": "http://www.sedation-cosmeticdentistry.com/",
   "maps_url": "https://www.google.com/maps/place/Barry+Jason,+D.D.S./data=!4m7!3m6!1s0x89c28d3597bf93bd:0x1b8734d786aef4bb!8m2!3d40.9128102!4d-73.8378244!16s%2Fg%2F1tjfc5kc!19sChIJvZO_lzWNwokRu_Suhtc0hxs",
-  "query": "dentist in Mount Vernon, NY"
- },
- {
-  "name": "New Rochelle Dental Arts",
-  "phone": "(914) 537-1510",
-  "address": "466 Main St",
-  "city": "Mount Vernon",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.newrochelle-dental.com/",
-  "maps_url": "https://www.google.com/maps/place/New+Rochelle+Dental+Arts/data=!4m7!3m6!1s0x89c28d3fd2b4f469:0x705e149b08af28b7!8m2!3d40.9095599!4d-73.7802618!16s%2Fg%2F11h6f_hbrt!19sChIJafS00j-NwokRtyivCJsUXnA",
   "query": "dentist in Mount Vernon, NY"
  },
  {
@@ -16188,18 +15012,6 @@
   "query": "dentist in Mount Vernon, NY"
  },
  {
-  "name": "Mc Lean Ronald DDS",
-  "phone": "(855) 629-1424",
-  "address": "3575 Eastchester Rd",
-  "city": "Mount Vernon",
-  "state": "NY",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Mc+Lean+Ronald+DDS/data=!4m7!3m6!1s0x89c2f331576ed4d1:0x6aafe8f9954ff1f0!8m2!3d40.8794861!4d-73.8480377!16s%2Fg%2F1w4vkw2f!19sChIJ0dRuVzHzwokR8PFPlfnor2o",
-  "query": "dentist in Mount Vernon, NY"
- },
- {
   "name": "Luxury Dental Arts",
   "phone": "(315) 665-8336",
   "address": "1205 E 233rd St",
@@ -16245,18 +15057,6 @@
   "rating": "",
   "website": "https://tintrupdentallabs.com/",
   "maps_url": "https://www.google.com/maps/place/Tintrup+Dental+Laboratory,+Inc./data=!4m7!3m6!1s0x89c28d4827ac9a73:0xd068ca74de625efb!8m2!3d40.911205!4d-73.832277!16s%2Fg%2F1thy0qww!19sChIJc5qsJ0iNwokR-15i3nTKaNA",
-  "query": "dentist in Mount Vernon, NY"
- },
- {
-  "name": "Zen Dentistry Westchester",
-  "phone": "(914) 826-8363",
-  "address": "1 Radisson Plaza Ste 903",
-  "city": "Mount Vernon",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://familydentistnewrochelle.com/",
-  "maps_url": "https://www.google.com/maps/place/Zen+Dentistry+Westchester/data=!4m7!3m6!1s0x89c2925f6ed291c5:0xb1834a0795a1bf60!8m2!3d40.9139668!4d-73.7778007!16s%2Fg%2F1tdg8qvz!19sChIJxZHSbl-SwokRYL-hlQdKg7E",
   "query": "dentist in Mount Vernon, NY"
  },
  {
@@ -16389,18 +15189,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Cora+Materials+Corporation/data=!4m7!3m6!1s0x89c28d238f864ed3:0xe27429fd057e0966!8m2!3d40.899011!4d-73.823226!16s%2Fg%2F1tgq7l3p!19sChIJ006GjyONwokRZgl-Bf0pdOI",
-  "query": "dentist in Mount Vernon, NY"
- },
- {
-  "name": "Baychester Pediatric Dentistry",
-  "phone": "(347) 202-5845",
-  "address": "4000 Baychester Ave",
-  "city": "Mount Vernon",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://dentalsmiles26.com/",
-  "maps_url": "https://www.google.com/maps/place/Baychester+Pediatric+Dentistry/data=!4m7!3m6!1s0x89c2f32b2996f2e5:0x8231e07170e47881!8m2!3d40.8903337!4d-73.8423841!16s%2Fg%2F1tcv_bsg!19sChIJ5fKWKSvzwokRgXjkcHHgMYI",
   "query": "dentist in Mount Vernon, NY"
  },
  {
@@ -16944,18 +15732,6 @@
   "query": "dentist in Garden City, NY"
  },
  {
-  "name": "Garden City Smiles: Louis J. Buono, DDS",
-  "phone": "",
-  "address": "226 7th St Ste 303",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Garden+City+Smiles:+Louis+J.+Buono,+DDS/data=!4m7!3m6!1s0x89c27d40628dbc73:0x997766ef8b90e8d9!8m2!3d40.7253189!4d-73.6329051!16s%2Fg%2F1vfn7l1d!19sChIJc7yNYkB9wokR2eiQi-9md5k",
-  "query": "dentist in Garden City, NY"
- },
- {
   "name": "Advanced DDS",
   "phone": "",
   "address": "200 Garden City Plaza 101 Suite 101",
@@ -16992,66 +15768,6 @@
   "query": "dentist in Garden City, NY"
  },
  {
-  "name": "Franklin Avenue Dental Care",
-  "phone": "",
-  "address": "520 Franklin Ave suite L-11",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Franklin+Avenue+Dental+Care/data=!4m7!3m6!1s0x89c27d3f0924e315:0x7961dbe5ac9fde93!8m2!3d40.722955!4d-73.633466!16s%2Fg%2F1tqtyt0n!19sChIJFeMkCT99wokRk96frOXbYXk",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "The Gentle Dentist of Garden City - Dr. Amit Sood, DDS",
-  "phone": "",
-  "address": "327 Nassau Blvd S",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/The+Gentle+Dentist+of+Garden+City+-+Dr.+Amit+Sood,+DDS/data=!4m7!3m6!1s0x89c262d16d371d33:0x27227b5d266a1c45!8m2!3d40.7156636!4d-73.6611877!16s%2Fg%2F1tdb9rxm!19sChIJMx03bdFiwokRRRxqJl17Iic",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Dental365 - Esposito Dental - Garden City",
-  "phone": "",
-  "address": "990 Franklin Ave",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://booking.mytooth.io/WBeoiUD5GjVzxfPC27pWgoZAD6qbdn4z",
-  "maps_url": "https://www.google.com/maps/place/Dental365+-+Esposito+Dental+-+Garden+City/data=!4m7!3m6!1s0x89c27dbce6ed9ab1:0x634dd6548e7713eb!8m2!3d40.7293242!4d-73.6358804!16s%2Fg%2F11pcnljl4g!19sChIJsZrt5rx9wokR6xN3jlTWTWM",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Vanguard Dental",
-  "phone": "",
-  "address": "601 Franklin Ave #100",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Vanguard+Dental/data=!4m7!3m6!1s0x89c27d3f84e9ed35:0x985124e6ab87de05!8m2!3d40.7240021!4d-73.632404!16s%2Fg%2F11ddyj24vm!19sChIJNe3phD99wokRBd6Hq-YkUZg",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Varano Dental Excellence",
-  "phone": "",
-  "address": "25 Nassau Blvd S",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://nexhealth.info/book/appt/varano-dental-excellence",
-  "maps_url": "https://www.google.com/maps/place/Varano+Dental+Excellence/data=!4m7!3m6!1s0x89c262d19fcffe6b:0x5ab99891b8f718f2!8m2!3d40.7166856!4d-73.6608266!16s%2Fg%2F1tfm7l03!19sChIJa_7Pn9FiwokR8hj3uJGYuVo",
-  "query": "dentist in Garden City, NY"
- },
- {
   "name": "GD DENTISTRY OF GARDEN CITY",
   "phone": "",
   "address": "1100 Franklin Ave #103",
@@ -17085,42 +15801,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/The+Dental+Spa+at+Garden+CIty/data=!4m7!3m6!1s0x89c27d7b82be5ad1:0xcb009ed83c4f3a45!8m2!3d40.7360863!4d-73.615998!16s%2Fg%2F1thl_c9y!19sChIJ0Vq-gnt9wokRRTpPPNieAMs",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Whitehall Dental Arts",
-  "phone": "",
-  "address": "647 Franklin Ave",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Whitehall+Dental+Arts/data=!4m7!3m6!1s0x89c27d3f09252bd1:0x798d3ecaf84142ce!8m2!3d40.7247254!4d-73.633387!16s%2Fg%2F1hm56zh91!19sChIJ0SslCT99wokRzkJB-Mo-jXk",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Leading Care Dental: Robert Beckelman DMD",
-  "phone": "",
-  "address": "999 Franklin Ave #202",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Leading+Care+Dental:+Robert+Beckelman+DMD/data=!4m7!3m6!1s0x89c2648991044749:0x4672991081ab5a19!8m2!3d40.7294692!4d-73.6351852!16s%2Fg%2F1thl6b_w!19sChIJSUcEkYlkwokRGVqrgRCZckY",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Long Island Bright Dental",
-  "phone": "",
-  "address": "520 Franklin Ave Ste 204",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.zocdoc.com/practice/long-island-bright-dental-185418",
-  "maps_url": "https://www.google.com/maps/place/Long+Island+Bright+Dental/data=!4m7!3m6!1s0x89c27d1342efe05f:0x4aa53e4925132c7e!8m2!3d40.7229777!4d-73.6334485!16s%2Fg%2F11wxg1q85_!19sChIJX-DvQhN9wokRfiwTJUk-pUo",
   "query": "dentist in Garden City, NY"
  },
  {
@@ -17181,18 +15861,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Pediatric+Dentistry+of+Garden+City/data=!4m7!3m6!1s0x89c27d798a862249:0xa9ace4a651af325c!8m2!3d40.7325981!4d-73.6125034!16s%2Fg%2F1thfgcbg!19sChIJSSKGinl9wokRXDKvUabkrKk",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Dr. Denise Emma, Garden City Orthodontist",
-  "phone": "",
-  "address": "70 7th St",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Orthodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dr.+Denise+Emma,+Garden+City+Orthodontist/data=!4m7!3m6!1s0x89c27d382e80c017:0xb50b7986d6285261!8m2!3d40.7241644!4d-73.6381085!16s%2Fg%2F1vj603qt!19sChIJF8CALjh9wokRYVIo1oZ5C7U",
   "query": "dentist in Garden City, NY"
  },
  {
@@ -17280,18 +15948,6 @@
   "query": "dentist in Garden City, NY"
  },
  {
-  "name": "Progressive Oral Surgery",
-  "phone": "",
-  "address": "601 Franklin Ave",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Progressive+Oral+Surgery/data=!4m7!3m6!1s0x89c27d3f9c34ae03:0x1056cecca89c716a!8m2!3d40.7239926!4d-73.6325304!16s%2Fg%2F1tdmq_08!19sChIJA640nD99wokRanGcqMzOVhA",
-  "query": "dentist in Garden City, NY"
- },
- {
   "name": "Bral Dentistry: GeneraI, Implant, and Emergency Dentistry",
   "phone": "",
   "address": "990 Stewart Ave",
@@ -17313,18 +15969,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Elite+Orthodontics+Studio/data=!4m7!3m6!1s0x89c27d1ed5a3a4cb:0xfba34d8cc18274f5!8m2!3d40.7400152!4d-73.6320905!16s%2Fg%2F11m_58_b15!19sChIJy6Sj1R59wokR9XSCwYxNo_s",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Ferng Richard C DDS",
-  "phone": "",
-  "address": "226 7th St #11",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Ferng+Richard+C+DDS/data=!4m7!3m6!1s0x89c27d40628dbc73:0x60e09232c9d9e708!8m2!3d40.725326!4d-73.63294!16s%2Fg%2F1tf03dj3!19sChIJc7yNYkB9wokRCOfZyTKS4GA",
   "query": "dentist in Garden City, NY"
  },
  {
@@ -17412,18 +16056,6 @@
   "query": "dentist in Garden City, NY"
  },
  {
-  "name": "Eugene J. Butera, D.D.S.",
-  "phone": "",
-  "address": "233 7th St Unit 301",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Eugene+J.+Butera,+D.D.S./data=!4m7!3m6!1s0x89c27d4042546f19:0x7b75cc7393f1992f!8m2!3d40.7259191!4d-73.6325734!16s%2Fg%2F1tz96p14!19sChIJGW9UQkB9wokRL5nxk3PMdXs",
-  "query": "dentist in Garden City, NY"
- },
- {
   "name": "Garden City Dental",
   "phone": "",
   "address": "230 Hilton Ave",
@@ -17445,30 +16077,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Cafferata+Oral+Surgery:+Claudine+Cafferata,+DDS/data=!4m7!3m6!1s0x89c27d8887756377:0xd5efb4899e6778bb!8m2!3d40.73616!4d-73.5941951!16s%2Fg%2F11g6pyd_v6!19sChIJd2N1h4h9wokRu3hnnom079U",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Dr. Elizabeth Kitsos Pediatric Dentistry",
-  "phone": "",
-  "address": "520 Franklin Ave #121",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Dr.+Elizabeth+Kitsos+Pediatric+Dentistry/data=!4m7!3m6!1s0x89c27d3f0924e315:0xd66c8da4a7501c08!8m2!3d40.7229553!4d-73.6334664!16s%2Fg%2F1th0ntyx!19sChIJFeMkCT99wokRCBxQp6SNbNY",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Elite Dental Implants",
-  "phone": "",
-  "address": "601 Franklin Ave #100",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dental implants periodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Elite+Dental+Implants/data=!4m7!3m6!1s0x89c27d3f85054717:0x59fec3511dcdb6f2!8m2!3d40.7240142!4d-73.6324238!16s%2Fg%2F11b7fz09mv!19sChIJF0cFhT99wokR8rbNHVHD_lk",
   "query": "dentist in Garden City, NY"
  },
  {
@@ -17676,18 +16284,6 @@
   "query": "dentist in Garden City, NY"
  },
  {
-  "name": "Island Oral Surgery & Implant Group: Joseph W. Como DDS",
-  "phone": "",
-  "address": "230 Hilton Ave #104",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Island+Oral+Surgery+%26+Implant+Group:+Joseph+W.+Como+DDS/data=!4m7!3m6!1s0x89c27d3ccd6b3737:0x785160009053e01a!8m2!3d40.714934!4d-73.633842!16s%2Fg%2F1tc_0fm7!19sChIJNzdrzTx9wokRGuBTkABgUXg",
-  "query": "dentist in Garden City, NY"
- },
- {
   "name": "Brzozowski Cynthia DMD",
   "phone": "",
   "address": "520 Franklin Ave #203",
@@ -17805,18 +16401,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+Elisheva+Rosenfeld+DDS,+MD,+FACS/data=!4m7!3m6!1s0x89c288288fac0fab:0xcfbd694e1832bf6e!8m2!3d40.7344733!4d-73.6356842!16s%2Fg%2F11bxfm_3fv!19sChIJqw-sjyiIwokRbr8yGE5pvc8",
-  "query": "dentist in Garden City, NY"
- },
- {
-  "name": "Platinum Pediatric Dentistry",
-  "phone": "",
-  "address": "230 Hilton Ave #117",
-  "city": "Garden City",
-  "state": "NY",
-  "category": "Pediatric dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Platinum+Pediatric+Dentistry/data=!4m7!3m6!1s0x89c27db8ba081fa7:0x81ccfa47c224a8be!8m2!3d40.714934!4d-73.633842!16s%2Fg%2F11y3w35_y6!19sChIJpx8Iurh9wokRvqgkwkf6zIE",
   "query": "dentist in Garden City, NY"
  },
  {
@@ -18960,18 +17544,6 @@
   "query": "dentist in Cranston, RI"
  },
  {
-  "name": "New England Dental advanced cosmetic dentistry",
-  "phone": "(401) 781-4424",
-  "address": "1387 Broad St",
-  "city": "Cranston",
-  "state": "RI",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.nedentalri.com/",
-  "maps_url": "https://www.google.com/maps/place/New+England+Dental+advanced+cosmetic+dentistry/data=!4m7!3m6!1s0x89e44fed67a96c57:0x9ebe9902e93c0df0!8m2!3d41.789068!4d-71.4045459!16s%2Fg%2F11b8v9_wm3!19sChIJV2ypZ-1P5IkR8A086QKZvp4",
-  "query": "dentist in Cranston, RI"
- },
- {
   "name": "William R Bebrin DMD",
   "phone": "(401) 946-4046",
   "address": "1280 Park Ave",
@@ -19572,18 +18144,6 @@
   "query": "dentist in New Haven, CT"
  },
  {
-  "name": "Shoreline Dental Care of West Haven",
-  "phone": "",
-  "address": "369 Main St",
-  "city": "New Haven",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Shoreline+Dental+Care+of+West+Haven/data=!4m7!3m6!1s0x89e7d881ea94ffbb:0xa178bcef0246be4!8m2!3d41.2721592!4d-72.9506195!16s%2Fg%2F1tkkvxnl!19sChIJu_-U6oHY54kR5Gsk8M6LFwo",
-  "query": "dentist in New Haven, CT"
- },
- {
   "name": "Smart Dental LLC",
   "phone": "",
   "address": "1045 Whalley Ave",
@@ -19705,13 +18265,13 @@
  },
  {
   "name": "Downtown Dental CT of West Haven PC",
-  "phone": "",
+  "phone": "(203) 889-0278",
   "address": "145 Boston Post Rd",
   "city": "New Haven",
   "state": "CT",
   "category": "Dental clinic",
   "rating": "",
-  "website": "",
+  "website": "https://downtowndentalct.com/",
   "maps_url": "https://www.google.com/maps/place/Downtown+Dental+CT+of+West+Haven+PC/data=!4m7!3m6!1s0x89e7d96adb2a6053:0x3673aaabc4c772d3!8m2!3d41.2967303!4d-72.9561118!16s%2Fg%2F11y3j4yvjj!19sChIJU2Aq22rZ54kR03LHxKuqczY",
   "query": "dentist in New Haven, CT"
  },
@@ -19753,13 +18313,13 @@
  },
  {
   "name": "West Shore Family Dental",
-  "phone": "",
+  "phone": "(203) 932-3675",
   "address": "655 Saw Mill Rd",
   "city": "New Haven",
   "state": "CT",
   "category": "Dentist",
   "rating": "",
-  "website": "",
+  "website": "http://www.westshorefamily.dental/",
   "maps_url": "https://www.google.com/maps/place/West+Shore+Family+Dental/data=!4m7!3m6!1s0x89e877d2804817b9:0xaab12d59463141db!8m2!3d41.267962!4d-72.9786331!16s%2Fg%2F1tdxrhfw!19sChIJuRdIgNJ36IkR20ExRlktsao",
   "query": "dentist in New Haven, CT"
  },
@@ -19800,32 +18360,8 @@
   "query": "dentist in New Haven, CT"
  },
  {
-  "name": "Shoreline Dental Care of Milford",
-  "phone": "",
-  "address": "255 Cherry St",
-  "city": "New Haven",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Shoreline+Dental+Care+of+Milford/data=!4m7!3m6!1s0x89e874f38aed96a1:0x6917f77d43d08105!8m2!3d41.2304064!4d-73.0464222!16s%2Fg%2F1thssf0w!19sChIJoZbtivN06IkRBYHQQ333F2k",
-  "query": "dentist in New Haven, CT"
- },
- {
-  "name": "Savin Dental Care",
-  "phone": "",
-  "address": "654 Savin Ave",
-  "city": "New Haven",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Savin+Dental+Care/data=!4m7!3m6!1s0x89e8762a1bf47fcf:0x9a082b59b24d29d6!8m2!3d41.2702887!4d-72.9516349!16s%2Fg%2F1tfzht9y!19sChIJz3_0Gyp26IkR1ilNslkrCJo",
-  "query": "dentist in New Haven, CT"
- },
- {
   "name": "Time For Smiles Dental Center",
-  "phone": "",
+  "phone": "(203) 932-3366",
   "address": "744 Savin Ave",
   "city": "New Haven",
   "state": "CT",
@@ -19833,18 +18369,6 @@
   "rating": "",
   "website": "https://www.zocdoc.com/practice/time-for-smiles-dental-center-65312",
   "maps_url": "https://www.google.com/maps/place/Time+For+Smiles+Dental+Center/data=!4m7!3m6!1s0x89e7d88218205c2d:0x59a8a07f0aec1879!8m2!3d41.2723619!4d-72.9528041!16s%2Fg%2F1tdcbvff!19sChIJLVwgGILY54kReRjsCn-gqFk",
-  "query": "dentist in New Haven, CT"
- },
- {
-  "name": "Soundental Associates",
-  "phone": "",
-  "address": "655 Saw Mill Rd",
-  "city": "New Haven",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Soundental+Associates/data=!4m7!3m6!1s0x89e8761a55c95f85:0x1e40adf39cdbd6be!8m2!3d41.2679479!4d-72.9786358!16s%2Fg%2F1tjv4k79!19sChIJhV_JVRp26IkRvtbbnPOtQB4",
   "query": "dentist in New Haven, CT"
  },
  {
@@ -19896,18 +18420,6 @@
   "query": "dentist in New Haven, CT"
  },
  {
-  "name": "Mark T. Ryan DMD",
-  "phone": "",
-  "address": "622 Savin Ave",
-  "city": "New Haven",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Mark+T.+Ryan+DMD/data=!4m7!3m6!1s0x89e8762a25867a83:0xfc32d3239f074b8b!8m2!3d41.2693579!4d-72.9514445!16s%2Fg%2F1thgj1vd!19sChIJg3qGJSp26IkRi0sHnyPTMvw",
-  "query": "dentist in New Haven, CT"
- },
- {
   "name": "Gargano Family Dentistry",
   "phone": "",
   "address": "21 Washington Ave",
@@ -19956,18 +18468,6 @@
   "query": "dentist in New Haven, CT"
  },
  {
-  "name": "East Haven Dentistry",
-  "phone": "",
-  "address": "1367 N High St",
-  "city": "New Haven",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/East+Haven+Dentistry/data=!4m7!3m6!1s0x89e7d6da82c4f07d:0x65f828437bbdcea2!8m2!3d41.3230242!4d-72.8405881!16s%2Fg%2F1tfdfhd9!19sChIJffDEgtrW54kRos69e0Mo-GU",
-  "query": "dentist in New Haven, CT"
- },
- {
   "name": "Dental Associates of Southern New England PC",
   "phone": "",
   "address": "98 Elm St",
@@ -20001,18 +18501,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+Leonard+W.+Skope,+DDS/data=!4m7!3m6!1s0x89e7d9aa95dc2021:0xf2ccd85e7eb0edca!8m2!3d41.3107432!4d-72.9451616!16s%2Fg%2F1tgpz6_b!19sChIJISDclarZ54kRyu2wfl7YzPI",
-  "query": "dentist in New Haven, CT"
- },
- {
-  "name": "Calcaterra Family Dentistry",
-  "phone": "",
-  "address": "291 S Lambert Rd",
-  "city": "New Haven",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Calcaterra+Family+Dentistry/data=!4m7!3m6!1s0x89e875e887a46703:0xfb0832a56317032b!8m2!3d41.262639!4d-73.0051506!16s%2Fg%2F12hltm3d1!19sChIJA2ekh-h16IkRKwMXY6UyCPs",
   "query": "dentist in New Haven, CT"
  },
  {
@@ -20076,18 +18564,6 @@
   "query": "dentist in Darien, CT"
  },
  {
-  "name": "Daniel Dental Studio",
-  "phone": "(475) 265-6590",
-  "address": "515 West Ave",
-  "city": "Darien",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://danieldentalstudio.com/",
-  "maps_url": "https://www.google.com/maps/place/Daniel+Dental+Studio/data=!4m7!3m6!1s0x89e81d2d3389388f:0x48f9613e551a9614!8m2!3d41.1121688!4d-73.4158986!16s%2Fg%2F11nmq65934!19sChIJjziJMy0d6IkRFJYaVT5h-Ug",
-  "query": "dentist in Darien, CT"
- },
- {
   "name": "Christine L. Hamilton-Hall, DMD, MD",
   "phone": "(203) 656-4466",
   "address": "777 Boston Post Rd #101",
@@ -20109,18 +18585,6 @@
   "rating": "",
   "website": "https://darienoralandimplants.com/",
   "maps_url": "https://www.google.com/maps/place/Darien+Implant+and+Oral+Surgery+Center/data=!4m7!3m6!1s0x89c2a176e9efdb17:0xa5393e4cf04e67a9!8m2!3d41.0801576!4d-73.4668653!16s%2Fg%2F11ykh2lpg7!19sChIJF9vv6XahwokRqWdO8Ew-OaU",
-  "query": "dentist in Darien, CT"
- },
- {
-  "name": "Dental Solutions",
-  "phone": "(203) 939-9666",
-  "address": "148 East Ave #1C",
-  "city": "Darien",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://dentalsolutionsct.com/",
-  "maps_url": "https://www.google.com/maps/place/Dental+Solutions/data=!4m7!3m6!1s0x89e81c2ed45171cf:0x8df3e4d970f845eb!8m2!3d41.1103575!4d-73.4094114!16s%2Fg%2F11b5wmr4r2!19sChIJz3FR1C4c6IkR60X4cNnk840",
   "query": "dentist in Darien, CT"
  },
  {
@@ -20208,30 +18672,6 @@
   "query": "dentist in Orange, CT"
  },
  {
-  "name": "Downtown Dental CT of West Haven PC",
-  "phone": "(203) 889-0278",
-  "address": "145 Boston Post Rd",
-  "city": "Orange",
-  "state": "CT",
-  "category": "Dental clinic",
-  "rating": "",
-  "website": "https://downtowndentalct.com/",
-  "maps_url": "https://www.google.com/maps/place/Downtown+Dental+CT+of+West+Haven+PC/data=!4m7!3m6!1s0x89e7d96adb2a6053:0x3673aaabc4c772d3!8m2!3d41.2967303!4d-72.9561118!16s%2Fg%2F11y3j4yvjj!19sChIJU2Aq22rZ54kR03LHxKuqczY",
-  "query": "dentist in Orange, CT"
- },
- {
-  "name": "West Shore Family Dental",
-  "phone": "(203) 932-3675",
-  "address": "655 Saw Mill Rd",
-  "city": "Orange",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://www.westshorefamily.dental/",
-  "maps_url": "https://www.google.com/maps/place/West+Shore+Family+Dental/data=!4m7!3m6!1s0x89e877d2804817b9:0xaab12d59463141db!8m2!3d41.267962!4d-72.9786331!16s%2Fg%2F1tdxrhfw!19sChIJuRdIgNJ36IkR20ExRlktsao",
-  "query": "dentist in Orange, CT"
- },
- {
   "name": "Rapp Henry C DDS",
   "phone": "(203) 795-5425",
   "address": "291 S Lambert Rd",
@@ -20241,18 +18681,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Rapp+Henry+C+DDS/data=!4m7!3m6!1s0x89e875e87da1fc4d:0x404a4baa2c0a6b78!8m2!3d41.2626405!4d-73.0050594!16s%2Fg%2F1td149bw!19sChIJTfyhfeh16IkReGsKLKpLSkA",
-  "query": "dentist in Orange, CT"
- },
- {
-  "name": "Time For Smiles Dental Center",
-  "phone": "(203) 932-3366",
-  "address": "744 Savin Ave",
-  "city": "Orange",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://www.westhavenctdentist.com/",
-  "maps_url": "https://www.google.com/maps/place/Time+For+Smiles+Dental+Center/data=!4m7!3m6!1s0x89e7d88218205c2d:0x59a8a07f0aec1879!8m2!3d41.2723619!4d-72.9528041!16s%2Fg%2F1tdcbvff!19sChIJLVwgGILY54kReRjsCn-gqFk",
   "query": "dentist in Orange, CT"
  },
  {
@@ -20289,18 +18717,6 @@
   "rating": "",
   "website": "https://waterforddentalhealth.com/",
   "maps_url": "https://www.google.com/maps/place/Waterford+Dental+Health/data=!4m7!3m6!1s0x89e60e2ef538503f:0x1cebc5c4e18c06ef!8m2!3d41.3443462!4d-72.1328496!16s%2Fg%2F1trvmg7k!19sChIJP1A49S4O5okR7waM4cTF6xw",
-  "query": "dentist in New London, CT"
- },
- {
-  "name": "Turick Cosmetic & Family Dentist../",
-  "phone": "",
-  "address": "397 Long Hill Rd",
-  "city": "New London",
-  "state": "CT",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Turick+Cosmetic+%26+Family+Dentist..%2F/data=!4m7!3m6!1s0x89e60ea4e5eb12c9:0x59e154ccf087ffa8!8m2!3d41.3554588!4d-72.0612011!16s%2Fg%2F1td7d55l!19sChIJyRLr5aQO5okRqP-H8MxU4Vk",
   "query": "dentist in New London, CT"
  },
  {
@@ -20772,18 +19188,6 @@
   "query": "dentist in Brooklyn, NY"
  },
  {
-  "name": "Brooklyn Oak Dental Care",
-  "phone": "",
-  "address": "111 4th Ave",
-  "city": "Brooklyn",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Brooklyn+Oak+Dental+Care/data=!4m7!3m6!1s0x89c25b0199670123:0x2c37e114be3f7efb!8m2!3d40.6806786!4d-73.9805883!16s%2Fg%2F12hqb6m8g!19sChIJIwFnmQFbwokR-34_vhThNyw",
-  "query": "dentist in Brooklyn, NY"
- },
- {
   "name": "Brooklyn Dental Collective",
   "phone": "",
   "address": "101 Bedford Ave",
@@ -20844,18 +19248,6 @@
   "query": "dentist in Brooklyn, NY"
  },
  {
-  "name": "Brooklyn Smile & Dental Implants",
-  "phone": "",
-  "address": "9412 4th Ave",
-  "city": "Brooklyn",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Brooklyn+Smile+%26+Dental+Implants/data=!4m7!3m6!1s0x89c24f89c8fed10f:0x33c14375f453411e!8m2!3d40.6165142!4d-74.0312628!16s%2Fg%2F1vk6_45b!19sChIJD9H-yIlPwokRHkFT9HVDwTM",
-  "query": "dentist in Brooklyn, NY"
- },
- {
   "name": "Williamsburg Dental Works",
   "phone": "",
   "address": "438 Graham Ave",
@@ -20877,18 +19269,6 @@
   "rating": "",
   "website": "https://nexhealth.info/book/appt/Fulton_Dental_Studio",
   "maps_url": "https://www.google.com/maps/place/Fulton+Dental+Studio/data=!4m7!3m6!1s0x89c25d2b8b0a5a13:0x922301c8452fcc4f!8m2!3d40.6793638!4d-73.9273587!16s%2Fg%2F11rcrhhygg!19sChIJE1oKiytdwokRT8wvRcgBI5I",
-  "query": "dentist in Brooklyn, NY"
- },
- {
-  "name": "Park Dentistry",
-  "phone": "",
-  "address": "55 8th Ave Ste 4",
-  "city": "Brooklyn",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Park+Dentistry/data=!4m7!3m6!1s0x89c25b558b1b276d:0x106d0b47d6d731d3!8m2!3d40.6738635!4d-73.9725277!16s%2Fg%2F1vyn4s73!19sChIJbScbi1VbwokR0zHX1kcLbRA",
   "query": "dentist in Brooklyn, NY"
  },
  {
@@ -21168,18 +19548,6 @@
   "query": "dentist in Brooklyn, NY"
  },
  {
-  "name": "Park Slope Dental Arts",
-  "phone": "",
-  "address": "506 3rd St",
-  "city": "Brooklyn",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Park+Slope+Dental+Arts/data=!4m7!3m6!1s0x89c25b03e0e894c5:0x29190b4cb8e56de!8m2!3d40.670195!4d-73.978463!16s%2Fg%2F11cnbk9ljv!19sChIJxZTo4ANbwokR3laOy7SQkQI",
-  "query": "dentist in Brooklyn, NY"
- },
- {
   "name": "Court Street Dental",
   "phone": "",
   "address": "32 Court St Ste 507",
@@ -21264,18 +19632,6 @@
   "query": "dentist in Brooklyn, NY"
  },
  {
-  "name": "Cosmopolitan Dental of Brooklyn",
-  "phone": "",
-  "address": "372 86th St",
-  "city": "Brooklyn",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Cosmopolitan+Dental+of+Brooklyn/data=!4m7!3m6!1s0x89c245600e8cb7c5:0xc95c2d5d868430a7!8m2!3d40.6227979!4d-74.0289836!16s%2Fg%2F1txc7yqh!19sChIJxbeMDmBFwokRpzCEhl0tXMk",
-  "query": "dentist in Brooklyn, NY"
- },
- {
   "name": "Williamsburg Dental Arts",
   "phone": "",
   "address": "38 Meserole St",
@@ -21285,18 +19641,6 @@
   "rating": "",
   "website": "https://nexhealth.info/book/appt/williamsburg_dental_arts",
   "maps_url": "https://www.google.com/maps/place/Williamsburg+Dental+Arts/data=!4m7!3m6!1s0x89c259676ad708f3:0x61888e43528f3990!8m2!3d40.7073774!4d-73.9489663!16s%2Fg%2F1tg2ll2r!19sChIJ8wjXamdZwokRkDmPUkOOiGE",
-  "query": "dentist in Brooklyn, NY"
- },
- {
-  "name": "Noble Dental Care",
-  "phone": "",
-  "address": "472 5th Ave",
-  "city": "Brooklyn",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Noble+Dental+Care/data=!4m7!3m6!1s0x89c25afd05cdec6d:0x745a4270237e6250!8m2!3d40.6683075!4d-73.9872324!16s%2Fg%2F1v3_3lyf!19sChIJbezNBf1awokRUGJ-I3BCWnQ",
   "query": "dentist in Brooklyn, NY"
  },
  {
@@ -21588,18 +19932,6 @@
   "query": "dentist in Staten Island, NY"
  },
  {
-  "name": "Prabha Krishnan, DDS, PC",
-  "phone": "(718) 268-5777",
-  "address": "110-45 Queens Boulevard",
-  "city": "Staten Island",
-  "state": "NY",
-  "category": "Periodontist",
-  "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/Prabha+Krishnan,+DDS,+PC/data=!4m7!3m6!1s0x89c260992e41625d:0xba4548ba4f8c0e86!8m2!3d40.719715!4d-73.838763!16s%2Fg%2F1v9gwd26!19sChIJXWJBLplgwokRhg6MT7pIRbo",
-  "query": "dentist in Staten Island, NY"
- },
- {
   "name": "Staten Island University Hospital Dental Care Center",
   "phone": "(718) 226-9080",
   "address": "475 Seaview Ave",
@@ -21622,18 +19954,6 @@
   "website": "http://sweettoothpediatrics.com/",
   "maps_url": "https://www.google.com/maps/place/Sweet+Tooth+Pediatric+Dentistry/data=!4m7!3m6!1s0x89c249d3d3f4a805:0x35e1ff2ba3f04627!8m2!3d40.554657!4d-74.1688086!16s%2Fg%2F11rcd5cl2r!19sChIJBaj009NJwokRJ0bwoyv_4TU",
   "query": "dentist in Staten Island, NY"
- },
- {
-  "name": "Jamaica Estates Dental",
-  "phone": "(516) 559-6931",
-  "address": "175-61 Hillside Ave.",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://jedental.com/",
-  "maps_url": "https://www.google.com/maps/place/Jamaica+Estates+Dental/data=!4m7!3m6!1s0x89c260b087022681:0x3ad8429c215219ad!8m2!3d40.7123729!4d-73.7857904!16s%2Fg%2F1tg2fdny!19sChIJgSYCh7BgwokRrRlSIZxC2Do",
-  "query": "dentist in Jamaica, NY"
  },
  {
   "name": "Jamaica26Dentistry",
@@ -21660,30 +19980,6 @@
   "query": "dentist in Jamaica, NY"
  },
  {
-  "name": "Open Smile Dental",
-  "phone": "(718) 878-4648",
-  "address": "107-53 Guy R Brewer Blvd",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://www.opensmilespa.com/",
-  "maps_url": "https://www.google.com/maps/place/Open+Smile+Dental/data=!4m7!3m6!1s0x89c261288d06a73f:0x7fcf294aa78a9daf!8m2!3d40.697007!4d-73.791214!16s%2Fg%2F1tmqs8vt!19sChIJP6cGjShhwokRr52Kp0opz38",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Richmond Hill Dentist - Gentle Dental Care",
-  "phone": "(718) 262-0720",
-  "address": "135-06A Jamaica Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.nygentledentalcare.com/",
-  "maps_url": "https://www.google.com/maps/place/Richmond+Hill+Dentist+-+Gentle+Dental+Care/data=!4m7!3m6!1s0x89c260c7e4fc3edf:0x1829a388abf24e75!8m2!3d40.7023092!4d-73.8174547!16s%2Fg%2F11g7np0znl!19sChIJ3z785MdgwokRdU7yq4ijKRg",
-  "query": "dentist in Jamaica, NY"
- },
- {
   "name": "1800 Emergency Dentist Jamaica 24 Hour",
   "phone": "(347) 212-7865",
   "address": "89-48 164th St Ste 3",
@@ -21691,56 +19987,8 @@
   "state": "NY",
   "category": "Dentist",
   "rating": "",
-  "website": "",
-  "maps_url": "https://www.google.com/maps/place/1800+Emergency+Dentist+Jamaica+24+Hour/data=!4m7!3m6!1s0x89c2619e30256cab:0xe6608c22bf2be702!8m2!3d40.7060145!4d-73.7967706!16s%2Fg%2F11x29_tc82!19sChIJq2wlMJ5hwokRAucrvyKMYOY",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Dental Group NY",
-  "phone": "(718) 454-7418",
-  "address": "190-02 Jamaica Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://dentalgroupny.com/locations/hollis-queens-ny/",
-  "maps_url": "https://www.google.com/maps/place/Dental+Group+NY/data=!4m7!3m6!1s0x89c2616ce5aa3abd:0xa43ad8a4c2864a77!8m2!3d40.7117185!4d-73.7693644!16s%2Fg%2F1tfwff1y!19sChIJvTqq5WxhwokRd0qGwqTYOqQ",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Jamaica Queens Dental",
-  "phone": "(718) 416-6427",
-  "address": "102-32 Jamaica Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.jamaicadentalny.com/",
-  "maps_url": "https://www.google.com/maps/place/Jamaica+Queens+Dental/data=!4m7!3m6!1s0x89c25d5300f730ed:0x72c55cc5094175d6!8m2!3d40.6949769!4d-73.8441695!16s%2Fg%2F11fmz24gzq!19sChIJ7TD3AFNdwokR1nVBCcVcxXI",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "1800 Emergency Dentist Jamaica 24 Hour",
-  "phone": "(347) 916-3701",
-  "address": "164-04 109th Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dental clinic",
-  "rating": "",
   "website": "https://1800dentist.com/emergency-dentist-jamaica-ny-2387/",
-  "maps_url": "https://www.google.com/maps/place/1800+Emergency+Dentist+Jamaica+24+Hour/data=!4m7!3m6!1s0x89c2615aeca3a533:0xc1d33400627c5f9c!8m2!3d40.6952485!4d-73.7889919!16s%2Fg%2F11ynzl56mt!19sChIJM6Wj7FphwokRnF98YgA008E",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Oasis Family Dental",
-  "phone": "(718) 441-4411",
-  "address": "106-05 Jamaica Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://www.oasisfamilydentalnyc.com/",
-  "maps_url": "https://www.google.com/maps/place/Oasis+Family+Dental/data=!4m7!3m6!1s0x89c260ab18b70d35:0xb90134d8e8986f99!8m2!3d40.6954498!4d-73.8409576!16s%2Fg%2F11bc8cyv3h!19sChIJNQ23GKtgwokRmW-Y6Ng0Abk",
+  "maps_url": "https://www.google.com/maps/place/1800+Emergency+Dentist+Jamaica+24+Hour/data=!4m7!3m6!1s0x89c2619e30256cab:0xe6608c22bf2be702!8m2!3d40.7060145!4d-73.7967706!16s%2Fg%2F11x29_tc82!19sChIJq2wlMJ5hwokRAucrvyKMYOY",
   "query": "dentist in Jamaica, NY"
  },
  {
@@ -21780,18 +20028,6 @@
   "query": "dentist in Jamaica, NY"
  },
  {
-  "name": "Modern Dental Care of Queens",
-  "phone": "(718) 690-7221",
-  "address": "80-46 Kew Gardens Rd Suite 1 Fl",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.moderndentalcareofqueens.com/",
-  "maps_url": "https://www.google.com/maps/place/Modern+Dental+Care+of+Queens/data=!4m7!3m6!1s0x89c260a2acd03445:0x9783f52b00cdcec3!8m2!3d40.7131082!4d-73.8302036!16s%2Fg%2F11cn0p4yds!19sChIJRTTQrKJgwokRw87NACv1g5c",
-  "query": "dentist in Jamaica, NY"
- },
- {
   "name": "Richmond Hill Family Dental",
   "phone": "(718) 441-7547",
   "address": "114-07 101st Ave",
@@ -21813,18 +20049,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dr.+Maxwell+Brooks+Emergency+Dentist+Jamaica+24+Hours/data=!4m7!3m6!1s0x89c26166bafe80df:0xb03b88ee5419d71d!8m2!3d40.7055531!4d-73.7957839!16s%2Fg%2F11nvfn1z57!19sChIJ34D-umZhwokRHdcZVO6IO7A",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Kew Gardens Dental P.C.",
-  "phone": "(518) 757-0854",
-  "address": "119-01 Metropolitan Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Cosmetic dentist",
-  "rating": "",
-  "website": "https://www.kewgardensdentaloffice.com/",
-  "maps_url": "https://www.google.com/maps/place/Kew+Gardens+Dental+P.C./data=!4m7!3m6!1s0x89c260a4e6f5b55f:0x7c42daf22aedbf1b!8m2!3d40.7063508!4d-73.8314833!16s%2Fg%2F1tqtbln5!19sChIJX7X15qRgwokRG7_tKvLaQnw",
   "query": "dentist in Jamaica, NY"
  },
  {
@@ -21948,54 +20172,6 @@
   "query": "dentist in Jamaica, NY"
  },
  {
-  "name": "Amazing Smile Dental NY",
-  "phone": "(718) 674-6478",
-  "address": "118-16 Queens Blvd",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://www.amazingsmiledentalny.com/",
-  "maps_url": "https://www.google.com/maps/place/Amazing+Smile+Dental+NY/data=!4m7!3m6!1s0x89c26199230dab6d:0xb78f90c109642462!8m2!3d40.7145178!4d-73.8321067!16s%2Fg%2F11g7nw50v7!19sChIJbasNI5lhwokRYiRkCcGQj7c",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Dental Made Easy - Forest Hills",
-  "phone": "(718) 507-7781",
-  "address": "116-20 Queens Blvd",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://dentalmadeeasy.com/",
-  "maps_url": "https://www.google.com/maps/place/Dental+Made+Easy+-+Forest+Hills/data=!4m7!3m6!1s0x89c26098f440a8f7:0xf57bc1f2a0389a9f!8m2!3d40.715453!4d-73.8333395!16s%2Fg%2F11c5xvp7m0!19sChIJ96hA9JhgwokRn5o4oPLBe_U",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Gentle Dental Family Care",
-  "phone": "(718) 849-9797",
-  "address": "118-60 Metropolitan Ave Suite # 1B",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://gentledentalfamilycare.com/",
-  "maps_url": "https://www.google.com/maps/place/Gentle+Dental+Family+Care/data=!4m7!3m6!1s0x89c260a507c8dd89:0xaa1919adcd4395da!8m2!3d40.7059597!4d-73.8329291!16s%2Fg%2F1tjprf10!19sChIJid3IB6VgwokR2pVDza0ZGao",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Kew Gardens Dental Arts",
-  "phone": "(332) 230-4811",
-  "address": "123-20 Metropolitan Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.dentalartskg.com/",
-  "maps_url": "https://www.google.com/maps/place/Kew+Gardens+Dental+Arts/data=!4m7!3m6!1s0x89c260bae9761ab5:0x5e0af6209f1f7fa9!8m2!3d40.705047!4d-73.828482!16s%2Fg%2F11bc7r5dv8!19sChIJtRp26bpgwokRqX8fnyD2Cl4",
-  "query": "dentist in Jamaica, NY"
- },
- {
   "name": "Dr. Salvador E. Gales, DMD",
   "phone": "(718) 843-0263",
   "address": "119-05 Rockaway Blvd",
@@ -22008,18 +20184,6 @@
   "query": "dentist in Jamaica, NY"
  },
  {
-  "name": "Kew Dental Care: Dr. Seth Faigen",
-  "phone": "(718) 849-9472",
-  "address": "116-14 Metropolitan Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.kewdentalcare.com/",
-  "maps_url": "https://www.google.com/maps/place/Kew+Dental+Care:+Dr.+Seth+Faigen/data=!4m7!3m6!1s0x89c260a42a295555:0x21a59f0e801fbc9a!8m2!3d40.7072238!4d-73.8358461!16s%2Fg%2F11gg6drgj1!19sChIJVVUpKqRgwokRmrwfgA6fpSE",
-  "query": "dentist in Jamaica, NY"
- },
- {
   "name": "Oasis Family Dental: Niyati Sheth, DDS",
   "phone": "(201) 338-5138",
   "address": "240 West Passaic Street",
@@ -22029,18 +20193,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Oasis+Family+Dental:+Niyati+Sheth,+DDS/data=!4m7!3m6!1s0x89c2fa49c62d2fcd:0xc9395391bd1b2734!8m2!3d40.90647!4d-74.068978!16s%2Fg%2F1wyc58c3!19sChIJzS8txkn6wokRNCcbvZFTOck",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Woodhaven Family Dental",
-  "phone": "(718) 847-3300",
-  "address": "86-13 Jamaica Ave",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://www.zocdoc.com/practice/woodhaven-family-dental-33754",
-  "maps_url": "https://www.google.com/maps/place/Woodhaven+Family+Dental/data=!4m7!3m6!1s0x89c25de4761c2d4d:0xeb045f41047cf571!8m2!3d40.6927481!4d-73.8576411!16s%2Fg%2F1tdl714f!19sChIJTS0cduRdwokRcfV8BEFfBOs",
   "query": "dentist in Jamaica, NY"
  },
  {
@@ -22065,18 +20217,6 @@
   "rating": "",
   "website": "http://andalign.com/",
   "maps_url": "https://www.google.com/maps/place/%26align+orthodontics/data=!4m7!3m6!1s0x89c261aefa8d0a4b:0xd561155aa9603801!8m2!3d40.7120825!4d-73.7960557!16s%2Fg%2F11t0578yz5!19sChIJSwqN-q5hwokRAThgqVoVYdU",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Village Dental",
-  "phone": "(718) 268-1028",
-  "address": "110-55 72nd Rd Suite L - 1",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://villagedentalforesthills.com/",
-  "maps_url": "https://www.google.com/maps/place/Village+Dental/data=!4m7!3m6!1s0x89c2609dcaa0e511:0xb00bb50e4856f8b8!8m2!3d40.7209703!4d-73.8390263!16s%2Fg%2F1tf6bzld!19sChIJEeWgyp1gwokRuPhWSA61C7A",
   "query": "dentist in Jamaica, NY"
  },
  {
@@ -22116,18 +20256,6 @@
   "query": "dentist in Jamaica, NY"
  },
  {
-  "name": "Better Living through Dentistry",
-  "phone": "(718) 263-5991",
-  "address": "125-10 Queens Blvd STE 219",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Periodontist",
-  "rating": "",
-  "website": "http://www.betterlivingdentistry.com/",
-  "maps_url": "https://www.google.com/maps/place/Better+Living+through+Dentistry/data=!4m7!3m6!1s0x89c260bd9c0e5b85:0xd7a86fe38953219d!8m2!3d40.7120769!4d-73.8264327!16s%2Fg%2F1tlbkhfc!19sChIJhVsOnL1gwokRnSFTieNvqNc",
-  "query": "dentist in Jamaica, NY"
- },
- {
   "name": "CitiDental of Woodhaven",
   "phone": "(718) 865-8111",
   "address": "105-46 Cross Bay Blvd",
@@ -22140,18 +20268,6 @@
   "query": "dentist in Jamaica, NY"
  },
  {
-  "name": "Madison Dental Art - Forest Hills",
-  "phone": "(718) 268-8228",
-  "address": "112-03 Queens Blvd Apt 211",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "https://madisondentalny.com/",
-  "maps_url": "https://www.google.com/maps/place/Madison+Dental+Art+-+Forest+Hills/data=!4m7!3m6!1s0x89c2609eb0ce2041:0xa12896b43591e556!8m2!3d40.7187975!4d-73.8368557!16s%2Fg%2F1tczr8fb!19sChIJQSDOsJ5gwokRVuWRNbSWKKE",
-  "query": "dentist in Jamaica, NY"
- },
- {
   "name": "Dental Office",
   "phone": "(347) 829-3987",
   "address": "169-11 Highland Ave",
@@ -22161,18 +20277,6 @@
   "rating": "",
   "website": "",
   "maps_url": "https://www.google.com/maps/place/Dental+Office/data=!4m7!3m6!1s0x89c2611e0d04f1ad:0xdd87e1a5ac832002!8m2!3d40.712725!4d-73.793528!16s%2Fg%2F1w3w3z01!19sChIJrfEEDR5hwokRAiCDrKXhh90",
-  "query": "dentist in Jamaica, NY"
- },
- {
-  "name": "Bright White Dental of Fresh Meadows",
-  "phone": "(718) 736-0122",
-  "address": "187-06 Union Tpke",
-  "city": "Jamaica",
-  "state": "NY",
-  "category": "Dentist",
-  "rating": "",
-  "website": "http://bright-white-dental.com/",
-  "maps_url": "https://www.google.com/maps/place/Bright+White+Dental+of+Fresh+Meadows/data=!4m7!3m6!1s0x89c261a634e31871:0x511947b0418f7ade!8m2!3d40.7287628!4d-73.78172!16s%2Fg%2F1tklrgw4!19sChIJcRjjNKZhwokR3nqPQbBHGVE",
   "query": "dentist in Jamaica, NY"
  },
  {

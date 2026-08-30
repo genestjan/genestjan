@@ -25,15 +25,22 @@ def name_key(s):
 
 def addr_key(addr, city):
     a = (addr or "").lower()
-    m = re.match(r"\s*(\d+)\s+([a-z]+)", a)
+    m = re.match(r"\s*(\d+)\s+([a-z0-9]+)", a)
     return (m.group(1), m.group(2), (city or "").lower()) if m else None
+
+
+def street_key(addr):
+    """Street number + first word only. Maps infers city from the search
+    query, so a neighbouring-town label must not block a real match."""
+    m = re.match(r"\s*(\d+)\s+([a-z0-9]+)", (addr or "").lower())
+    return (m.group(1), m.group(2)) if m else None
 
 
 def main():
     base = json.loads((HERE / "leads_base.json").read_text())
     maps = json.loads((HERE / "maps_parsed.json").read_text())
 
-    by_phone, by_addr = {}, {}
+    by_phone, by_addr, by_street = {}, {}, {}
     for b in base:
         d = digits(b["phone"])
         if d:
@@ -41,8 +48,12 @@ def main():
         k = addr_key(b["address"], b["city"])
         if k:
             by_addr.setdefault(k, []).append(b)
+        s2 = street_key(b["address"])
+        if s2:
+            by_street.setdefault(s2, []).append(b)
 
-    stats = {"phone": 0, "addr": 0, "new": 0}
+    stats = {"phone": 0, "addr": 0, "street": 0, "dupe": 0, "new": 0}
+    seen_new = {}
     extra = {}          # npi -> maps info to fold in
     new_rows = []
 
@@ -52,13 +63,21 @@ def main():
         if d and d in by_phone:
             hit, how = by_phone[d], "phone"
         else:
+            nk = name_key(m["name"])
             k = addr_key(m["address"], m["city"])
             if k and k in by_addr:
-                nk = name_key(m["name"])
                 for cand in by_addr[k]:
                     if nk & name_key(cand["practice_name"]) or not nk:
                         hit, how = cand, "addr"
                         break
+            if not hit:
+                # same street address + overlapping name, whatever city label
+                s2 = street_key(m["address"])
+                if s2 and s2 in by_street and nk:
+                    for cand in by_street[s2]:
+                        if nk & name_key(cand["practice_name"]):
+                            hit, how = cand, "street"
+                            break
         if hit:
             stats[how] += 1
             e = extra.setdefault(hit["npi"], {})
@@ -71,6 +90,18 @@ def main():
             if m["category"]:
                 e["category"] = m["category"]
         else:
+            # collapse duplicate Maps listings for the same business
+            nk2 = frozenset(name_key(m["name"])) or frozenset([m["name"].lower()])
+            dk = (nk2, street_key(m["address"]))
+            if dk in seen_new:
+                prev = seen_new[dk]
+                if m.get("website") and not prev.get("website"):
+                    prev["website"] = m["website"]
+                if m.get("phone") and not prev.get("phone"):
+                    prev["phone"] = m["phone"]
+                stats["dupe"] += 1
+                continue
+            seen_new[dk] = m
             stats["new"] += 1
             new_rows.append(m)
 
@@ -79,6 +110,8 @@ def main():
     print(f"maps rows            {len(maps)}")
     print(f"  matched by phone   {stats['phone']}")
     print(f"  matched by address {stats['addr']}")
+    print(f"  matched by street  {stats['street']}")
+    print(f"  duplicate listings {stats['dupe']}")
     print(f"  NEW (not in NPPES) {stats['new']}")
     print(f"  websites gained    {sum(1 for v in extra.values() if v.get('website'))}")
 

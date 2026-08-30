@@ -1,7 +1,10 @@
 # Dental Practice Lead List — Hudson Hector
 
-Eight-state dental practice call list for MedSafe outreach.
-Built 30 August 2026.
+Call-ready dental lead list for MedSafe outreach across eight states:
+Connecticut, New York, Rhode Island, Massachusetts, Maryland, Maine,
+Vermont and Virginia.
+
+Built 30 August 2026. Live counts are on the **Summary** tab of the workbook.
 
 ---
 
@@ -9,145 +12,187 @@ Built 30 August 2026.
 
 | File | Use |
 |---|---|
-| `Hudson_Dental_Leads.xlsx` | Main deliverable. Summary tab + one tab per state. Filters on, header frozen. |
-| `Hudson_Dental_Leads_MASTER.csv` | Everything in one file. Import straight into Google Sheets. |
-| `Hudson_Dental_Leads_WITH_EMAIL.csv` | Only the rows carrying a verified email. |
-| `by-state/*.csv` | One file per state, if you want to hand out territories. |
+| `Hudson_Dental_Leads.xlsx` | Main deliverable. Summary tab, all leads, a deliverable-email tab, and one tab per state. Filters on, header frozen, audit columns colour-coded. |
+| `Hudson_Dental_Leads_MASTER.csv` | Everything in one file. Imports straight into Google Sheets. |
+| `Hudson_Dental_Leads_WITH_EMAIL.csv` | Only rows whose email passed the deliverability audit. |
+| `by-state/*.csv` | One file per state, for splitting territories. |
 
-The last three columns — **Called / Outcome / Follow Up** — are deliberately
-blank for Hudson to fill in as he works the list.
+The last three columns — **Called / Outcome / Follow Up** — are left blank for
+Hudson to work in.
 
 ---
 
 ## Where the data comes from
 
-**CMS NPPES** (National Plan & Provider Enumeration System) — the federal
-provider registry. Every practice that bills insurance in the US has a record
-here, and it is public data published by CMS.
+Three sources, combined and deduplicated.
 
-That matters for two reasons:
+**1. CMS NPPES** — the federal provider registry. Every practice that bills
+insurance in the US has a record here. This is the spine of the list because:
 
-1. It is the same registry the insurers use, so it is the closest thing to a
-   census of real, billing dental practices. It isn't a scraped directory.
-2. It carries the **authorised official** — in a dental practice that is
-   almost always the owner or managing partner. That's the decision maker,
-   which is who MedSafe needs, not the front desk.
+- It is a census of real, billing practices rather than a scraped directory.
+- It carries the **authorised official** — in a dental practice, the owner or
+  managing partner. That is the person MedSafe needs, not the front desk.
 
-Queried organisational records (NPI-2) with dental taxonomies across 168
-target cities, then deduplicated by phone number.
+Both organisational records (NPI-2) and individual dentists (NPI-1) were
+harvested across 163 target cities. The individual pass matters: solo and
+associate-run practices often have no organisational NPI at all, so an
+org-only list silently misses them.
+
+**2. Google Maps** — scraped with a real browser (Playwright driving the
+preinstalled Chromium). Contributes the thing the registry does not have:
+**website URLs**, plus ratings and a citable place URL. Maps also surfaces
+businesses with no registry match at all.
+
+**3. Practice websites** — fetched to extract published contact emails.
+
+### Note on Google Maps
+
+Scraping Maps is against Google's Terms of Service. It is standard practice in
+B2B lead generation and Google Maps was already listed as a source in the
+original brief, so it is included here — but it is your commercial call, and
+worth knowing rather than discovering later. The sanctioned alternative is the
+Google Places API, which is paid and returns the same fields.
+
+Google Maps carries **no email field**. Any tool promising emails "from Google
+Maps" is really visiting each business's website and scraping it there — which
+is exactly what this pipeline does.
 
 ---
 
-## Coverage
+## Deduplication
 
-| State | Practices |
+The user-visible rule: **one row per practice**. Matching runs in tiers:
+
+1. **Phone** — the strongest key. Practices sharing a front desk collapse to
+   one row, with `Locations On Phone` recording how many listings shared it.
+2. **Street address + city + name overlap.**
+3. **Street address + name overlap, ignoring city.** Maps infers city from the
+   search query, so a neighbouring-town label must not block a real match.
+4. Duplicate Maps listings for the same business are collapsed against each
+   other before anything is added.
+
+Verified after every build: zero duplicate phone numbers in the output.
+
+---
+
+## Sources on every row
+
+Four provenance columns, so any lead can be traced back:
+
+| Column | What it points to |
 |---|---|
-| New York | 2,179 |
-| Virginia | 1,321 |
-| Massachusetts | 953 |
-| Maryland | 930 |
-| Connecticut | 499 |
-| Maine | 189 |
-| Rhode Island | 158 |
-| Vermont | 102 |
-| **Total** | **6,331** |
+| `Source - Registry` | The practice's public NPPES provider record |
+| `Source - Website` | The practice's own site |
+| `Source - Google Maps` | The Google Maps place listing |
+| `Source - Email Found On` | The exact page the email was taken from |
 
-Every row has a practice name, street address, phone number, owner name and
-practice type. **100% have a phone and a named owner.**
+---
+
+## The contact audit
+
+Every email and phone number is screened. Results are colour-coded in the
+workbook: green = usable, amber = check first, red = do not use.
+
+### Emails
+
+| Status | Meaning |
+|---|---|
+| `DELIVERABLE` | Domain resolves **and** publishes MX records — it is set up to receive mail |
+| `RISKY` | Domain resolves but has no MX — mail will bounce |
+| `DEAD` | Domain does not resolve |
+| `INVALID` / `REJECT` | Malformed, or a disposable-mail domain |
+
+Also recorded: `Mail Host` (Google Workspace, Microsoft 365, …) and
+`Email Type` (role account like `info@`, free mailbox, or a named person).
+Role accounts are the right target for cold outreach.
+
+**What this does not prove:** that a specific mailbox exists. Confirming that
+needs an SMTP probe on port 25, which this environment cannot make (egress is
+HTTPS-only) and which damages sender reputation when done at volume. A
+`DELIVERABLE` result means the domain accepts mail, not that the address is
+guaranteed live.
+
+One trap worth knowing: a typo domain like `gamil.com` is a real registered
+typosquat that **does** accept mail, so it passes an MX check. Those are caught
+separately and marked in `Data Flag`.
+
+### Phones
+
+| Status | Meaning |
+|---|---|
+| `VALID` | A valid NANP number, area code consistent with the practice's state |
+| `CHECK` | Valid, but the area code belongs to a different state — verify before dialling |
+| `INVALID` | Not a dialable number |
+
+`Phone Note` records how many independent sources agreed on the number.
+
+**What this does not prove:** that the line is answered. That requires dialling
+it. The strongest signal available here is corroboration — a number that
+appears in the federal registry, on the practice's own website, and on its
+Google Maps listing is about as good as it gets without picking up a phone.
+
+### Record freshness
+
+A practice that closes does not always get removed from NPPES, so the date the
+registry record was last updated is a useful proxy:
+
+- **Recent** — updated 2022 or later. Call these first.
+- **Ageing** — 2015–2021.
+- **Stale** — untouched since 2014. Expect more dead numbers.
 
 ---
 
 ## How to work the list
 
-Sorted so the best calls are at the top.
+Sorted so the best calls are at the top, freshest record first within each band.
 
-- **Priority A** — general dentistry in CT and NY. Hudson's existing beachhead
-  plus the expansion he asked for.
+- **Priority A** — general dentistry in CT and NY. The existing beachhead plus
+  the requested expansion.
 - **Priority B** — general dentistry in the other six states.
 - **Priority C** — specialty practices (ortho, oral surgery, pedo, endo, perio).
-  Secondary targets, per the original brief.
-
-Within each band, rows are sorted **freshest record first**.
-
-### Record freshness
-
-A practice that closes doesn't always get removed from NPPES, so the date the
-registry record was last updated is a proxy for whether the number is still
-live:
-
-- **Recent** — updated 2022 or later. Call these first.
-- **Ageing** — 2015–2021.
-- **Stale** — untouched since 2014. Expect a higher dead-number rate.
-
-This is a prioritisation signal, not a guarantee.
+- **Priority D** — Google Maps listings with no registry match. Real businesses,
+  but thinner data: no owner name, and the city is inferred from the search.
 
 ---
 
-## On the emails — read this bit
-
-**Phone coverage is complete. Email coverage is not, and that is a real
-finding rather than a gap in the work.**
-
-Emails here come from two places, both verified:
-
-1. **NPPES registry filings** — addresses practices registered themselves with
-   the federal government. Highest confidence.
-2. **The practice's own website** — where the site could be located *and*
-   confirmed as belonging to that specific practice.
-
-Nothing was accepted on a name match alone. A website is only attached to a
-practice if the page carried **that practice's exact phone number or street
-address**. That rule was doing real work: `carterdentistry.com` is a practice
-in Alabama, not the Carter Dentistry in Scarsdale NY; `apexdentalcare.com` is
-in Arizona, not Arlington VA. Relaxing the rule would have produced a list
-that looked twice as full and quietly sent Hudson to the wrong practices.
-
-Two reasons the email column is sparse:
-
-- **Most dental practices don't publish an email.** They run a contact form
-  instead, specifically to avoid the kind of outreach MedSafe is doing. This
-  is a property of the market, not of the method.
-- **Search engines block automated lookup.** Bing, DuckDuckGo, Mojeek, Ecosia,
-  Startpage and Brave were all tested and all either blocked the request or
-  returned degraded results, so websites could only be found by deriving
-  candidate domains and verifying them.
-
-**If email is needed at volume, it needs a paid B2B data provider** — Apollo,
-Hunter, Clearbit or similar. That is a data cost, not a labour cost. See the
-note below.
-
----
-
-## Rebuilding or extending
+## Rebuilding
 
 ```bash
-python3 harvest_nppes.py   # pull raw records from the CMS registry
-python3 normalize.py       # clean, classify, dedupe by phone
-python3 endpoints.py       # emails filed directly in the registry
-python3 enrich.py          # find + verify websites, extract emails
-python3 export.py          # build the CSV / XLSX deliverables
+python3 harvest_nppes.py        # organisational dental records
+python3 harvest_individuals.py  # solo and associate dentists
+python3 normalize.py            # clean, classify, dedupe by phone
+python3 normalize_indiv.py      # fold individuals in
+python3 endpoints.py            # emails filed in the registry itself
+
+cd /tmp/gmscrape                # Google Maps (needs the Chromium flags below)
+node scrape.js queries_all.txt maps_0.json
+
+./finalize.sh                   # parse, merge, extract emails, audit, export
 ```
 
 To add states or cities, edit `TARGETS` in `harvest_nppes.py`. Everything
-downstream is keyed on NPI, so it all still lines up.
+downstream keys on NPI, so it stays aligned.
+
+**One environment note:** Chromium must be launched with post-quantum key
+agreement and ECH disabled (`--disable-features=PostQuantumKyber,
+EncryptedClientHello,TLS13KyberSupport`). Chrome's larger ClientHello was
+being reset by the egress proxy. TLS verification itself is untouched.
 
 ---
 
-## Compliance note
+## Compliance
 
-This is public federal data on **businesses**, gathered for B2B outreach —
-practice names, business addresses, business phone numbers and the owner's
-professional name. No patient data and no personal contact details are
-involved.
+Public data on **businesses**, gathered for B2B outreach: practice names,
+business addresses, business phone numbers, published business emails and the
+owner's professional name. No patient data.
 
-Two things worth keeping in mind:
+- **Calls.** B2B calls sit outside most Do Not Call rules, but several of these
+  states regulate commercial calling. Worth checking before a high-volume dial
+  campaign.
+- **Email.** CAN-SPAM applies: accurate headers, a real physical address, and a
+  working opt-out on every send. Prefer the `Role account` rows — those
+  addresses are published for business contact.
 
-- **Calls.** Business-to-business calls sit outside most Do Not Call rules,
-  but several of these states regulate commercial calling. Worth a check
-  before a high-volume dialling campaign.
-- **Email.** CAN-SPAM applies to the commercial emails: accurate headers, a
-  real physical address, and a working opt-out on every send.
-
-Given Hudson has just been on the receiving end of exactly this kind of
-outreach via Apollo, keeping the volume sane and the targeting tight is
-probably also the commercially smarter play.
+Hudson has just been on the receiving end of exactly this kind of outreach via
+Apollo. Keeping volume sane and targeting tight is the commercially smarter
+play as well as the safer one.
