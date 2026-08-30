@@ -23,7 +23,8 @@ SKIP_NAME = re.compile(r"\b(SUPPLY|LABORATOR|LAB LLC|BILLING|CONSULT|STAFFING|"
 
 KEEP_UPPER = {"DDS", "DMD", "PC", "PLLC", "LLC", "LLP", "PA", "MD", "MS", "DPM",
               "II", "III", "IV", "USA", "NE", "NW", "SE", "SW", "MSD", "PHD",
-              "TMJ", "TMD", "NYC", "USC", "NYU", "VA", "DC", "OMS"}
+              "TMJ", "TMD", "NYC", "USC", "NYU", "VA", "DC", "OMS",
+              "NY", "VT", "MA", "MD", "RI", "NH", "NJ"}
 # street suffixes and similar that must NOT be shouted
 LOWER_ABBR = {"ST": "St", "RD": "Rd", "DR": "Dr", "AVE": "Ave", "LN": "Ln",
               "CT": "Ct", "PL": "Pl", "BLVD": "Blvd", "PKWY": "Pkwy", "HWY": "Hwy",
@@ -47,7 +48,9 @@ def title(s):
         elif re.fullmatch(r"(?:[A-Za-z]\.){2,}", w):  # D.D.S. style
             out.append(w.upper())
         elif any(ch.isdigit() for ch in w):
-            out.append(w.upper() if len(w) <= 3 else w)
+            # mixed alphanumeric: title-case the word-parts, keep the digits
+            out.append(re.sub(r"[A-Za-z]{3,}",
+                              lambda m: m.group(0).capitalize(), w))
         elif "'" in w:                                # O'Brien, D'Amico
             a, _, b = w.partition("'")
             out.append(a.capitalize() + "'" + b.capitalize())
