@@ -50,7 +50,17 @@ def main():
     todo = json.loads((HERE / infile).read_text())
     print(f"scraping {len(todo)} known websites for emails", flush=True)
 
-    out, t0 = {}, time.time()
+    # Seed from whatever a previous pass already found -- this file is a
+    # cumulative cache, and starting empty would overwrite it with just this
+    # batch's results.
+    prev = {}
+    if (HERE / outfile).exists():
+        try:
+            prev = json.loads((HERE / outfile).read_text())
+        except Exception:
+            prev = {}
+    out, t0 = dict(prev), time.time()
+    print(f"  carrying forward {len(prev)} emails from earlier passes", flush=True)
     with ThreadPoolExecutor(max_workers=60) as ex:
         futs = {ex.submit(scrape_site, t["website"]): t for t in todo}
         for i, f in enumerate(as_completed(futs), 1):
@@ -66,8 +76,9 @@ def main():
                       flush=True)
                 (HERE / outfile).write_text(json.dumps(out, indent=1))
     (HERE / outfile).write_text(json.dumps(out, indent=1))
-    print(f"\nfound {len(out)} emails from {len(todo)} sites "
-          f"({100*len(out)//max(len(todo),1)}%) -> {outfile}")
+    new_n = len(out) - len(prev)
+    print(f"\nnew this pass {new_n} from {len(todo)} sites "
+          f"({100*new_n//max(len(todo),1)}%); cache now {len(out)} -> {outfile}")
 
 
 if __name__ == "__main__":
