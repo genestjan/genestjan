@@ -59,7 +59,7 @@ const jsonLd = {
       name: site.name,
       alternateName: 'Jan Ramirez',
       url: site.domain,
-      image: `${site.domain}/jan.png`,
+      image: `${site.domain}/jan.webp`,
       email: site.email,
       jobTitle: 'Digital Marketing Operator',
       description: site.description,
