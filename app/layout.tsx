@@ -7,7 +7,6 @@ import ScrollProgress from '@/components/layout/ScrollProgress';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import CinematicCursor from '@/components/ui/CinematicCursor';
 import ApertureIntro from '@/components/ui/ApertureIntro';
-import MachineBackdrop from '@/components/layout/MachineBackdrop';
 
 const display = Space_Grotesk({
   subsets: ['latin'], weight: ['500', '700'],
@@ -69,7 +68,7 @@ const jsonLd = {
         addressLocality: 'General Santos City',
         addressCountry: 'PH',
       },
-      sameAs: [site.linkedin, site.facebook],
+      sameAs: [site.linkedin],
       knowsAbout: site.keywords,
     },
     {
@@ -128,7 +127,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <a href="#main" className="skip-link">Skip to content</a>
-        <MachineBackdrop />
         <ApertureIntro />
         <SmoothScroll />
         <ScrollProgress />

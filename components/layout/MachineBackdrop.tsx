@@ -4,10 +4,15 @@ import MachineVideo from '@/components/canvas/MachineVideo';
 import { usePrefersReducedMotion } from '@/lib/useReducedMotion';
 
 /**
- * The machine film as the site background, scroll-synced.
+ * The machine film behind the hero.
  *
- * The intro sits on top of this and lifts away, so the entrance and the
- * background are the same continuously playing footage.
+ * It used to be fixed behind the whole document. Running footage under every
+ * section made the body feel like a screensaver and forced every panel to be
+ * translucent to let it through, which is what made the lower page look washed
+ * out. It now lives inside the hero and hands off to a solid page.
+ *
+ * The intro sits on top of this and lifts away, so the entrance and the hero
+ * are the same continuously playing footage.
  *
  * Only `transform` and `opacity` are written per frame. An earlier version set
  * `style.filter = brightness(...)` every frame, repainting a full-screen layer
@@ -23,16 +28,17 @@ export default function MachineBackdrop() {
     let raf = 0;
     let cur = 0;
     const loop = () => {
-      const max = Math.max(document.documentElement.scrollHeight - innerHeight, 1);
-      const target = Math.min(scrollY / max, 1);
-      cur += (target - cur) * 0.07;
+      // Progress across the first viewport only: the film is a hero element,
+      // so it finishes its move by the time the hero leaves the screen.
+      const target = Math.min(scrollY / Math.max(innerHeight, 1), 1);
+      cur += (target - cur) * 0.08;
       if (plate.current) {
         plate.current.style.transform =
-          `translate3d(0, ${(-cur * 70).toFixed(1)}px, 0) scale(${(1.06 - cur * 0.06).toFixed(4)})`;
+          `translate3d(0, ${(-cur * 90).toFixed(1)}px, 0) scale(${(1.06 - cur * 0.04).toFixed(4)})`;
       }
       if (veil.current) {
         // opacity composites; brightness() would repaint the whole frame
-        veil.current.style.opacity = (0.2 + cur * 0.5).toFixed(3);
+        veil.current.style.opacity = (0.22 + cur * 0.68).toFixed(3);
       }
       raf = requestAnimationFrame(loop);
     };
@@ -45,8 +51,6 @@ export default function MachineBackdrop() {
       <div ref={plate} className="machine-plate">
         <MachineVideo />
       </div>
-      <span className="machine-pulse machine-pulse-a" />
-      <span className="machine-pulse machine-pulse-b" />
       <div className="machine-veil" />
       <div ref={veil} className="machine-dim" />
     </div>

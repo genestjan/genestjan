@@ -2,15 +2,22 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * The machine, as film.
+ * The machine, as film. Hero only.
  *
- * One element for the whole site: the intro simply covers it and then lifts,
- * so the entrance and the background are literally the same playing footage
- * rather than two things that have to be matched.
+ * Two encodes of the same 8 second master. Desktop crops a horizontal band out
+ * of a portrait source and blows it up, so it gets the 1080 wide file; phones
+ * show the frame near its native size, where the 720 encode is
+ * indistinguishable and saves 2.4MB.
+ *
+ * The source is chosen in an effect rather than with `<source media>`: browsers
+ * only honour the media attribute inside `<picture>`, and Chrome was handing
+ * phones the desktop file. Nothing loads until mount, which also means reduced
+ * motion and no-JS download no video at all and keep the poster.
  *
  * Autoplay needs muted + playsInline, and can still be refused (data saver,
- * low power mode, some in-app browsers). If play() rejects we fall back to the
- * poster frame rather than showing a dead black box.
+ * low power mode, some in-app browsers). Codec-less Chromium builds have no
+ * H.264 either. Any of those falls back to the poster frame rather than
+ * showing a dead black box.
  */
 export default function MachineVideo({ className = '' }: { className?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -23,6 +30,9 @@ export default function MachineVideo({ className = '' }: { className?: string })
       setFailed(true);
       return;
     }
+    v.src = window.matchMedia('(min-width: 768px)').matches
+      ? '/video/machine-hd.mp4'
+      : '/video/machine.mp4';
     // Some browsers only honour `muted` as a property, not the SSR attribute,
     // and will refuse autoplay without it.
     v.muted = true;
@@ -44,8 +54,8 @@ export default function MachineVideo({ className = '' }: { className?: string })
         src="/video/poster.webp"
         alt=""
         aria-hidden
-        width={720}
-        height={1280}
+        width={1080}
+        height={1920}
       />
     );
   }
@@ -55,17 +65,13 @@ export default function MachineVideo({ className = '' }: { className?: string })
       ref={ref}
       className={`machine-film ${className}`}
       poster="/video/poster.webp"
-      autoPlay
       loop
       muted
       playsInline
       preload="auto"
       aria-hidden
-      width={720}
-      height={1280}
-    >
-      <source src="/video/machine.webm" type="video/webm" />
-      <source src="/video/machine.mp4" type="video/mp4" />
-    </video>
+      width={1080}
+      height={1920}
+    />
   );
 }

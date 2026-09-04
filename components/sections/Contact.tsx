@@ -94,9 +94,8 @@ export default function Contact() {
               </div>
               <div>
                 <dt className="mono-label text-current">Elsewhere</dt>
-                <dd className="flex gap-4">
+                <dd>
                   <a href={site.linkedin} target="_blank" rel="noopener noreferrer" className="text-body text-paper hover:text-signal">LinkedIn</a>
-                  <a href={site.facebook} target="_blank" rel="noopener noreferrer" className="text-body text-paper hover:text-signal">Facebook</a>
                 </dd>
               </div>
               <div>

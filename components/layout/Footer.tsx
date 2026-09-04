@@ -31,7 +31,6 @@ export default function Footer() {
 
           <ul className="flex gap-5">
             <li><a href={site.linkedin} target="_blank" rel="noopener noreferrer" className="mono-label text-muted hover:text-current">LinkedIn</a></li>
-            <li><a href={site.facebook} target="_blank" rel="noopener noreferrer" className="mono-label text-muted hover:text-current">Facebook</a></li>
           </ul>
         </div>
 

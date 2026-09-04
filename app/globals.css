@@ -22,7 +22,15 @@
 
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
-html { background: var(--ink); }
+/* The film no longer runs behind the body, so the page needs a ground of its
+   own. Fixed attachment keeps it from sliding under the content. */
+html {
+  background:
+    radial-gradient(ellipse 130% 70% at 50% 0%, rgba(30, 58, 95, 0.30), transparent 58%),
+    radial-gradient(ellipse 90% 50% at 88% 78%, rgba(30, 58, 95, 0.16), transparent 62%),
+    var(--ink);
+  background-attachment: fixed;
+}
 
 body {
   background: transparent;
@@ -48,17 +56,36 @@ body {
 }
 .skip-link:focus { left: 0; }
 
-/* Glass recipe, BRIEF 6.4 */
+/* Glass recipe, BRIEF 6.4. Tuned up from the original 0.55 alpha: at that
+   value panels read as a haze rather than a surface, which is the "not
+   premium" look. A near-solid base with one hairline highlight edge and a
+   deep, tight shadow reads as glass sitting on the page. */
 .glass {
-  background: var(--glass);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  background: linear-gradient(160deg, rgba(26, 34, 49, 0.86), rgba(13, 18, 27, 0.90));
+  backdrop-filter: blur(20px) saturate(125%);
+  -webkit-backdrop-filter: blur(20px) saturate(125%);
   border: 1px solid var(--glass-edge);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 24px 60px -22px rgba(0, 0, 0, 0.8);
   transition: transform 400ms var(--ease), border-color 400ms var(--ease);
 }
-.glass:hover { border-color: rgba(79, 209, 224, 0.35); }
+.glass:hover { border-color: rgba(79, 209, 224, 0.30); }
+
+/* Alternating band. A ::before rather than a background so the band can fade
+   out at both edges: hard-edged blocks of near-identical dark read as seams. */
+.section-alt::before {
+  content: '';
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(12, 17, 25, 0.85) 9%,
+    rgba(12, 17, 25, 0.85) 91%,
+    transparent 100%
+  );
+}
 
 /* Blueprint grid backdrop */
 .blueprint-grid {
@@ -71,7 +98,7 @@ body {
 /* Film grain, BRIEF 6.x cinematic treatment */
 .grain::after {
   content: '';
-  position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: 0.14;
+  position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: 0.05;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
 }
 
@@ -313,22 +340,23 @@ body {
   .grain::after { display: none; }
 }
 
-/* ---------- Machine backdrop (site-wide) ---------- */
-/* z-index:-1 keeps the plate behind all content without touching siblings.
-   An earlier `.machine-bg ~ *` rule did this by forcing position:relative on
-   every sibling, which silently broke position:fixed on the nav and intro. */
+/* ---------- Machine film (hero only) ---------- */
+/* Absolute, not fixed: the film belongs to the hero and scrolls away with it.
+   While it was fixed behind the whole document every section below had to be
+   translucent to let it through, which is what made the page look washed out
+   rather than premium. */
 .machine-bg {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
 }
 .machine-plate {
-  position: absolute; inset: -8% 0 -14%;
+  position: absolute; inset: -6% 0 -10%;
   will-change: transform;
   /* transform is driven by scroll in MachineBackdrop; a CSS drift animation
      here would overwrite it every frame */
-  transform: scale(1.08);
+  transform: scale(1.06);
 }
 /* The film fills the plate. Without this the <video> renders at its intrinsic
-   720x1280 and sits small and off to one side. */
+   size and sits small and off to one side. */
 .machine-film {
   display: block;
   width: 100%; height: 100%;
@@ -338,48 +366,45 @@ body {
      instead of centring on empty casing. */
   object-position: 50% 42%;
   /* static filter only: animating brightness repaints the whole frame */
-  filter: brightness(0.9) saturate(1.05) contrast(1.03);
-}
-/* Gold current sweeping the circuitry */
-.machine-pulse {
-  position: absolute; border-radius: 50%;
-  mix-blend-mode: screen; opacity: 0;
-}
-.machine-pulse-a {
-  width: 60vmax; height: 60vmax; left: -10vmax; top: -14vmax;
-  background: radial-gradient(circle, rgba(255,176,58,0.16), transparent 62%);
-  animation: pulseWander 19s ease-in-out infinite;
-}
-.machine-pulse-b {
-  width: 46vmax; height: 46vmax; right: -8vmax; bottom: -10vmax;
-  background: radial-gradient(circle, rgba(79,209,224,0.13), transparent 62%);
-  animation: pulseWander 24s ease-in-out infinite 6s;
-}
-@keyframes pulseWander {
-  0%, 100% { opacity: 0.25; transform: translate3d(0, 0, 0) scale(1); }
-  50%      { opacity: 0.7;  transform: translate3d(6%, 5%, 0) scale(1.25); }
+  filter: brightness(0.94) saturate(1.06) contrast(1.04);
 }
 
-/* Veil keeps text contrast on top of the plate */
+/* Veil keeps text contrast over the film, and closes the hero out to solid
+   ink at the bottom edge so the hand-off to the page has no visible seam. */
+.machine-veil {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgba(6,8,13,0.92) 0%, rgba(6,8,13,0.55) 46%, rgba(6,8,13,0.18) 100%),
+    linear-gradient(180deg, rgba(6,8,13,0.72) 0%, rgba(6,8,13,0.10) 34%, rgba(6,8,13,0.86) 88%, var(--ink) 100%);
+}
+/* On phones the copy spans the full width, so the horizontal falloff above
+   leaves body text sitting over lit gearing: measured 3.07:1 against --muted,
+   under the 4.5:1 floor. A flatter, heavier veil brings it back over 5:1. */
+@media (max-width: 767px) {
+  .machine-veil {
+    background:
+      linear-gradient(180deg, rgba(6,8,13,0.86) 0%, rgba(6,8,13,0.66) 38%, rgba(6,8,13,0.88) 86%, var(--ink) 100%),
+      rgba(6, 8, 13, 0.34);
+  }
+}
+
 .machine-dim {
   position: absolute; inset: 0;
-  background: #06080D;
-  opacity: 0.2;
+  background: var(--ink);
+  opacity: 0.22;
   /* opacity animates on the compositor; brightness() would not */
   will-change: opacity;
 }
 
-.machine-veil {
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse 96% 72% at 50% 40%, rgba(6,8,13,0.14), rgba(6,8,13,0.72) 82%),
-    linear-gradient(180deg, rgba(6,8,13,0.30), rgba(6,8,13,0.62));
-}
-
-
 @media (prefers-reduced-motion: reduce) {
-  .machine-plate { transform: scale(1.08); }
-  .machine-pulse { animation: none; opacity: 0.3; }
+  .machine-plate { transform: scale(1.06); }
 }
+
+/* Hero pillar strip: hairline grid, filled cells, no floating panels */
+.pillar-cell {
+  background: var(--ink-2);
+  transition: background-color 300ms var(--ease);
+}
+.pillar-cell:hover { background: var(--ink-3); }
 
 

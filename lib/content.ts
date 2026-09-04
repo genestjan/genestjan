@@ -7,9 +7,8 @@ export const site = {
   domain: 'https://genestjanramirez.com',
   email: 'genestjan@genestjanramirez.com',
   booking: 'https://calendly.com/genestjan/15min',
-  whatsapp: '+63 905 470 5915',
+  whatsapp: '+63 918 990 5915',
   linkedin: 'https://www.linkedin.com/in/genestjan',
-  facebook: 'https://www.facebook.com/genestjanramirez',
   location: 'General Santos City, Philippines',
   title: 'Genest Jan Ramirez | Digital Marketing Operator',
   description:
