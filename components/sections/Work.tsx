@@ -14,7 +14,7 @@ export default function Work() {
   const shown = filter === 'All' ? work.cases : work.cases.filter((c) => c.cats.includes(filter));
 
   return (
-    <Section id="work">
+    <Section id="work" alt>
       <Reveal><Eyebrow>{work.eyebrow}</Eyebrow></Reveal>
       <Reveal delay={0.05}>
         <h2 className="font-display text-h2 font-bold text-paper">{work.h2}</h2>

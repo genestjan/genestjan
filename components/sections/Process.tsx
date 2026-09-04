@@ -13,7 +13,7 @@ export default function Process() {
   const draw = useTransform(scrollYProgress, [0, 1], [0, 1]);
 
   return (
-    <Section id="process" alt>
+    <Section id="process">
       <Reveal><Eyebrow>{process.eyebrow}</Eyebrow></Reveal>
       <Reveal delay={0.05}>
         <h2 className="font-display text-h2 font-bold text-paper">{process.h2}</h2>

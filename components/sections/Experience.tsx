@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { experience } from '@/lib/content';
+import { experience, site } from '@/lib/content';
 import Section from './Section';
 import Eyebrow from '@/components/ui/Eyebrow';
 import Reveal from '@/components/ui/Reveal';
@@ -39,7 +39,7 @@ export default function Experience() {
   const [open, setOpen] = useState(false);
 
   return (
-    <Section id="experience">
+    <Section id="experience" alt>
       <Reveal><Eyebrow>{experience.eyebrow}</Eyebrow></Reveal>
       <Reveal delay={0.05}>
         <h2 className="font-display text-h2 font-bold text-paper">{experience.h2}</h2>
@@ -84,7 +84,7 @@ export default function Experience() {
       </button>
 
       <div className="mt-12">
-        <MagneticButton href="#contact">Book a call</MagneticButton>
+        <MagneticButton href={site.booking} external>Book a call</MagneticButton>
       </div>
     </Section>
   );

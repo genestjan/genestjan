@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
-import { nav } from '@/lib/content';
+import { nav, site } from '@/lib/content';
 import MagneticButton from '@/components/ui/MagneticButton';
 
 export default function Nav() {
@@ -40,7 +40,7 @@ export default function Nav() {
               {n.label}
             </a>
           ))}
-          <MagneticButton href="#contact" variant="ghost" className="!px-5 !py-2.5">
+          <MagneticButton href={site.booking} external variant="ghost" className="!px-5 !py-2.5">
             Book a call
           </MagneticButton>
         </nav>
@@ -73,7 +73,7 @@ export default function Nav() {
               </li>
             ))}
             <li className="pt-2">
-              <MagneticButton href="#contact" onClick={() => setOpen(false)}>
+              <MagneticButton href={site.booking} external onClick={() => setOpen(false)}>
                 Book a call
               </MagneticButton>
             </li>

@@ -6,13 +6,14 @@ export const site = {
   name: 'Genest Jan Ramirez',
   domain: 'https://genestjanramirez.com',
   email: 'genestjan@genestjanramirez.com',
+  booking: 'https://calendly.com/genestjan/15min',
   whatsapp: '+63 905 470 5915',
   linkedin: 'https://www.linkedin.com/in/genestjan',
   facebook: 'https://www.facebook.com/genestjanramirez',
   location: 'General Santos City, Philippines',
-  title: 'Genest Jan Ramirez | Digital Marketing Operator, Funnels, Meta Ads and Automation',
+  title: 'Genest Jan Ramirez | Digital Marketing Operator',
   description:
-    'I build and run the systems that connect your ads, funnels, content and CRM into one machine that produces bookings. Digital marketing, websites, funnels, Meta ads, automation and content, from strategy to reporting.',
+    'I build and run the systems that connect your ads, funnels, content and CRM into one machine that produces bookings. Meta ads, funnels, automation.',
   keywords: [
     'digital marketing operator', 'funnel builder', 'Meta ads manager',
     'Kajabi specialist', 'GoHighLevel specialist', 'marketing automation consultant',
@@ -343,8 +344,8 @@ export const footer = {
 export const nav = [
   { label: 'The Gap', href: '#gap' },
   { label: 'The System', href: '#system' },
-  { label: 'About', href: '#about' },
   { label: 'Services', href: '#services' },
   { label: 'Work', href: '#work' },
-  { label: 'Experience', href: '#experience' },
+  { label: 'About', href: '#about' },
+  { label: 'FAQ', href: '#faq' },
 ];

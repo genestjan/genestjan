@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-import { site } from '@/lib/content';
+import { site, faq } from '@/lib/content';
 import CursorGlow from '@/components/ui/CursorGlow';
 import ScrollProgress from '@/components/layout/ScrollProgress';
 import SmoothScroll from '@/components/layout/SmoothScroll';
@@ -88,6 +88,17 @@ const jsonLd = {
         addressCountry: 'PH',
       },
       description: site.description,
+    },
+    {
+      // The page renders these questions visibly; the schema mirrors them so
+      // they are eligible for FAQ rich results.
+      '@type': 'FAQPage',
+      '@id': `${site.domain}/#faq`,
+      mainEntity: faq.items.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
     },
     {
       '@type': 'WebSite',

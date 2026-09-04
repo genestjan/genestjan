@@ -6,7 +6,7 @@ import GlassCard from '@/components/ui/GlassCard';
 
 export default function Testimonials() {
   return (
-    <Section id="testimonials" alt>
+    <Section id="testimonials">
       <Reveal><Eyebrow>{testimonials.eyebrow}</Eyebrow></Reveal>
       <Reveal delay={0.05}>
         <h2 className="font-display text-h2 font-bold text-paper">{testimonials.h2}</h2>

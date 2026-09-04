@@ -7,7 +7,7 @@ import ToolChip from '@/components/ui/ToolChip';
 
 export default function Services() {
   return (
-    <Section id="services" alt>
+    <Section id="services">
       <Reveal><Eyebrow>{services.eyebrow}</Eyebrow></Reveal>
       <Reveal delay={0.05}>
         <h2 className="font-display text-h2 font-bold text-paper">{services.h2}</h2>

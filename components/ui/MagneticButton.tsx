@@ -5,10 +5,12 @@ import { usePrefersReducedMotion } from '@/lib/useReducedMotion';
 
 /** Magnetic pull within 80px, max 12px offset, spring 150/15. BRIEF 6.6. */
 export default function MagneticButton({
-  children, href, variant = 'solid', className = '', onClick, type,
+  children, href, variant = 'solid', className = '', onClick, type, external = false,
 }: {
   children: ReactNode; href?: string; variant?: 'solid' | 'ghost';
   className?: string; onClick?: () => void; type?: 'button' | 'submit';
+  /** Booking links go off-site, so they open in a new tab with rel guards. */
+  external?: boolean;
 }) {
   const ref = useRef<HTMLElement>(null);
   const reduced = usePrefersReducedMotion();
@@ -47,6 +49,7 @@ export default function MagneticButton({
       <a
         ref={ref as React.RefObject<HTMLAnchorElement>}
         href={href}
+        {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         onPointerMove={onMove}
         onPointerLeave={reset}
         className={`${base} ${styles} ${className}`}

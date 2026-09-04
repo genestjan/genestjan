@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { about } from '@/lib/content';
 import Section from './Section';
 import Eyebrow from '@/components/ui/Eyebrow';
@@ -7,14 +6,18 @@ import CountUp from '@/components/ui/CountUp';
 
 export default function About() {
   return (
-    <Section id="about">
+    <Section id="about" alt>
       <div className="grid gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         <Reveal>
           <div className="relative">
             <div className="relative overflow-hidden rounded-2xl border border-line">
-              <Image
-                src="/jan.png" alt="Genest Jan Ramirez"
-                width={1468} height={1161} priority={false}
+              {/* was a 1.6 MB PNG; WebP at the same quality is ~10x smaller */}
+              <img
+                src="/jan.webp"
+                srcSet="/jan-sm.webp 760w, /jan.webp 1468w"
+                sizes="(max-width: 1024px) 92vw, 40vw"
+                alt="Genest Jan Ramirez"
+                width={1468} height={1161} loading="lazy" decoding="async"
                 className="w-full object-cover"
                 style={{ filter: 'contrast(1.08) saturate(0.92)' }}
               />
@@ -24,7 +27,7 @@ export default function About() {
               />
             </div>
             <div className="absolute -bottom-6 -right-4 flex h-24 w-24 items-center justify-center rounded-full border border-line bg-ink p-5 sm:-right-6">
-              <Image src="/logo-512.png" alt="" width={64} height={64} className="w-full object-contain" />
+              <img src="/logo-512.png" alt="" width={64} height={64} loading="lazy" className="w-full object-contain" />
             </div>
           </div>
         </Reveal>

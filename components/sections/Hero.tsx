@@ -1,7 +1,7 @@
 'use client';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
-import { hero } from '@/lib/content';
+import { hero, site } from '@/lib/content';
 import type { Pillar } from '@/lib/pillars';
 import StaggerText from '@/components/ui/StaggerText';
 import MagneticButton from '@/components/ui/MagneticButton';
@@ -63,7 +63,7 @@ export default function Hero() {
         </p>
 
         <div className="fade-up-in mt-10 flex flex-wrap gap-4" style={{ animationDelay: '0.72s' }}>
-          <MagneticButton href="#contact">
+          <MagneticButton href={site.booking} external>
             {hero.ctaPrimary} <ArrowRight size={16} aria-hidden />
           </MagneticButton>
           <MagneticButton href="#system" variant="ghost">

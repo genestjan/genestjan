@@ -19,17 +19,22 @@ export default function Page() {
     <>
       <Nav />
       <main id="main">
+        {/* Problem, then approach, then offer, then proof, then who, then
+            objections, then the ask. Testimonials previously sat at position
+            11, roughly 2,800 words in, so the social proof arrived long after
+            the decision was made. They now follow the case studies so the two
+            proof blocks reinforce each other. */}
         <Hero />
         <Gap />
         <SystemSection />
-        <About />
         <Services />
         <Work />
+        <Testimonials />
+        <About />
+        <Process />
         <Industries />
         <Stack />
-        <Process />
         <Experience />
-        <Testimonials />
         <Faq />
         <Contact />
       </main>

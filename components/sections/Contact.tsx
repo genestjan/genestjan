@@ -69,6 +69,19 @@ export default function Contact() {
             <p className="mt-6 max-w-prose text-body text-muted">{contact.body}</p>
           </Reveal>
 
+          {/* Booking is the single conversion goal (BRIEF 2.4), so it leads
+              here; the form stays for people not ready to pick a time. */}
+          <Reveal delay={0.12}>
+            <div className="mt-10">
+              <MagneticButton href={site.booking} external>
+                Book a 15 minute call
+              </MagneticButton>
+              <p className="mono-label mt-3 text-muted">
+                Free, no pitch. Or use the form.
+              </p>
+            </div>
+          </Reveal>
+
           <Reveal delay={0.15}>
             <dl className="mt-12 space-y-4 border-t border-line pt-8">
               <div>
