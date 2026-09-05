@@ -7,6 +7,7 @@ import ScrollProgress from '@/components/layout/ScrollProgress';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import CinematicCursor from '@/components/ui/CinematicCursor';
 import ApertureIntro from '@/components/ui/ApertureIntro';
+import SoundBoot from '@/components/ui/SoundBoot';
 
 const display = Space_Grotesk({
   subsets: ['latin'], weight: ['500', '700'],
@@ -130,6 +131,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <a href="#main" className="skip-link">Skip to content</a>
         <ApertureIntro />
+        <SoundBoot />
         <SmoothScroll />
         <ScrollProgress />
         <CursorGlow />

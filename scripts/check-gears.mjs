@@ -9,7 +9,7 @@
  *
  *   node scripts/check-gears.mjs
  */
-import { trainLayout, profileAt, OUTER, ROOT, SPAN } from '../lib/gear.ts';
+import { trainLayout, profileAt, chainPath, OUTER, ROOT, SPAN, PITCH } from '../lib/gear.ts';
 
 const N = 14;
 const TAU = Math.PI * 2;
@@ -61,5 +61,23 @@ for (let s = 0; s < 120; s++) {
 if (engaged < 500) { console.error(`FAIL: teeth barely engage (${engaged})`); failed = true; }
 console.log(`teeth in the mesh region: ${engaged}`);
 
-console.log(failed ? 'FAILED' : 'PASS: the train meshes cleanly at every column count');
+// The chain has to be continuous: every arc must start where the last ended,
+// and every point on it must sit on some gear's pitch circle.
+for (const cols of [7, 4, 3]) {
+  const { gears } = trainLayout(14, cols, N);
+  const d = chainPath(gears);
+  const arcs = d.split('A').length - 1;
+  if (arcs !== 14) { console.error(`FAIL cols=${cols}: ${arcs} chain arcs, expected 14`); failed = true; }
+  // every arc endpoint must be exactly PITCH from the gear it wraps
+  const pts = [...d.matchAll(/(-?[\d.]+),(-?[\d.]+)(?=A|$)/g)].map((m) => [+m[1], +m[2]]);
+  let offPitch = 0;
+  for (const [px, py] of pts) {
+    const nearest = Math.min(...gears.map((g) => Math.abs(Math.hypot(px - g.x, py - g.y) - PITCH)));
+    if (nearest > 0.02) offPitch++;
+  }
+  if (offPitch) { console.error(`FAIL cols=${cols}: ${offPitch} chain points off the pitch circle`); failed = true; }
+  console.log(`cols=${cols}  chain arcs=${arcs}  points off pitch=${offPitch}`);
+}
+
+console.log(failed ? 'FAILED' : 'PASS: the train meshes cleanly and the chain is continuous');
 process.exit(failed ? 1 : 0);

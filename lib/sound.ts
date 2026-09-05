@@ -302,11 +302,7 @@ export function bindGlobal() {
   const interactive = (t: EventTarget | null) =>
     t instanceof Element ? t.closest('a, button, [role="button"], summary') : null;
 
-  const wake = (e: Event) => {
-    // A press on the toggle itself must not be pre-empted: it renders as off
-    // until audio exists, so waking on that same gesture would turn sound on
-    // and let the click immediately turn it back off.
-    if (e.target instanceof Element && e.target.closest('.sound-toggle')) return;
+  const wake = () => {
     if (!on) setSound(true);
     for (const ev of WAKE) window.removeEventListener(ev, wake);
   };
@@ -334,9 +330,9 @@ export function bindGlobal() {
 /* ---------------------------------------------------------------- control */
 
 /**
- * Muting lasts for the visit and no longer. The bed is meant to be part of the
- * site rather than something a visitor has to switch on, so every load comes
- * up wanting sound; the toggle is there for anyone who wants quiet now.
+ * Turns the sound on. There is no path that turns it back off: by request the
+ * bed is part of the site, not an option. The only reason this takes an
+ * argument at all is the wake handler, which passes true.
  */
 export function setSound(next: boolean) {
   on = next;

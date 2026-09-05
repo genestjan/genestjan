@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { nav, site } from '@/lib/content';
 import MagneticButton from '@/components/ui/MagneticButton';
-import SoundToggle from '@/components/ui/SoundToggle';
 
 export default function Nav() {
   const [stuck, setStuck] = useState(false);
@@ -41,14 +40,12 @@ export default function Nav() {
               {n.label}
             </a>
           ))}
-          <SoundToggle />
           <MagneticButton href={site.booking} external variant="ghost" className="!px-5 !py-2.5">
             Book a call
           </MagneticButton>
         </nav>
 
         <div className="flex items-center gap-2 lg:hidden">
-          <SoundToggle />
           <button
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}

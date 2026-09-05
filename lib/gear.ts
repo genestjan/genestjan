@@ -114,3 +114,48 @@ export function trainLayout(count: number, cols: number, teeth: number): Train {
     rows,
   };
 }
+
+
+/**
+ * A roller chain woven through the whole train.
+ *
+ * Meshed gears alternate direction, so a chain cannot wrap them all on the
+ * same side; it has to weave, taking each gear on the opposite side to its
+ * neighbour, the way a serpentine belt drives pulleys turning both ways.
+ *
+ * The geometry falls out of the layout: two meshing gears touch at the
+ * midpoint of their centres, so the point where the chain leaves one gear is
+ * exactly the point where it meets the next. Every span is therefore an arc of
+ * the pitch circle, and the path is continuous with no straight runs at all.
+ */
+export function chainPath(gears: Placed[]): string {
+  if (gears.length < 2) return '';
+
+  const contact = (a: Placed, b: Placed) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const opposite = (g: Placed, p: { x: number; y: number }) =>
+    ({ x: 2 * g.x - p.x, y: 2 * g.y - p.y });
+  const ang = (g: Placed, p: { x: number; y: number }) =>
+    (Math.atan2(p.y - g.y, p.x - g.x) * 180) / Math.PI;
+
+  let d = '';
+  for (let i = 0; i < gears.length; i++) {
+    const g = gears[i];
+    const enter = i === 0
+      ? opposite(g, contact(g, gears[1]))
+      : contact(gears[i - 1], g);
+    const exit = i === gears.length - 1
+      ? opposite(g, contact(gears[i - 1], g))
+      : contact(g, gears[i + 1]);
+
+    // Alternating the wrap side is what makes it a weave rather than a loop,
+    // and it is also the only way each gear is driven the way it turns.
+    const sweep = i % 2 === 0 ? 1 : 0;
+    let delta = (sweep ? ang(g, exit) - ang(g, enter) : ang(g, enter) - ang(g, exit)) % 360;
+    if (delta < 0) delta += 360;
+    const large = delta > 180 ? 1 : 0;
+
+    if (i === 0) d += `M${enter.x.toFixed(2)},${enter.y.toFixed(2)}`;
+    d += `A${PITCH},${PITCH} 0 ${large} ${sweep} ${exit.x.toFixed(2)},${exit.y.toFixed(2)}`;
+  }
+  return d;
+}

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { system } from '@/lib/content';
-import { gearPath, boltCircle, trainLayout } from '@/lib/gear';
+import { gearPath, boltCircle, trainLayout, chainPath, PITCH } from '@/lib/gear';
 import { EASE } from '@/lib/motion';
 import { usePrefersReducedMotion } from '@/lib/useReducedMotion';
 import { setTrain, tooth } from '@/lib/sound';
@@ -28,8 +28,11 @@ import { setTrain, tooth } from '@/lib/sound';
 
 const TEETH = 14;
 const PITCH_DEG = 360 / TEETH;
-const BASE_DPS = 8;      // degrees per second at rest
-const FAST_DPS = 46;     // while the pointer is on the train
+// A full turn in about twelve seconds. The first attempt ran at 8, which is a
+// turn every 45 seconds: mechanically pleasing on paper and indistinguishable
+// from a still image in front of an actual person.
+const BASE_DPS = 30;
+const FAST_DPS = 78;     // while the pointer is on the train
 const BOLTS = boltCircle(6, 30);
 
 /** Two lines at most, broken at the last space so the wider half sits on top. */
@@ -50,6 +53,7 @@ export default function GearTrain() {
   const rotors = useRef<(SVGGElement | null)[]>([]);
   const stage = useRef<HTMLDivElement>(null);
   const flow = useRef<HTMLSpanElement>(null);
+  const chain = useRef<SVGPathElement>(null);
   const fast = useRef(false);
 
   const train = useMemo(() => trainLayout(nodes.length, cols, TEETH), [nodes.length, cols]);
@@ -106,6 +110,12 @@ export default function GearTrain() {
       speed += ((fast.current ? FAST_DPS : BASE_DPS) - speed) * 0.05;
       angle += speed * dt;
       paint(angle);
+      // The chain rides the pitch circles, so its travel is the gears' own
+      // surface speed. Tying it to the same angle is what makes it impossible
+      // for the chain and the teeth to disagree.
+      if (chain.current) {
+        chain.current.style.strokeDashoffset = `${-(angle * Math.PI / 180) * PITCH}`;
+      }
 
       // Drive marker walking the route, one stop per second. Row two runs
       // right to left so the train stays meshed, which makes the reading order
@@ -198,6 +208,21 @@ export default function GearTrain() {
         onPointerLeave={leave}
       >
         <span aria-hidden className="gear-plate" />
+
+        {/* The chain, over the rims and under the hubs. Drawn once across the
+            whole stage rather than per gear, because it belongs to the train
+            and not to any one of them. */}
+        <svg
+          aria-hidden
+          className="gear-chain"
+          viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="none"
+        >
+          <path d={chainPath(train.gears)} className="chain-back" />
+          <path d={chainPath(train.gears)} className="chain-face" />
+          <path ref={chain} d={chainPath(train.gears)} className="chain-rollers" />
+        </svg>
+
         <span aria-hidden ref={flow} className="gear-flow" />
         <ol className="contents">
           {nodes.map((n, i) => {
