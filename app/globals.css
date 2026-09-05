@@ -221,20 +221,20 @@ body {
 .intro-skip:hover { color: var(--signal); border-color: var(--signal); }
 
 /* Reduced motion keeps the brand moment but strips the movement: opacity
-   only, no scale, rotation, blur or sweeping light. */
-.intro-still .intro-ring,
-.intro-still .intro-bubble,
-.intro-still .intro-words,
-.intro-still .intro-logo,
-.intro-still .intro-machine img {
-  animation: none !important;
-  transform: none !important;
-  filter: none !important;
-  opacity: 1 !important;
+   only, no scale, rotation or blur. A media query rather than a class, so it
+   applies to the server-rendered overlay before any script has run. */
+@media (prefers-reduced-motion: reduce) {
+  .intro-ring,
+  .intro-bubble,
+  .intro-words,
+  .intro-logo {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+  }
+  .intro { animation: introLift 0.5s ease 3s both; }
 }
-.intro-still .intro-machine img { opacity: 0.42 !important; }
-.intro-still .intro-sheen { display: none; }
-.intro-still { animation: introLift 0.5s ease 3s both; }
 
 /* ---------- Cinematic cursor ---------- */
 .has-custom-cursor,

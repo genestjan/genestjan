@@ -116,9 +116,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Scroll reveals are JS-driven per BRIEF 6.6, which serialises to
             inline opacity:0. Without this the page below the hero is blank
-            when scripts fail or are blocked. */}
+            when scripts fail or are blocked. The intro is server-rendered
+            opaque so it paints before the site does, so it has to come out
+            the same way. */}
         <noscript>
-          <style>{`[style*="opacity:0"]{opacity:1!important;transform:none!important}`}</style>
+          <style>{`[style*="opacity:0"]{opacity:1!important;transform:none!important}.intro{display:none!important}`}</style>
         </noscript>
       </head>
       <body className="grain vignette">

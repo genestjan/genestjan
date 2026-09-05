@@ -13,7 +13,6 @@
 
 type Cue = 'hover' | 'click' | 'open' | 'close';
 
-const KEY = 'gjr-sound';
 const listeners = new Set<(on: boolean) => void>();
 
 let ctx: AudioContext | null = null;
@@ -34,12 +33,6 @@ export function onSoundChange(cb: (on: boolean) => void) {
   return () => { listeners.delete(cb); };
 }
 const announce = () => listeners.forEach((cb) => cb(on));
-
-/** Stored preference. Defaults to sounding, which is what the site wants, but
- *  it still cannot make a noise until the visitor touches something. */
-export function preferred(): boolean {
-  try { return localStorage.getItem(KEY) !== 'off'; } catch { return true; }
-}
 
 /* --------------------------------------------------------------- plumbing */
 
@@ -292,6 +285,10 @@ export function setTrain(running: boolean) {
 
 let bound = false;
 
+/** The events browsers accept as user activation. Wheel and scroll are not
+ *  among them, however much one would like them to be. */
+const WAKE = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
+
 /**
  * Wake-on-first-gesture, plus hover and click cues by delegation.
  *
@@ -310,9 +307,8 @@ export function bindGlobal() {
     // until audio exists, so waking on that same gesture would turn sound on
     // and let the click immediately turn it back off.
     if (e.target instanceof Element && e.target.closest('.sound-toggle')) return;
-    if (!on && preferred()) setSound(true);
-    window.removeEventListener('pointerdown', wake);
-    window.removeEventListener('keydown', wake);
+    if (!on) setSound(true);
+    for (const ev of WAKE) window.removeEventListener(ev, wake);
   };
 
   let last: Element | null = null;
@@ -323,15 +319,13 @@ export function bindGlobal() {
   };
   const down = (e: Event) => { if (interactive(e.target)) cue('click'); };
 
-  window.addEventListener('pointerdown', wake);
-  window.addEventListener('keydown', wake);
+  for (const ev of WAKE) window.addEventListener(ev, wake);
   window.addEventListener('pointerover', over);
   window.addEventListener('click', down);
 
   return () => {
     bound = false;
-    window.removeEventListener('pointerdown', wake);
-    window.removeEventListener('keydown', wake);
+    for (const ev of WAKE) window.removeEventListener(ev, wake);
     window.removeEventListener('pointerover', over);
     window.removeEventListener('click', down);
   };
@@ -339,9 +333,13 @@ export function bindGlobal() {
 
 /* ---------------------------------------------------------------- control */
 
+/**
+ * Muting lasts for the visit and no longer. The bed is meant to be part of the
+ * site rather than something a visitor has to switch on, so every load comes
+ * up wanting sound; the toggle is there for anyone who wants quiet now.
+ */
 export function setSound(next: boolean) {
   on = next;
-  try { localStorage.setItem(KEY, next ? 'on' : 'off'); } catch { /* private mode */ }
 
   if (next) {
     build();

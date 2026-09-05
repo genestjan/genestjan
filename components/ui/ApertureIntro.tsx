@@ -5,61 +5,58 @@ import { useEffect, useState } from 'react';
  * The entrance: the logo builds on solid black, holds there, and only then
  * lifts to reveal the machine film already running underneath.
  *
- * The shade stays fully opaque for the whole build and hold, so the mark and
- * the name are the only thing on screen for the first three and a half
- * seconds. Nothing of the hero bleeds through early.
+ * This renders on the server, opaque, from the very first byte. It used to
+ * mount only after hydration, which meant the hero painted first and the
+ * visitor saw the site for a beat, then the logo, then the site again. The
+ * whole animation is CSS, so it runs before any JavaScript has executed; the
+ * script only handles the skip, the scroll lock, and taking the node out
+ * afterwards. A noscript rule removes it outright when scripts are off, so an
+ * opaque overlay can never be what someone is left looking at.
+ *
+ * It is not dismissed by a stray click any more, only by Skip or Escape. The
+ * hold is the point, and a pointer landing early used to cut it short in a way
+ * that looked exactly like a bug.
  *
  * This deliberately holds no video of its own. The film lives in
  * MachineBackdrop and plays from first paint; this overlay just covers it and
  * gets out of the way, so the hand-off is the same footage rather than two
  * clips that have to be matched.
- *
- * Plays on every page load, is skippable, and under prefers-reduced-motion
- * shows the logo held still rather than being removed entirely.
- *
- * Renders nothing until mounted: server-rendering an opaque overlay would hide
- * the whole site for anyone whose scripts fail.
  */
 const FULL_MS = 4800;
 const REDUCED_MS = 3500;
 
 export default function ApertureIntro() {
-  const [state, setState] = useState<'off' | 'full' | 'reduced'>('off');
+  // Server and first client render agree, so there is no hydration mismatch
+  // and no frame in which the overlay is missing.
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    setState(reduced ? 'reduced' : 'full');
-
-    const prevOverflow = document.body.style.overflow;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     let done = false;
     const finish = () => {
       if (done) return;
       done = true;
-      setState('off');
-      document.body.style.overflow = prevOverflow;
+      setShow(false);
+      document.body.style.overflow = prev;
     };
 
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') finish(); };
     const t = setTimeout(finish, reduced ? REDUCED_MS : FULL_MS);
-    window.addEventListener('keydown', finish);
-    window.addEventListener('pointerdown', finish);
+    window.addEventListener('keydown', onKey);
     return () => {
       clearTimeout(t);
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener('keydown', finish);
-      window.removeEventListener('pointerdown', finish);
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
     };
   }, []);
 
-  if (state === 'off') return null;
+  if (!show) return null;
 
   return (
-    <div
-      aria-hidden
-      className={`intro ${state === 'reduced' ? 'intro-still' : ''}`}
-      data-testid="aperture-intro"
-    >
+    <div aria-hidden className="intro" data-testid="aperture-intro">
       {/* Blackout over the running film, lifting as the logo departs */}
       <div className="intro-shade" />
 
@@ -72,7 +69,7 @@ export default function ApertureIntro() {
         </div>
       </div>
 
-      <button className="intro-skip" onClick={() => setState('off')}>Skip</button>
+      <button className="intro-skip" onClick={() => setShow(false)}>Skip</button>
     </div>
   );
 }
