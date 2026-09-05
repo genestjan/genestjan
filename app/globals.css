@@ -388,61 +388,22 @@ body {
 
 /* ---------- Gear box (the fourteen stops) ---------- */
 
-/* The stage holds the whole train. Gears are placed by percentage against a
-   fixed aspect ratio, so the mesh survives every width without measuring
-   anything at runtime. */
 .gear-stage {
-  position: relative;
-  width: 100%;
-  /* Enough perspective to read as a machined plate seen slightly from above,
-     not so much that the top row goes small and the labels skew. */
-  transform: perspective(2200px) rotateX(7deg);
-  /* No preserve-3d: it makes children sort by 3D position instead of z-index,
-     which painted the drive marker underneath the gears it is meant to lead. */
+  position: relative; width: 100%;
+  transform: perspective(2600px) rotateX(6deg);
 }
 @media (max-width: 639px) { .gear-stage { transform: none; } }
 
-/* Machined backplate the train is bolted to. */
+/* The plate the box is bolted to. Near black, so the brass is the only thing
+   carrying colour. */
 .gear-plate {
-  position: absolute; inset: -3% -2%;
-  border-radius: 22px;
+  position: absolute; inset: -3% -2.5%;
+  border-radius: 20px;
   background:
-    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(79, 209, 224, 0.05), transparent 70%),
-    linear-gradient(160deg, #10161F 0%, #080B11 55%, #0C1119 100%);
-  border: 1px solid rgba(232, 237, 242, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -40px 80px -40px rgba(0, 0, 0, 0.9);
-}
-
-/* The drive marker: the point the route has reached, walked stop by stop.
-   Sits above the hubs so it is never lost behind a gear. */
-.gear-flow {
-  position: absolute; z-index: 6; pointer-events: none;
-  width: 14px; height: 14px; margin: -7px 0 0 -7px;
-  border-radius: 999px;
-  background: radial-gradient(circle, #FFF2D6 0%, var(--signal) 38%, rgba(255,176,58,0) 72%);
-  box-shadow: 0 0 18px 5px rgba(255, 176, 58, 0.45);
-}
-
-/* The chain sits over the gear rims and under the hubs. It never crosses a
-   hub, so one layer is enough; a flat side view has no over-and-under to
-   resolve, only which side of each circle the chain is lying on. */
-.gear-chain {
-  position: absolute; inset: 0; z-index: 4;
-  width: 100%; height: 100%;
-  pointer-events: none; overflow: visible;
-}
-/* Muted deliberately. At full brightness the chain out-read the gold and the
-   gears stopped being the thing you looked at. */
-.chain-back {
-  fill: none; stroke: #04060A; stroke-width: 7.6; stroke-linecap: round;
-}
-.chain-face {
-  fill: none; stroke: #464E5C; stroke-width: 4.6; stroke-linecap: round;
-}
-/* Round dashes on a thin stroke read as the rollers between the plates. */
-.chain-rollers {
-  fill: none; stroke: #8E99AA; stroke-width: 2.1;
-  stroke-linecap: round; stroke-dasharray: 0.5 7.5;
+    radial-gradient(ellipse 66% 58% at 26% 16%, rgba(255, 220, 160, 0.05), transparent 70%),
+    linear-gradient(158deg, #0E0C08 0%, #060504 58%, #0A0806 100%);
+  border: 1px solid rgba(200, 168, 110, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 210, 0.05), inset 0 -50px 90px -50px #000;
 }
 
 .gear-slot { position: absolute; }
@@ -451,83 +412,83 @@ body {
   background: none; border: 0; padding: 0; cursor: pointer;
 }
 .gear-btn:focus-visible { outline: none; }
-
 .gear-svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
 .gear-rotor {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
+  transform-box: fill-box; transform-origin: 50% 50%;
   will-change: transform;
 }
 
-/* The disc has thickness: a dark body sitting under and behind the lit face. */
-.gear-drop { fill: #05070B; opacity: 0.85; }
+/* Cast body sitting behind and below the lit face: cheaper than a blur filter
+   and it does not repaint. */
+.gear-cast { fill: #050403; opacity: 0.9; }
 
-.gear-teeth {
-  fill: url(#gearIdle);
-  stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.7;
-  transition: fill 420ms var(--ease);
-}
-/* A second, slightly smaller gear on top reads as the machined bevel. */
-.gear-bevel {
-  fill: none; stroke: rgba(255, 240, 214, 0.13); stroke-width: 0.9;
-  transition: stroke 420ms var(--ease);
-}
-.gear-web {
-  fill: none; stroke: rgba(255, 224, 168, 0.14); stroke-width: 1;
-  transition: stroke 420ms var(--ease);
-}
-.gear-bolt { fill: rgba(4, 6, 10, 0.85); }
-.gear-spec {
-  fill: none; stroke: rgba(255, 240, 214, 0.3); stroke-width: 2.2; stroke-linecap: round;
-  transition: stroke 420ms var(--ease);
-}
+.gear-teeth { fill: url(#brassTeeth); stroke: #150E05; stroke-width: 0.9; }
+/* A second, smaller tooth outline catches the light along the crests. */
+.gear-teeth-lip { fill: none; stroke: rgba(255, 238, 200, 0.22); stroke-width: 0.9; }
 
-/* The hub never turns, the way the logo plate in the film never turns. */
-.gear-hub { fill: url(#gearHub); }
-.gear-hub-rim {
-  fill: none; stroke: url(#hubRim); stroke-width: 1.6;
-  transition: stroke 420ms var(--ease);
-}
+.gear-shoulder { fill: url(#brassBody); stroke: #170F06; stroke-width: 0.8; }
+.gear-groove { fill: url(#brassGroove); }
+.gear-boss { fill: url(#brassBody); }
+.gear-boss-lip { fill: none; stroke: rgba(255, 240, 205, 0.26); stroke-width: 0.8; }
+.gear-face { fill: url(#brassFace); }
+.gear-face-ring { fill: none; stroke: rgba(52, 38, 18, 0.55); stroke-width: 0.8; }
 
+/* Engraved lettering: a lit lower edge with the cut sitting on top of it. */
+.gear-num, .gear-num-lip, .gear-word, .gear-word-lip {
+  text-anchor: middle; dominant-baseline: middle;
+}
 .gear-num {
-  fill: var(--signal); opacity: 0.75;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 6.4px; letter-spacing: 0.12em;
-  text-anchor: middle; dominant-baseline: middle;
-  transition: opacity 420ms var(--ease);
+  fill: #2A1E10;
+  font-family: var(--font-display), sans-serif; font-weight: 700;
+  font-size: 15px; letter-spacing: 0.01em;
 }
+.gear-num-lip { fill: rgba(255, 240, 205, 0.4); font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.01em; }
 .gear-word {
-  fill: var(--paper);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 7px; letter-spacing: 0.02em;
-  text-anchor: middle; dominant-baseline: middle;
+  fill: #2A1E10;
+  font-family: var(--font-body), sans-serif; font-weight: 600;
+  font-size: 8.4px; letter-spacing: 0.005em;
 }
+.gear-word-lip { fill: rgba(255, 240, 205, 0.4); font-family: var(--font-body), sans-serif; font-weight: 600; font-size: 8.4px; letter-spacing: 0.005em; }
 
-/* Lit: hover, keyboard focus and the open stop all read the same, so which
-   gear is carrying the load is never ambiguous. */
+/* Lit: hover, keyboard focus and the open stop read the same. */
+.gear-btn:hover .gear-face,
+.gear-btn:focus-visible .gear-face,
+.gear-btn.is-on .gear-face { fill: #F0D9A6; }
 .gear-btn:hover .gear-teeth,
 .gear-btn:focus-visible .gear-teeth,
-.gear-btn.is-on .gear-teeth { fill: url(#gearLive); }
-.gear-btn:hover .gear-bevel,
-.gear-btn:focus-visible .gear-bevel,
-.gear-btn.is-on .gear-bevel { stroke: rgba(255, 245, 225, 0.4); }
-.gear-btn:hover .gear-web,
-.gear-btn:focus-visible .gear-web,
-.gear-btn.is-on .gear-web { stroke: rgba(255, 224, 168, 0.5); }
-.gear-btn:hover .gear-spec,
-.gear-btn:focus-visible .gear-spec,
-.gear-btn.is-on .gear-spec { stroke: rgba(255, 250, 235, 0.9); }
-.gear-btn:hover .gear-hub-rim,
-.gear-btn:focus-visible .gear-hub-rim,
-.gear-btn.is-on .gear-hub-rim { stroke: var(--signal); }
-.gear-btn:hover .gear-num,
-.gear-btn:focus-visible .gear-num,
-.gear-btn.is-on .gear-num { opacity: 1; }
+.gear-btn.is-on .gear-teeth { stroke: var(--signal); stroke-width: 1.1; }
+.gear-btn:hover .gear-face-ring,
+.gear-btn:focus-visible .gear-face-ring,
+.gear-btn.is-on .gear-face-ring { stroke: #6B4712; stroke-width: 1.4; }
+.gear-btn :is(.gear-face, .gear-teeth, .gear-face-ring) {
+  transition: fill 380ms var(--ease), stroke 380ms var(--ease), stroke-width 380ms var(--ease);
+}
+/* Focus lands on the ring rather than a box, because the gears sit close
+   enough that an outline would cross the neighbour. */
+.gear-btn:focus-visible .gear-face-ring { stroke: var(--current); stroke-width: 2.2; }
 
-/* Focus has to be visible on a shape, not a box: the buttons overlap where the
-   teeth mesh, so an outline would sit on top of the neighbour. */
-.gear-btn:focus-visible .gear-hub-rim { stroke: var(--current); stroke-width: 2.6; }
+/* ---- the chain ---- */
+.gear-chain {
+  position: absolute; inset: 0; z-index: 5;
+  width: 100%; height: 100%;
+  pointer-events: none; overflow: visible;
+  fill: none; stroke-linecap: butt;
+}
+/* Solid colours in concentric widths rather than a gradient. A gradient in
+   bounding-box units degenerates on a horizontal run, which is what made the
+   chain between the rows render as a flat dark band; stacked strokes give the
+   same rounded plate section on a path of any orientation. */
+.chain-cast { stroke: #030202; stroke-width: 15.8; opacity: 0.85; transform: translate(1.6px, 2.8px); }
+.chain-edge { stroke: #150E05; stroke-width: 13.8; }
+.chain-plate { stroke: #6B5330; stroke-width: 12; }
+/* Narrower than the plate below it, so every link keeps a dark border and the
+   chain does not read as one continuous ribbon. */
+.chain-plate-2 { stroke: #B08E58; stroke-width: 7.6; }
+/* The dark cut between one link plate and the next, full width so it reads as
+   a joint rather than a scratch, with the pin head sitting in it. */
+.chain-joint { stroke: #120C04; stroke-width: 12.4; }
+.chain-pin { stroke: #E2C892; stroke-width: 4.4; stroke-linecap: round; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

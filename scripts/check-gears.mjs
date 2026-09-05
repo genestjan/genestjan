@@ -1,83 +1,85 @@
 /**
- * The gear train's teeth must never pass through each other.
+ * The chain has to drive the gears, not slide across them.
  *
- * Phase is derived, not eyeballed, so this is the check that the derivation is
- * right: it walks every meshing pair at every column count the layout can use,
- * rotates them through three tooth pitches, and looks for any point that is
- * inside both gears at once. It also proves the teeth actually engage, since
- * "no interference" is trivially true for gears that never touch.
+ * Each gear's starting angle is derived rather than chosen, so this is the
+ * check that the derivation holds: it walks every gear, rotates the box, and
+ * confirms that wherever a chain roller meets a gear the roller is sitting in
+ * a tooth gap and not riding a crest. If the lock were wrong it would hold for
+ * one frame and drift away, so it is sampled across a full revolution.
  *
- *   node scripts/check-gears.mjs
+ *   node --experimental-strip-types scripts/check-gears.mjs
  */
-import { trainLayout, profileAt, chainPath, OUTER, ROOT, SPAN, PITCH } from '../lib/gear.ts';
+import {
+  trainLayout, profileAt, TEETH, CHAIN_R, CHAIN_PITCH, OUTER, ROOT,
+} from '../lib/gear.ts';
 
-const N = 14;
 const TAU = Math.PI * 2;
+const K = (Math.PI * CHAIN_R) / 180;        // degrees of gear turn -> arc length
 let failed = false;
 
-const inside = (g, t, px, py) => {
-  const dx = px - g.x, dy = py - g.y;
-  const r = Math.hypot(dx, dy);
-  if (r > OUTER) return false;
-  if (r <= ROOT) return true;
-  const theta = (g.phase * Math.PI) / 180 + g.dir * t;
-  let u = (((Math.atan2(dy, dx) - theta) / TAU) * N) % 1;
+/** Tooth coordinate of the gear material at its top, plus where the nearest
+ *  roller sits within that same pitch. Both in units of one tooth pitch. */
+function atContact(g, angle, s) {
+  const theta = g.phase + g.dir * angle;
+  // world angle -90 is the top of the gear
+  let u = ((-90 - theta) / 360) * TEETH % 1;
   if (u < 0) u += 1;
-  return r <= profileAt(u);
-};
+  // roller pattern: travel along the run is the same arc length the gear turns
+  const travel = angle * K;
+  // Mirrored for leftward runs, so both coordinates count the same way
+  // round the contact point.
+  let r = ((g.dir === 1 ? s - travel : travel - s) / CHAIN_PITCH) % 1;
+  if (r < 0) r += 1;
+  return { u, r };
+}
 
-for (const cols of [7, 4, 3, 2]) {
-  const { gears } = trainLayout(14, cols, N);
-  let hits = 0, meshed = 0;
-  for (let i = 1; i < gears.length; i++) {
-    const a = gears[i - 1], b = gears[i];
-    if (Math.abs(Math.hypot(b.x - a.x, b.y - a.y) - SPAN) > 0.01) continue;
-    meshed++;
-    for (let s = 0; s < 240; s++) {
-      const t = (s / 240) * (TAU / N) * 3;
-      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-      for (let ox = -12; ox <= 12; ox += 0.6) {
-        for (let oy = -12; oy <= 12; oy += 0.6) {
-          if (inside(a, t, mx + ox, my + oy) && inside(b, t, mx + ox, my + oy)) hits++;
-        }
-      }
+for (const cols of [7, 4, 3]) {
+  const { gears, rows, runs } = trainLayout(14, cols);
+  let worst = 1;
+  let slip = 0;
+
+  for (const g of gears) {
+    const s = g.dir === 1
+      ? g.x - gears[0].x
+      : gears.slice(0, cols).at(-1).x - g.x;
+    let base = null;
+    for (let k = 0; k < 180; k++) {
+      const angle = (k / 180) * 360;
+      const { u, r } = atContact(g, angle, s);
+      // Where the roller sits, expressed in the gear's own tooth coordinate.
+      let rel = (u - r) % 1;
+      if (rel < 0) rel += 1;
+      if (base === null) base = rel;
+      // The relationship must not drift as the box turns.
+      let drift = Math.abs(rel - base);
+      drift = Math.min(drift, 1 - drift);
+      if (drift > 1e-6) slip++;
+      // And the roller must land in the valley, which is u in [0.6, 1).
+      // rel is where a roller sits in the gear's own tooth coordinate. The
+      // valley runs 0.6 to 1.0, so anything outside that is a roller trying to
+      // occupy the same space as a tooth.
+      if (rel < 0.6 || rel >= 1) { worst = -1; }
+      else worst = Math.min(worst, Math.min(rel - 0.6, 1 - rel));
     }
   }
-  if (meshed !== 13) { console.error(`FAIL cols=${cols}: ${meshed} meshing pairs, expected 13`); failed = true; }
-  if (hits) { console.error(`FAIL cols=${cols}: ${hits} interference points`); failed = true; }
-  console.log(`cols=${cols}  meshing pairs=${meshed}  interference=${hits}`);
+
+  const ok = slip === 0 && worst > 0.05;
+  if (!ok) failed = true;
+  console.log(
+    `cols=${cols} rows=${rows} runs=${runs.length + 1}  slip samples=${slip}  ` +
+    `roller clearance from the tooth flanks=${worst.toFixed(3)} pitch  ${ok ? 'OK' : 'BAD'}`,
+  );
 }
 
-const { gears } = trainLayout(14, 7, N);
-const [a, b] = gears;
-let engaged = 0;
-for (let s = 0; s < 120; s++) {
-  const t = (s / 120) * (TAU / N) * 2;
-  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-  for (let oy = -10; oy <= 10; oy += 0.5) {
-    if (inside(a, t, mx + 2, my + oy) || inside(b, t, mx - 2, my + oy)) engaged++;
-  }
+// The gear outline itself must stay between its root and tip circles.
+const d = (await import('../lib/gear.ts')).gearPath();
+const radii = d.replace(/[MLZ]/g, ' ').trim().split(/\s+/)
+  .map((p) => p.split(',').map(Number)).map(([x, y]) => Math.hypot(x, y));
+if (Math.min(...radii) < ROOT - 0.1 || Math.max(...radii) > OUTER + 0.1) {
+  console.error('FAIL: tooth outline leaves the root/tip band');
+  failed = true;
 }
-if (engaged < 500) { console.error(`FAIL: teeth barely engage (${engaged})`); failed = true; }
-console.log(`teeth in the mesh region: ${engaged}`);
+console.log(`tooth outline spans ${Math.min(...radii).toFixed(1)}..${Math.max(...radii).toFixed(1)} (root ${ROOT}, tip ${OUTER})`);
 
-// The chain has to be continuous: every arc must start where the last ended,
-// and every point on it must sit on some gear's pitch circle.
-for (const cols of [7, 4, 3]) {
-  const { gears } = trainLayout(14, cols, N);
-  const d = chainPath(gears);
-  const arcs = d.split('A').length - 1;
-  if (arcs !== 14) { console.error(`FAIL cols=${cols}: ${arcs} chain arcs, expected 14`); failed = true; }
-  // every arc endpoint must be exactly PITCH from the gear it wraps
-  const pts = [...d.matchAll(/(-?[\d.]+),(-?[\d.]+)(?=A|$)/g)].map((m) => [+m[1], +m[2]]);
-  let offPitch = 0;
-  for (const [px, py] of pts) {
-    const nearest = Math.min(...gears.map((g) => Math.abs(Math.hypot(px - g.x, py - g.y) - PITCH)));
-    if (nearest > 0.02) offPitch++;
-  }
-  if (offPitch) { console.error(`FAIL cols=${cols}: ${offPitch} chain points off the pitch circle`); failed = true; }
-  console.log(`cols=${cols}  chain arcs=${arcs}  points off pitch=${offPitch}`);
-}
-
-console.log(failed ? 'FAILED' : 'PASS: the train meshes cleanly and the chain is continuous');
+console.log(failed ? 'FAILED' : 'PASS: the chain drives every gear without slipping');
 process.exit(failed ? 1 : 0);
