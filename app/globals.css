@@ -479,16 +479,16 @@ body {
    bounding-box units degenerates on a horizontal run, which is what made the
    chain between the rows render as a flat dark band; stacked strokes give the
    same rounded plate section on a path of any orientation. */
-.chain-cast { stroke: #030202; stroke-width: 15.8; opacity: 0.85; transform: translate(1.6px, 2.8px); }
-.chain-edge { stroke: #150E05; stroke-width: 13.8; }
-.chain-plate { stroke: #6B5330; stroke-width: 12; }
+.chain-cast { stroke: #030202; stroke-width: 13.6; opacity: 0.85; transform: translate(1.6px, 2.8px); }
+.chain-edge { stroke: #150E05; stroke-width: 11.9; }
+.chain-plate { stroke: #6B5330; stroke-width: 10.4; }
 /* Narrower than the plate below it, so every link keeps a dark border and the
    chain does not read as one continuous ribbon. */
-.chain-plate-2 { stroke: #B08E58; stroke-width: 7.6; }
+.chain-plate-2 { stroke: #B08E58; stroke-width: 6.6; }
 /* The dark cut between one link plate and the next, full width so it reads as
    a joint rather than a scratch, with the pin head sitting in it. */
-.chain-joint { stroke: #120C04; stroke-width: 12.4; }
-.chain-pin { stroke: #E2C892; stroke-width: 4.4; stroke-linecap: round; }
+.chain-joint { stroke: #120C04; stroke-width: 10.8; }
+.chain-pin { stroke: #E2C892; stroke-width: 3.8; stroke-linecap: round; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

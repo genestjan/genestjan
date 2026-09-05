@@ -28,6 +28,11 @@ let on = false;
 
 export function isOn() { return on; }
 
+/** Whether audio is genuinely playing, as opposed to merely asked for. A
+ *  context can be created and still sit suspended if the gesture that reached
+ *  it did not count as user activation. */
+export function isRunning() { return ctx?.state === 'running'; }
+
 export function onSoundChange(cb: (on: boolean) => void) {
   listeners.add(cb);
   return () => { listeners.delete(cb); };
@@ -302,9 +307,17 @@ export function bindGlobal() {
   const interactive = (t: EventTarget | null) =>
     t instanceof Element ? t.closest('a, button, [role="button"], summary') : null;
 
+  // Kept armed until the context is actually running rather than dropped
+  // after one attempt: not every event a browser delivers counts as user
+  // activation, and a single failed try used to leave the site silent for the
+  // whole visit.
   const wake = () => {
-    if (!on) setSound(true);
-    for (const ev of WAKE) window.removeEventListener(ev, wake);
+    if (isRunning()) {
+      for (const ev of WAKE) window.removeEventListener(ev, wake);
+      document.removeEventListener('visibilitychange', wake);
+      return;
+    }
+    setSound(true);
   };
 
   let last: Element | null = null;
@@ -316,12 +329,16 @@ export function bindGlobal() {
   const down = (e: Event) => { if (interactive(e.target)) cue('click'); };
 
   for (const ev of WAKE) window.addEventListener(ev, wake);
+  // Some browsers suspend the context when the tab goes away and will not
+  // resume it on their own.
+  document.addEventListener('visibilitychange', wake);
   window.addEventListener('pointerover', over);
   window.addEventListener('click', down);
 
   return () => {
     bound = false;
     for (const ev of WAKE) window.removeEventListener(ev, wake);
+    document.removeEventListener('visibilitychange', wake);
     window.removeEventListener('pointerover', over);
     window.removeEventListener('click', down);
   };

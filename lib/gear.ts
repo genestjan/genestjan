@@ -22,8 +22,13 @@ export const SX = 100;
 export const SY = 92;
 /** Chain centreline, measured from a gear centre. */
 export const CHAIN_R = SY / 2;
-/** Room around the block for the chain to wrap. */
-export const MARGIN = 22;
+/** How far the wrap's ends and sides stand off the block. Larger than the
+ *  chain radius on purpose: at CHAIN_R the vertical sides ran straight over
+ *  the outer columns' teeth and swallowed them, so those gears looked like
+ *  they had teeth on one side only. */
+export const WRAP_R = 64;
+/** Room around the block for the wrap. */
+export const MARGIN = 32;
 /** One link per tooth. */
 export const CHAIN_PITCH = (2 * Math.PI * CHAIN_R) / TEETH;
 
@@ -114,20 +119,24 @@ export function trainLayout(count: number, cols: number): Train {
     gears.push({ x, y, phase, dir, row });
   }
 
-  // The wrap: a rounded rectangle hugging the block, corner radius CHAIN_R.
+  // The wrap. Its straight runs sit at CHAIN_R so they drive the top and
+  // bottom rows, but the corners swing out on a wider radius so the sides
+  // clear the outer columns entirely. The corner arc still leaves each end
+  // gear tangentially, so it engages there and only then swings away.
   const R = CHAIN_R;
+  const W = WRAP_R;
   const topY = firstY - R;
   const botY = firstY + (rows - 1) * SY + R;
   const loop = [
     `M${firstX},${topY}`,
     `H${lastX}`,
-    `A${R},${R} 0 0 1 ${lastX + R},${topY + R}`,
-    `V${botY - R}`,
-    `A${R},${R} 0 0 1 ${lastX},${botY}`,
+    `A${W},${W} 0 0 1 ${lastX + W},${topY + W}`,
+    `V${botY - W}`,
+    `A${W},${W} 0 0 1 ${lastX},${botY}`,
     `H${firstX}`,
-    `A${R},${R} 0 0 1 ${firstX - R},${botY - R}`,
-    `V${topY + R}`,
-    `A${R},${R} 0 0 1 ${firstX},${topY}`,
+    `A${W},${W} 0 0 1 ${firstX - W},${botY - W}`,
+    `V${topY + W}`,
+    `A${W},${W} 0 0 1 ${firstX},${topY}`,
     'Z',
   ].join('');
 
@@ -139,8 +148,8 @@ export function trainLayout(count: number, cols: number): Train {
     const y = firstY + r * SY - R;
     // Carried out to the wrap's straight sides so the run meets it rather than
     // stopping in mid air next to it.
-    const a = firstX - R;
-    const b = lastX + R;
+    const a = firstX - W;
+    const b = lastX + W;
     runs.push(r % 2 === 1 ? `M${b},${y}H${a}` : `M${a},${y}H${b}`);
   }
 
