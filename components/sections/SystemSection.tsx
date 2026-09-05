@@ -2,7 +2,7 @@ import { system } from '@/lib/content';
 import Section from './Section';
 import Eyebrow from '@/components/ui/Eyebrow';
 import Reveal from '@/components/ui/Reveal';
-import PipelineScene from '@/components/canvas/PipelineScene';
+import GearTrain from '@/components/canvas/GearTrain';
 
 export default function SystemSection() {
   return (
@@ -21,7 +21,7 @@ export default function SystemSection() {
       </div>
 
       <div className="mt-14">
-        <PipelineScene />
+        <GearTrain />
       </div>
 
       <Reveal>

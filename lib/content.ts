@@ -231,6 +231,18 @@ export const stack = {
 };
 
 /* 09 PROCESS */
+/* MID-PAGE CALL TO ACTION
+   Sits between the proof and the rest of the page. Same offer as the contact
+   section, said to someone who has just finished reading the case studies. */
+export const cta = {
+  eyebrow: 'THE NEXT FIFTEEN MINUTES',
+  h2: 'Want me to look at yours?',
+  body: 'Tell me where your leads come from and what happens to them after they land. I will tell you where I think the money is leaking. If the fix is something you can do yourself this week, I will say that instead of selling you anything.',
+  button: 'Book a 15 minute call',
+  points: ['Free, and there is no pitch at the end', 'You keep the diagnosis either way', 'I will say no if I am not the right fit'],
+  note: 'Rather write first?',
+};
+
 export const process = {
   eyebrow: '08 / PROCESS',
   h2: 'Four steps. No mystery.',

@@ -13,6 +13,7 @@ import Experience from '@/components/sections/Experience';
 import Testimonials from '@/components/sections/Testimonials';
 import Faq from '@/components/sections/Faq';
 import Contact from '@/components/sections/Contact';
+import CtaBand from '@/components/sections/CtaBand';
 
 export default function Page() {
   return (
@@ -23,13 +24,17 @@ export default function Page() {
             objections, then the ask. Testimonials previously sat at position
             11, roughly 2,800 words in, so the social proof arrived long after
             the decision was made. They now follow the case studies so the two
-            proof blocks reinforce each other. */}
+            proof blocks reinforce each other.
+
+            Booking is asked for three times: the hero, the band straight after
+            the proof, and the contact section. */}
         <Hero />
         <Gap />
         <SystemSection />
         <Services />
         <Work />
         <Testimonials />
+        <CtaBand />
         <About />
         <Process />
         <Industries />

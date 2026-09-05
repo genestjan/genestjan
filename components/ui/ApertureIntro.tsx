@@ -2,8 +2,12 @@
 import { useEffect, useState } from 'react';
 
 /**
- * The entrance: the logo builds on black, then lifts to reveal the machine
- * film already running underneath.
+ * The entrance: the logo builds on solid black, holds there, and only then
+ * lifts to reveal the machine film already running underneath.
+ *
+ * The shade stays fully opaque for the whole build and hold, so the mark and
+ * the name are the only thing on screen for the first three and a half
+ * seconds. Nothing of the hero bleeds through early.
  *
  * This deliberately holds no video of its own. The film lives in
  * MachineBackdrop and plays from first paint; this overlay just covers it and
@@ -16,8 +20,8 @@ import { useEffect, useState } from 'react';
  * Renders nothing until mounted: server-rendering an opaque overlay would hide
  * the whole site for anyone whose scripts fail.
  */
-const FULL_MS = 3400;
-const REDUCED_MS = 1600;
+const FULL_MS = 4800;
+const REDUCED_MS = 3500;
 
 export default function ApertureIntro() {
   const [state, setState] = useState<'off' | 'full' | 'reduced'>('off');
