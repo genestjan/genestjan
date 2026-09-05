@@ -386,118 +386,130 @@ body {
 
 
 
-/* ---------- Gear train (the fourteen stops) ---------- */
-.gear-cell { position: relative; padding: 0 0.25rem 0.75rem; }
+/* ---------- Gear box (the fourteen stops) ---------- */
 
-.gear-btn {
-  display: block; width: 100%;
-  background: none; border: 0; padding: 0; cursor: pointer;
-  text-align: center;
+/* The stage holds the whole train. Gears are placed by percentage against a
+   fixed aspect ratio, so the mesh survives every width without measuring
+   anything at runtime. */
+.gear-stage {
+  position: relative;
+  width: 100%;
+  /* Enough perspective to read as a machined plate seen slightly from above,
+     not so much that the top row goes small and the labels skew. */
+  transform: perspective(2200px) rotateX(7deg);
+  /* No preserve-3d: it makes children sort by 3D position instead of z-index,
+     which painted the drive marker underneath the gears it is meant to lead. */
 }
+@media (max-width: 639px) { .gear-stage { transform: none; } }
 
-/* Square that the gear is drawn into. The rail runs through its centre. */
-.gear-face { position: relative; display: block; aspect-ratio: 1; }
-
-/* Common shaft. It overshoots the gear on both sides so consecutive cells
-   join across their padding into one continuous line; the fade at each end
-   makes a row's last gear read as a shaft end rather than a cut. */
-.gear-rail {
-  /* Only wide enough to bridge the 8px of cell padding into the neighbour.
-     A larger overshoot pushed the first and last rail past the page gutter
-     and gave the whole document a horizontal scrollbar. */
-  position: absolute; left: -7%; right: -7%; top: 50%;
-  height: 3px; transform: translateY(-1.5px);
+/* Machined backplate the train is bolted to. */
+.gear-plate {
+  position: absolute; inset: -3% -2%;
+  border-radius: 22px;
   background:
-    linear-gradient(90deg, transparent, rgba(120, 134, 156, 0.42) 9%, rgba(120, 134, 156, 0.42) 91%, transparent),
-    repeating-linear-gradient(90deg, rgba(6, 8, 13, 0.75) 0 4px, transparent 4px 9px);
-  background-blend-mode: multiply, normal;
-  border-radius: 2px;
+    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(79, 209, 224, 0.05), transparent 70%),
+    linear-gradient(160deg, #10161F 0%, #080B11 55%, #0C1119 100%);
+  border: 1px solid rgba(232, 237, 242, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -40px 80px -40px rgba(0, 0, 0, 0.9);
 }
 
-.gear-svg { position: relative; display: block; width: 100%; height: 100%; overflow: visible; }
+/* The drive marker: the point the route has reached, walked stop by stop.
+   Sits above the hubs so it is never lost behind a gear. */
+.gear-flow {
+  position: absolute; z-index: 6; pointer-events: none;
+  width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #FFF2D6 0%, var(--signal) 38%, rgba(255,176,58,0) 72%);
+  box-shadow: 0 0 18px 5px rgba(255, 176, 58, 0.45);
+}
 
-/* fill-box keeps the rotation centred on the gear itself. With the default
-   view-box, 50% 50% would resolve against the viewBox origin instead. */
+.gear-slot { position: absolute; }
+.gear-btn {
+  display: block; width: 100%; height: 100%;
+  background: none; border: 0; padding: 0; cursor: pointer;
+}
+.gear-btn:focus-visible { outline: none; }
+
+.gear-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
 .gear-rotor {
   transform-box: fill-box;
   transform-origin: 50% 50%;
   will-change: transform;
-  animation: gear-turn 20s linear infinite;
-  animation-play-state: paused;
 }
-.gear-train.is-live .gear-rotor { animation-play-state: running; }
-@keyframes gear-turn { to { transform: rotate(360deg); } }
+
+/* The disc has thickness: a dark body sitting under and behind the lit face. */
+.gear-drop { fill: #05070B; opacity: 0.85; }
 
 .gear-teeth {
   fill: url(#gearIdle);
-  stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.8;
-  transition: fill 450ms var(--ease);
+  stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.7;
+  transition: fill 420ms var(--ease);
+}
+/* A second, slightly smaller gear on top reads as the machined bevel. */
+.gear-bevel {
+  fill: none; stroke: rgba(255, 240, 214, 0.13); stroke-width: 0.9;
+  transition: stroke 420ms var(--ease);
 }
 .gear-web {
-  fill: none; stroke: rgba(255, 224, 168, 0.16); stroke-width: 1.1;
-  transition: stroke 450ms var(--ease);
+  fill: none; stroke: rgba(255, 224, 168, 0.14); stroke-width: 1;
+  transition: stroke 420ms var(--ease);
 }
-.gear-bolt { fill: rgba(6, 8, 13, 0.75); }
+.gear-bolt { fill: rgba(4, 6, 10, 0.85); }
 .gear-spec {
-  fill: none; stroke: rgba(255, 240, 214, 0.32); stroke-width: 2; stroke-linecap: round;
-  transition: stroke 450ms var(--ease);
+  fill: none; stroke: rgba(255, 240, 214, 0.3); stroke-width: 2.2; stroke-linecap: round;
+  transition: stroke 420ms var(--ease);
 }
 
+/* The hub never turns, the way the logo plate in the film never turns. */
 .gear-hub { fill: url(#gearHub); }
-.gear-hub-ring {
-  fill: none; stroke: rgba(232, 237, 242, 0.14); stroke-width: 1;
-  transition: stroke 450ms var(--ease);
+.gear-hub-rim {
+  fill: none; stroke: url(#hubRim); stroke-width: 1.6;
+  transition: stroke 420ms var(--ease);
 }
+
 .gear-num {
-  fill: var(--muted);
+  fill: var(--signal); opacity: 0.75;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 15px; letter-spacing: 0.06em;
-  text-anchor: middle; dominant-baseline: central;
-  transition: fill 450ms var(--ease);
+  font-size: 6.4px; letter-spacing: 0.12em;
+  text-anchor: middle; dominant-baseline: middle;
+  transition: opacity 420ms var(--ease);
+}
+.gear-word {
+  fill: var(--paper);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 7px; letter-spacing: 0.02em;
+  text-anchor: middle; dominant-baseline: middle;
 }
 
-.gear-label {
-  display: block; margin-top: 0.6rem;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.7rem; letter-spacing: 0.08em; line-height: 1.25;
-  color: var(--muted);
-  transition: color 300ms var(--ease);
-}
-
-/* Lit state: hover, keyboard focus and the selected stop all read the same,
-   so the gear that is "receiving power" is unambiguous. */
+/* Lit: hover, keyboard focus and the open stop all read the same, so which
+   gear is carrying the load is never ambiguous. */
 .gear-btn:hover .gear-teeth,
 .gear-btn:focus-visible .gear-teeth,
 .gear-btn.is-on .gear-teeth { fill: url(#gearLive); }
-
+.gear-btn:hover .gear-bevel,
+.gear-btn:focus-visible .gear-bevel,
+.gear-btn.is-on .gear-bevel { stroke: rgba(255, 245, 225, 0.4); }
 .gear-btn:hover .gear-web,
 .gear-btn:focus-visible .gear-web,
 .gear-btn.is-on .gear-web { stroke: rgba(255, 224, 168, 0.5); }
-
-.gear-btn:hover .gear-hub-ring,
-.gear-btn:focus-visible .gear-hub-ring,
-.gear-btn.is-on .gear-hub-ring { stroke: var(--signal); }
-
 .gear-btn:hover .gear-spec,
 .gear-btn:focus-visible .gear-spec,
-.gear-btn.is-on .gear-spec { stroke: rgba(255, 245, 225, 0.92); }
-
+.gear-btn.is-on .gear-spec { stroke: rgba(255, 250, 235, 0.9); }
+.gear-btn:hover .gear-hub-rim,
+.gear-btn:focus-visible .gear-hub-rim,
+.gear-btn.is-on .gear-hub-rim { stroke: var(--signal); }
 .gear-btn:hover .gear-num,
 .gear-btn:focus-visible .gear-num,
-.gear-btn.is-on .gear-num { fill: var(--signal); }
+.gear-btn.is-on .gear-num { opacity: 1; }
 
-.gear-btn:hover .gear-label,
-.gear-btn:focus-visible .gear-label,
-.gear-btn.is-on .gear-label { color: var(--paper); }
+/* Focus has to be visible on a shape, not a box: the buttons overlap where the
+   teeth mesh, so an outline would sit on top of the neighbour. */
+.gear-btn:focus-visible .gear-hub-rim { stroke: var(--current); stroke-width: 2.6; }
 
-/* A lit gear runs faster, so the machine visibly responds to the pointer. */
-.gear-train.is-live .gear-btn:hover .gear-rotor { animation-duration: 6s; }
-
-.gear-btn:focus-visible { outline: 2px solid var(--current); outline-offset: 4px; border-radius: 12px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .gear-rotor { animation: none; }
-  .gear-train.is-live .gear-btn:hover .gear-rotor { animation: none; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
 /* ---------- Bridge build (the four steps) ---------- */

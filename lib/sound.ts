@@ -21,6 +21,9 @@ let master: GainNode | null = null;
 let bed: GainNode | null = null;
 let verb: ConvolverNode | null = null;
 let bellTimer: ReturnType<typeof setTimeout> | null = null;
+let grind: { gain: GainNode; src: AudioBufferSourceNode } | null = null;
+let trainOn = false;
+let lastTooth = 0;
 let started = false;
 let on = false;
 
@@ -204,6 +207,87 @@ export function cue(name: Cue) {
   });
 }
 
+/* ------------------------------------------------- the gear box, as sound */
+
+/** A metal tooth passing through the mesh: a hard transient over a set of
+ *  inharmonic partials, which is what makes it read as metal rather than as a
+ *  drum. Fired by the train itself when a tooth actually passes. */
+export function tooth() {
+  if (!on || !ctx || !master) return;
+  const t = ctx.currentTime;
+  if (t - lastTooth < 0.07) return;
+  lastTooth = t;
+
+  const len = Math.floor(ctx.sampleRate * 0.035);
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3.2;
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'bandpass'; hp.frequency.value = 2600; hp.Q.value = 0.9;
+  const g = ctx.createGain();
+  g.gain.value = 0.14;
+  src.connect(hp).connect(g).connect(master);
+  if (verb) g.connect(verb);
+  src.start(t);
+
+  // Inharmonic ring, detuned a little each time so it never sounds sampled.
+  const root = 1750 * (0.94 + Math.random() * 0.12);
+  [1, 2.41, 3.83].forEach((mult, i) => {
+    const o = ctx!.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = root * mult;
+    const og = ctx!.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.06 / (i + 1.4), t + 0.004);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.18 + i * 0.05);
+    o.connect(og).connect(master!);
+    if (verb) og.connect(verb);
+    o.start(t); o.stop(t + 0.3);
+  });
+}
+
+/** The continuous grind of a box under load. Only while it is turning. */
+export function setTrain(running: boolean) {
+  trainOn = running;
+  if (!on || !ctx || !master) return;
+
+  if (running && !grind) {
+    // Looping noise through a narrow band is a serviceable bearing rumble.
+    const len = Math.floor(ctx.sampleRate * 2);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let prev = 0;
+    for (let i = 0; i < len; i++) {
+      // one-pole lowpassed noise: brown-ish, without the harsh top
+      prev = prev * 0.96 + (Math.random() * 2 - 1) * 0.04;
+      d[i] = prev * 6;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 420; bp.Q.value = 1.4;
+    const g = ctx.createGain();
+    g.gain.value = 0;
+    src.connect(bp).connect(g).connect(master);
+
+    // Slow wobble, so it breathes like something turning rather than hissing.
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.7;
+    const amt = ctx.createGain();
+    amt.gain.value = 90;
+    lfo.connect(amt).connect(bp.frequency);
+    lfo.start();
+    src.start();
+    grind = { gain: g, src };
+  }
+
+  if (grind) {
+    grind.gain.gain.setTargetAtTime(running ? 0.05 : 0, ctx.currentTime, running ? 0.9 : 0.5);
+  }
+}
+
 /* ------------------------------------------------------- global bindings */
 
 let bound = false;
@@ -265,6 +349,7 @@ export function setSound(next: boolean) {
     master!.gain.cancelScheduledValues(ctx!.currentTime);
     master!.gain.setTargetAtTime(0.9, ctx!.currentTime, 1.2);
     scheduleBells();
+    if (trainOn) setTrain(true);
   } else if (ctx && master) {
     master.gain.cancelScheduledValues(ctx.currentTime);
     master.gain.setTargetAtTime(0, ctx.currentTime, 0.25);
