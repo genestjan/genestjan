@@ -27,19 +27,23 @@
     <div class="lock-brand">Genest Jan Ramirez</div>
     <h1 id="lockTitle">Partner Payroll</h1>
     <p id="lockMsg" class="lock-msg">Opening...</p>
+    <div id="lockFields" class="lock-fields">
+    <button id="bioBtn" class="btn gold bio-btn" type="button" hidden>Unlock with fingerprint</button>
     <input type="text" name="username" value="Partner Payroll" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
     <div class="field"><label for="lockPw">Password</label><input id="lockPw" name="password" class="in" type="password" autocomplete="current-password"></div>
     <div class="field" id="lockPw2Wrap" hidden><label for="lockPw2">Type it again</label><input id="lockPw2" class="in" type="password" autocomplete="new-password"></div>
     <p id="lockErr" class="lock-err" role="alert"></p>
-    <button id="lockBtn" class="btn gold" type="submit">Unlock</button>
-    <p id="lockNote" class="lock-note" hidden>There's no reset link. If you forget it, the payroll data on this device can't be opened. Let Chrome save it when it offers, so your phone can unlock with your fingerprint.</p>
+    <button id="lockBtn" class="btn gold lock-submit" type="submit">Unlock</button>
+    <button id="lockCancel" class="link" type="button" hidden>Not now</button>
+    <p id="lockNote" class="lock-note" hidden>There's no reset link. If you forget it, the payroll data can't be opened. Let Chrome save it when it offers, and turn on fingerprint unlock in Settings.</p>
     <div id="lockForgot" class="lock-forgot" hidden>
       <button id="forgotBtn" class="link" type="button">Forgot your password?</button>
       <div id="forgotConfirm" class="lock-forgot" hidden>
-        <p>There's no way to reset it. You can erase the payroll data saved on this device and start again. This can't be undone.</p>
+        <p>If you changed your password on another device, try your old one first. There's no way to reset it. You can erase the payroll data saved on this device and start again. With sync on, a setup link brings it back afterwards. This can't be undone.</p>
         <button id="forgotYes" class="btn btn-sm" type="button">Erase and start again</button>
         <button id="forgotNo" class="link" type="button">Cancel</button>
       </div>
+    </div>
     </div>
   </form>
 </div>
@@ -58,6 +62,7 @@
       <div class="mast-date" id="mastDate">Salary day</div>
       <div class="mast-actions">
         <button id="installBtn" class="btn btn-sm gold" type="button" hidden>Install app</button>
+        <button id="syncChip" class="chip mast-chip" type="button" data-goto="settings" hidden>Sync on</button>
         <button id="lockNowBtn" class="btn btn-sm mast-btn" type="button">Lock</button>
       </div>
     </div>
@@ -295,19 +300,57 @@
         </div>
       </section>
 
+      <section class="card" aria-labelledby="h-sync">
+        <div class="card-hd"><h2 id="h-sync">Sync laptop and phone</h2><span id="syncCardChip" class="chip">Off</span></div>
+        <div id="syncOff" class="stack-sm">
+          <p class="note">Keeps every device on the same partners, hours and pay history. The data is saved in a secret gist on your GitHub account, locked with your password, so GitHub only ever stores scrambled text.</p>
+          <ol class="steps">
+            <li><a class="link" href="https://github.com/settings/tokens/new?scopes=gist&amp;description=Partner%20Payroll%20sync" target="_blank" rel="noopener">Make a GitHub token</a>. Set Expiration to <b>No expiration</b>, keep only <b>gist</b> ticked, click <b>Generate token</b> and copy it.</li>
+            <li>Paste it here and turn sync on.</li>
+          </ol>
+          <div class="inline">
+            <label class="sr" for="syncToken">GitHub token</label>
+            <input id="syncToken" class="in mono" type="password" placeholder="ghp_..." autocomplete="off" spellcheck="false">
+            <button id="syncOn" class="btn gold" type="button">Turn on sync</button>
+          </div>
+          <p class="note">Is sync already on for your other device? Use its setup link instead (below), and this device joins automatically.</p>
+        </div>
+        <div id="syncOnBox" class="stack-sm" hidden>
+          <p id="syncText" class="note"></p>
+          <div id="syncNewToken" class="inline" hidden>
+            <label class="sr" for="syncToken2">New GitHub token</label>
+            <input id="syncToken2" class="in mono" type="password" placeholder="ghp_..." autocomplete="off" spellcheck="false">
+            <button id="syncTokenSave" class="btn gold" type="button">Save token</button>
+          </div>
+          <div class="card-ft">
+            <button id="syncFix" class="btn gold" type="button" hidden>Type password</button>
+            <button id="syncNowBtn" class="btn" type="button">Sync now</button>
+            <button id="syncOffBtn" class="btn ghost" type="button">Turn off on this device</button>
+          </div>
+        </div>
+      </section>
+
       <section class="card" aria-labelledby="h-devices">
-        <div class="card-hd"><h2 id="h-devices">Phone and other devices</h2></div>
-        <p class="note">Your settings live in this browser only. To set up your phone, copy your setup link and open it there. The link is locked with your password, and carries partners, clients and rates, never hours or history.</p>
+        <div class="card-hd"><h2 id="h-devices">Add another device</h2></div>
+        <p class="note">Copy your setup link, then open it on the other device. It only opens with your password. With sync on, it also connects that device to sync, so your partners, hours and history all come across.</p>
         <div class="card-ft">
           <button id="copySetup" class="btn" type="button">Copy setup link</button>
         </div>
         <textarea id="setupOut" class="in mono out" rows="3" readonly hidden aria-label="Setup link"></textarea>
+        <div class="field">
+          <label for="setupPaste2">Got a setup link from your other device? Paste it here</label>
+          <div class="inline">
+            <input id="setupPaste2" class="in" type="url" placeholder="https://genestjanramirez.com/payroll/#setup=..." autocomplete="off">
+            <button id="setupPasteBtn2" class="btn" type="button">Use link</button>
+          </div>
+        </div>
+        <p class="note">Links tapped inside Messenger or Gmail open in their own browser, which keeps its own separate data. Pasting the link here, or opening it in Chrome, avoids that.</p>
         <p class="note"><b>Install it like an app.</b> Android and computer: open this page in Chrome and choose Install app (or Add to Home screen). iPhone: tap Share, then Add to Home Screen.</p>
       </section>
 
       <section class="card" aria-labelledby="h-pass">
         <div class="card-hd"><h2 id="h-pass">Password</h2></div>
-        <p class="note">The app locks itself after 15 minutes without use, and whenever you tap Lock.</p>
+        <p class="note">Refreshing or reopening the app keeps you in. It locks after 3 minutes without use, and whenever you tap Lock.</p>
         <form id="pwForm" class="pw-form" autocomplete="on">
           <input type="text" name="username" value="Partner Payroll" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
           <div class="fields two">
@@ -317,6 +360,19 @@
           <div class="card-ft"><button class="btn" type="submit">Change password</button></div>
         </form>
         <p class="note">Setup links and backups made before a change still need the old password.</p>
+      </section>
+
+      <section class="card" aria-labelledby="h-bio">
+        <div class="card-hd"><h2 id="h-bio">Fingerprint unlock</h2><span id="bioChip" class="chip">Off</span></div>
+        <p id="bioText" class="note">Unlock with your fingerprint instead of typing your password. It uses a passkey saved on this device.</p>
+        <div id="bioPwWrap" class="field" hidden>
+          <label for="bioPw">Type your password once to turn it on</label>
+          <input id="bioPw" class="in" type="password" autocomplete="current-password">
+        </div>
+        <div class="card-ft">
+          <button id="bioOn" class="btn gold" type="button">Turn on fingerprint unlock</button>
+          <button id="bioOff" class="btn ghost" type="button" hidden>Turn off</button>
+        </div>
       </section>
 
       <section class="card danger" aria-labelledby="h-reset">
@@ -344,6 +400,17 @@
   <div class="banner-actions">
     <button id="setupYes" class="btn gold" type="button">Load settings</button>
     <button id="setupNo" class="btn" type="button">Ignore</button>
+  </div>
+</div>
+
+<div id="bioBanner" class="banner" role="dialog" aria-labelledby="bioBannerTitle" hidden>
+  <div>
+    <strong id="bioBannerTitle">Use your fingerprint next time?</strong>
+    <p class="small">Unlock this device without typing your password.</p>
+  </div>
+  <div class="banner-actions">
+    <button id="bioYes" class="btn gold" type="button">Turn on</button>
+    <button id="bioNo" class="btn" type="button">Not now</button>
   </div>
 </div>
 

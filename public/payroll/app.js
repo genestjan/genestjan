@@ -33,6 +33,7 @@ const DEFAULT_SETTINGS = { preparedBy: 'Genest Jan Ramirez', location: '', feePc
 /* ------------------------------------------------------------------ small helpers */
 
 const $ = (s, r = document) => r.querySelector(s);
+if (document.getElementById('lockFields')) document.getElementById('lockFields').hidden = true;
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -191,17 +192,32 @@ function cleanSheet(x) {
   return d;
 }
 
-const S = { settings: cleanSettings(null), run: cleanRun(null), sheet: cleanSheet(null), tab: 'payroll' };
+const S = { settings: cleanSettings(null), run: cleanRun(null), sheet: cleanSheet(null), tab: 'payroll', sync: null, updatedAt: 0, deleted: [] };
 let payRuns = [];
 let rateCache = (() => { const r = readJSON(RKEY); return r && typeof r === 'object' ? r : {}; })();
 
+const cleanHistory = list => (Array.isArray(list) ? list.filter(x => x && typeof x.id === 'string' && x.run && typeof x.run === 'object') : []);
+function cleanSync(x) {
+  if (!x || typeof x !== 'object' || typeof x.token !== 'string' || !x.token.trim()) return null;
+  return {
+    token: x.token.trim(),
+    gistId: typeof x.gistId === 'string' && /^[0-9a-f]{20,64}$/i.test(x.gistId) ? x.gistId : '',
+    login: typeof x.login === 'string' ? x.login.slice(0, 60) : '',
+    lastSyncAt: +x.lastSyncAt || 0,
+    adopt: !!x.adopt, // true until this device's first sync: the copy already on GitHub wins
+    rotate: !!(x.rotate || x.pushNext), // true after a password change until a fresh gist holds the re-locked copy
+  };
+}
 function loadState(data) {
   const d = data && typeof data === 'object' ? data : {};
   S.settings = cleanSettings(d.settings);
   S.run = cleanRun(d.run);
   S.sheet = cleanSheet(d.sheet);
   S.tab = TABS.includes(d.tab) ? d.tab : 'payroll';
-  payRuns = Array.isArray(d.history) ? d.history.filter(x => x && x.id && x.run) : [];
+  S.sync = cleanSync(d.sync);
+  S.updatedAt = +d.updatedAt || 0;
+  S.deleted = mergeDeleted([], d.deleted);
+  payRuns = cleanHistory(d.history);
 }
 
 /* ------------------------------------------------------------------ password lock */
@@ -211,7 +227,7 @@ function loadState(data) {
 // page itself is public, but without the password there is nothing in it to read.
 const VKEY = 'gjr-payroll-vault-v1';
 const ITER = 600000;
-let vault = null; // { key, salt, password } while unlocked, in memory only
+let vault = null; // { key, raw, salt, password } while unlocked; password is null after a refresh
 
 function bytesToB64(bytes) {
   const b = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
@@ -220,7 +236,7 @@ function bytesToB64(bytes) {
   return btoa(out);
 }
 const b64ToBytes = str => Uint8Array.from(atob(str), c => c.charCodeAt(0));
-const isBox = b => !!(b && typeof b === 'object' && b.salt && b.iv && b.data);
+const isBox = b => !!(b && typeof b === 'object' && typeof b.salt === 'string' && typeof b.iv === 'string' && typeof b.data === 'string');
 async function deriveKey(password, salt, iter = ITER) {
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: iter }, base,
@@ -235,20 +251,47 @@ async function unseal(key, box) {
   const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(box.iv) }, key, b64ToBytes(box.data));
   return JSON.parse(new TextDecoder().decode(pt));
 }
-// open a locked setup link or backup; throws when the password is wrong
-async function unsealWith(password, box) {
-  const same = vault && password === vault.password && box.salt === bytesToB64(vault.salt);
-  return unseal(same ? vault.key : await deriveKey(password, b64ToBytes(box.salt), box.iter || ITER), box);
+// the vault key plus its raw bytes, which this window keeps (wrapped) to survive a refresh;
+// the same key deriveKey() makes, since an AES key from PBKDF2 is the first 256 derived bits
+async function deriveVault(password, salt, iter = ITER) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const raw = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: iter }, base, 256));
+  const key = await crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  return { key, raw };
 }
+async function newVault(password, salt, iter) {
+  const d = await deriveVault(password, salt, iter);
+  return { key: d.key, raw: d.raw, salt, password };
+}
+// open a locked setup link, backup or sync copy; throws when it can't
+async function unsealWith(password, box) {
+  if (vault && box.salt === bytesToB64(vault.salt)) {
+    try { return await unseal(vault.key, box); } catch (e) { /* locked with another password: try the one given */ }
+  }
+  if (!password) throw new Error('password needed');
+  return unseal(await deriveKey(password, b64ToBytes(box.salt), box.iter || ITER), box);
+}
+
+// What travels between devices. The open tab and the sync connection stay on each device.
+function syncPayload(st) {
+  return { settings: st.settings, run: st.run, sheet: st.sheet, history: st.history, deleted: st.deleted, updatedAt: st.updatedAt };
+}
+const currentState = () => ({ settings: S.settings, run: S.run, sheet: S.sheet, history: payRuns, deleted: S.deleted, updatedAt: S.updatedAt });
+const contentKey = () => JSON.stringify(syncPayload({ ...currentState(), updatedAt: 0 }));
+let cleanKey = null; // contentKey() at the last save, so switching tabs doesn't count as an edit
+const markClean = () => { cleanKey = contentKey(); };
 
 let saveTimer = 0;
 let writing = Promise.resolve();
 function saveNow() {
   clearTimeout(saveTimer);
   if (!vault) return writing;
-  const text = JSON.stringify({ settings: S.settings, run: S.run, sheet: S.sheet, tab: S.tab, history: payRuns });
-  const { key, salt } = vault;
-  writing = writing.then(() => seal(key, salt, text)).then(box => { writeJSON(VKEY, box); }).catch(() => {});
+  const now = contentKey();
+  if (cleanKey !== null && now !== cleanKey) { S.updatedAt = Date.now(); scheduleSync(); }
+  cleanKey = now;
+  const text = JSON.stringify({ ...syncPayload(currentState()), tab: S.tab, sync: S.sync });
+  const v = vault;
+  writing = writing.then(() => seal(v.key, v.salt, text)).then(box => { writeJSON(VKEY, box); }).catch(() => {});
   return writing;
 }
 function save() { clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 200); }
@@ -855,7 +898,7 @@ $('#histList').addEventListener('click', e => {
     toast('Opened ' + periodText(parseIso(S.run.start), parseIso(S.run.end), ' – ') + ' with the rates saved then.');
   } else if (d.hDel) { $(`[data-h-confirm="${d.hDel}"]`).hidden = false; b.hidden = true; }
   else if (d.hNo) { $(`[data-h-confirm="${d.hNo}"]`).hidden = true; $(`[data-h-del="${d.hNo}"]`).hidden = false; }
-  else if (d.hYes) { payRuns = payRuns.filter(h => h.id !== d.hYes); saveHistory(); renderHistory(); toast('Deleted.'); }
+  else if (d.hYes) { payRuns = payRuns.filter(h => h.id !== d.hYes); S.deleted = mergeDeleted(S.deleted, [d.hYes]); saveHistory(); renderHistory(); toast('Deleted.'); }
 });
 
 $('#exportBtn').addEventListener('click', async () => {
@@ -874,10 +917,10 @@ let pendingBackup = null;
 async function restoreFrom(data, password) {
   const content = data.version >= 2 ? await unsealWith(password, data.locked) : data;
   if (content.settings) S.settings = cleanSettings(content.settings);
-  const incoming = Array.isArray(content.history) ? content.history.filter(x => x && x.id && x.run) : [];
-  const ids = new Set(payRuns.map(h => h.id));
-  payRuns = payRuns.concat(incoming.filter(h => !ids.has(h.id)));
-  payRuns.sort((a, b) => (b.run.end || '').localeCompare(a.run.end || ''));
+  const incoming = cleanHistory(content.history);
+  const back = new Set(incoming.map(h => h.id));
+  S.deleted = S.deleted.filter(id => !back.has(id)); // restoring brings deleted runs back
+  payRuns = mergeHistory(payRuns, incoming, S.deleted);
   await saveNow();
   renderAll();
   toast(`Restored settings and ${incoming.length} pay ${incoming.length === 1 ? 'run' : 'runs'}.`);
@@ -1106,8 +1149,8 @@ $('#sSplit').addEventListener('input', e => { const v = parseInt(e.target.value,
 $('#sBy').addEventListener('input', e => { S.settings.preparedBy = e.target.value; save(); });
 $('#sLoc').addEventListener('input', e => { S.settings.location = e.target.value; save(); });
 
-// setup link: settings only, locked with the password and packed into the part after #,
-// which browsers never send to a server
+// setup link: settings (and the sync connection, when sync is on), locked with the password
+// and packed into the part after #, which browsers never send to a server
 function b64url(str) {
   let bin = '';
   new TextEncoder().encode(str).forEach(b => { bin += String.fromCharCode(b); });
@@ -1121,7 +1164,8 @@ function unb64url(s) {
 }
 async function setupLink() {
   const { preparedBy, location: loc, feePct, split, partners, clients } = S.settings;
-  const box = await seal(vault.key, vault.salt, JSON.stringify({ s: { preparedBy, location: loc, feePct, split, partners, clients } }));
+  const sync = S.sync ? { token: S.sync.token, gistId: S.sync.gistId } : null;
+  const box = await seal(vault.key, vault.salt, JSON.stringify({ s: { preparedBy, location: loc, feePct, split, partners, clients }, sync }));
   return location.origin + location.pathname + '#setup=' + b64url(JSON.stringify(box));
 }
 function parseSetup(text) {
@@ -1129,16 +1173,13 @@ function parseSetup(text) {
   if (!m) return null;
   try { const j = JSON.parse(unb64url(m[1])); return j && (j.s || isBox(j)) ? j : null; } catch (e) { return null; }
 }
-// settings from a setup link, or null when the password doesn't open it
-async function openSetup(link, password) {
-  if (link.s) return cleanSettings(link.s); // the very first links were not locked
-  try { const j = await unsealWith(password, link); return j && j.s ? cleanSettings(j.s) : null; } catch (e) { return null; }
-}
 $('#copySetup').addEventListener('click', async () => {
   if (!vault) return;
   const link = await setupLink();
-  try { await navigator.clipboard.writeText(link); toast('Setup link copied. It only opens with your password.'); }
-  catch (e) { const o = $('#setupOut'); o.value = link; o.hidden = false; o.focus(); o.select(); toast('Copy the link below.'); }
+  try {
+    await navigator.clipboard.writeText(link);
+    toast(S.sync ? 'Setup link copied. Open it on your phone and it joins sync.' : 'Setup link copied. It only opens with your password.');
+  } catch (e) { const o = $('#setupOut'); o.value = link; o.hidden = false; o.focus(); o.select(); toast('Copy the link below.'); }
 });
 let pendingSetup = null;
 function offerSetup(settings) {
@@ -1154,23 +1195,39 @@ $('#setupYes').addEventListener('click', () => {
   toast('Settings loaded.');
 });
 $('#setupNo').addEventListener('click', () => { pendingSetup = null; $('#setupBanner').hidden = true; });
-$('#setupPasteBtn').addEventListener('click', async () => {
+$('#setupPasteBtn').addEventListener('click', () => {
   const link = parseSetup($('#setupPaste').value);
   if (!link) { toast("That doesn't look like a setup link."); return; }
-  const got = await openSetup(link, vault && vault.password);
-  if (got) offerSetup(got); else toast('That setup link was locked with a different password.');
+  $('#setupPaste').value = '';
+  handleLink(link);
+});
+$('#setupPasteBtn2').addEventListener('click', () => {
+  const link = parseSetup($('#setupPaste2').value);
+  if (!link) { toast("That doesn't look like a setup link."); return; }
+  $('#setupPaste2').value = '';
+  handleLink(link);
 });
 $('#pwForm').addEventListener('submit', async e => {
   e.preventDefault();
   const pw = $('#pwNew').value;
   if (pw.length < 8) { toast('Use at least 8 characters.'); return; }
   if (pw !== $('#pwNew2').value) { toast("The two passwords don't match."); return; }
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  vault = { key: await deriveKey(pw, salt), salt, password: pw };
+  if (S.sync) {
+    // bring in the other devices' changes first, while their copy still opens with the old password
+    await syncNow();
+    if (syncState === 'password') { toast('Sync needs your current password first. Tap Type password under Sync.'); return; }
+    if (syncState !== 'ok') { toast("Sync can't reach GitHub right now. Change the password when you're back online, so your other devices get it."); return; }
+    S.sync.rotate = true; // the next sync moves to a fresh gist locked with the new password, even if this one fails
+  }
+  vault = await newVault(pw, crypto.getRandomValues(new Uint8Array(16)));
   await saveNow();
+  await rememberSession();
+  if (S.sync) await syncNow();
   $('#pwNew').value = '';
   $('#pwNew2').value = '';
-  toast('Password changed.');
+  const hadBio = !!bioSaved();
+  if (hadBio) { try { localStorage.removeItem(BKEY); } catch (x) { /* ignore */ } renderBio(); }
+  toast('Password changed.' + (S.sync ? ' Your other devices open with the old password (or fingerprint) one more time, then ask for the new one.' : '') + (hadBio ? ' Turn fingerprint unlock on again below.' : ''));
 });
 $('#resetBtn').addEventListener('click', () => { $('#resetConfirm').hidden = false; $('#resetBtn').hidden = true; });
 $('#resetNo').addEventListener('click', () => { $('#resetConfirm').hidden = true; $('#resetBtn').hidden = false; });
@@ -1178,6 +1235,302 @@ $('#resetYes').addEventListener('click', () => {
   S.settings = cleanSettings(null); S.run = defaultRun(); S.sheet = defaultSheet();
   $('#resetConfirm').hidden = true; $('#resetBtn').hidden = false;
   save(); renderAll(); toast('Reset. History is still there.');
+});
+
+/* ------------------------------------------------------------------ sync between devices */
+
+// Each device keeps its own locked copy. With sync on, the same locked copy is also kept in a
+// secret gist on Jan's GitHub account, so the laptop and phone show the same payroll. GitHub
+// only ever holds scrambled text: it is sealed with the same key as the copy on each device.
+const GH = 'https://api.github.com';
+const GIST_FILE = 'partner-payroll-sync.json';
+const GIST_DESC = 'Partner Payroll sync (encrypted)';
+let syncState = 'idle'; // idle | syncing | ok | offline | busy | token | scope | password | error
+let syncDetail = '';
+let syncTimer = 0;
+let syncRunning = null;
+let syncQueued = false;
+let syncDirty = false;
+let pendingRemote = null; // a sync copy locked with a password this device doesn't have yet
+
+class SyncError extends Error { constructor(code, detail) { super(detail || code); this.code = code; } }
+
+function mergeDeleted(a, b) {
+  const ids = [...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])].filter(x => typeof x === 'string');
+  return [...new Set(ids)].sort().slice(-500); // sorted, so both devices write the same list
+}
+// pay runs from both sides: one per pay period, the most recently saved wins, deletions stick
+function mergeHistory(local, remote, deleted) {
+  const gone = new Set(deleted || []);
+  const byPeriod = new Map();
+  for (const h of [...cleanHistory(local), ...cleanHistory(remote)]) {
+    if (gone.has(h.id)) continue;
+    const k = (h.run.start || '') + '|' + (h.run.end || '');
+    const cur = byPeriod.get(k);
+    if (!cur || (+h.savedAt || 0) > (+cur.savedAt || 0)) byPeriod.set(k, h);
+  }
+  return [...byPeriod.values()].sort((a, b) => (b.run.end || '').localeCompare(a.run.end || '') || (+b.savedAt || 0) - (+a.savedAt || 0));
+}
+function normalizeRemote(d) {
+  const deleted = mergeDeleted([], d && d.deleted);
+  return {
+    settings: cleanSettings(d && d.settings), run: cleanRun(d && d.run), sheet: cleanSheet(d && d.sheet),
+    history: mergeHistory([], d && d.history, deleted), deleted, updatedAt: +(d && d.updatedAt) || 0,
+  };
+}
+
+async function gh(path, opts = {}) {
+  let r;
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 15000);
+  try {
+    r = await fetch(GH + path, {
+      method: opts.method || 'GET',
+      cache: 'no-store',
+      signal: ctl.signal,
+      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + S.sync.token, ...(opts.body ? { 'Content-Type': 'application/json' } : {}) },
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    });
+  } catch (e) { throw new SyncError('offline'); } finally { clearTimeout(timer); }
+  if (r.status === 401) throw new SyncError('token');
+  if (r.status === 429 || (r.status === 403 && r.headers.get('x-ratelimit-remaining') === '0')) throw new SyncError('busy');
+  if (r.status === 403) throw new SyncError('scope');
+  if (r.status === 404) return null;
+  if (!r.ok) throw new SyncError('error', 'GitHub answered ' + r.status);
+  return r.status === 204 ? {} : r.json();
+}
+async function findGist() {
+  const list = await gh('/gists?per_page=100');
+  const g = Array.isArray(list) ? list.find(x => x && x.files && x.files[GIST_FILE]) : null;
+  return g ? g.id : '';
+}
+// { exists, copy } where copy is the parsed sync file, or null when it is missing or unreadable
+async function readGist(id) {
+  const g = await gh('/gists/' + id);
+  if (!g) return { exists: false, copy: null };
+  const f = g.files && g.files[GIST_FILE];
+  if (!f) return { exists: true, copy: null };
+  let text = f.content;
+  if (f.truncated && f.raw_url) {
+    try { text = await (await fetch(f.raw_url, { cache: 'no-store' })).text(); } catch (e) { throw new SyncError('offline'); }
+  }
+  try {
+    const j = JSON.parse(text);
+    if (j && j.kind === 'moved' && typeof j.movedTo === 'string') return { exists: true, copy: null, movedTo: j.movedTo };
+    return { exists: true, copy: j && isBox(j.box) ? j : null };
+  } catch (e) { return { exists: true, copy: null }; }
+}
+
+// Bring the sync copy into this device. Returns the normalized remote, or 'password' when it is
+// locked with a password this device doesn't have.
+async function mergeRemote(copy) {
+  if (!vault) return 'locked';
+  const box = copy.box;
+  let data = null;
+  if (box.salt === bytesToB64(vault.salt)) { try { data = await unseal(vault.key, box); } catch (e) { data = null; } }
+  if (!data) {
+    if (!vault.password) { pendingRemote = box; return 'password'; }
+    try {
+      const salt = b64ToBytes(box.salt);
+      const next = await newVault(vault.password, salt, box.iter || ITER);
+      data = await unseal(next.key, box);
+      if (!vault) return 'locked';
+      vault = next; // same password, other devices' key: share it from now on
+      await rememberSession();
+    } catch (e) { pendingRemote = box; return 'password'; }
+  }
+  if (!vault) return 'locked'; // locked while the copy was being opened
+  pendingRemote = null;
+  const remote = normalizeRemote(data);
+  const before = contentKey();
+  const takeRemote = (S.sync && S.sync.adopt) || remote.updatedAt > S.updatedAt;
+  if (takeRemote) {
+    S.settings = remote.settings; S.run = remote.run; S.sheet = remote.sheet;
+    S.updatedAt = remote.updatedAt;
+  }
+  if (S.sync) S.sync.adopt = false; // taken once; later syncs compare dates, even if this round's upload fails
+  S.deleted = mergeDeleted(S.deleted, remote.deleted);
+  payRuns = mergeHistory(payRuns, remote.history, S.deleted);
+  markClean(); // what came from the other device isn't an edit made here
+  if (contentKey() !== before) refreshFromRemote();
+  return remote;
+}
+function refreshFromRemote() {
+  const a = document.activeElement;
+  const typing = a && a.id && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) ? a.id : '';
+  renderAll();
+  if (typing && document.getElementById(typing)) document.getElementById(typing).focus();
+  toast('Updated with changes from your other device.');
+}
+
+async function syncNow(opts = {}) {
+  if (!vault || !S.sync) return;
+  if (syncRunning) { syncQueued = true; return syncRunning; }
+  clearTimeout(syncTimer);
+  syncDirty = false;
+  syncRunning = (async () => {
+    if (!opts.quiet) setSync('syncing');
+    try {
+      const sync = S.sync;
+      const sealed = async () => {
+        const text = JSON.stringify(syncPayload(normalizeRemote(currentState())));
+        return { text, content: JSON.stringify({ app: 'partner-payroll', kind: 'sync', v: 1, updatedAt: S.updatedAt, box: await seal(vault.key, vault.salt, text) }) };
+      };
+      if (sync.rotate) {
+        // new password: a fresh gist holds the copy locked with it, and the old gist (whose earlier
+        // revisions were locked with the old password) first points to the new one, then is deleted
+        const { content } = await sealed();
+        const g = await gh('/gists', { method: 'POST', body: { description: GIST_DESC, public: false, files: { [GIST_FILE]: { content } } } });
+        if (!g || !g.id) throw new SyncError('scope');
+        const old = sync.gistId;
+        sync.gistId = g.id;
+        sync.rotate = false;
+        if (old && old !== g.id) {
+          try {
+            await gh('/gists/' + old, { method: 'PATCH', body: { files: { [GIST_FILE]: { content: JSON.stringify({ app: 'partner-payroll', kind: 'moved', movedTo: g.id }) } } } });
+            await gh('/gists/' + old, { method: 'DELETE' });
+          } catch (e) { /* the pointer or the new gist is enough for the other devices */ }
+        }
+      } else {
+        let found = sync.gistId ? await readGist(sync.gistId) : { exists: false, copy: null };
+        if (found.movedTo) { sync.gistId = found.movedTo; found = await readGist(sync.gistId); }
+        if (!found.exists) { // first time on this device, or the gist was deleted on GitHub
+          sync.gistId = await findGist();
+          found = sync.gistId ? await readGist(sync.gistId) : { exists: false, copy: null };
+          if (found.movedTo) { sync.gistId = found.movedTo; found = await readGist(sync.gistId); }
+        }
+        let remoteKey = null;
+        if (found.copy) {
+          const remote = await mergeRemote(found.copy);
+          if (remote === 'locked') return;
+          if (remote === 'password') { setSync('password'); return; }
+          remoteKey = JSON.stringify(syncPayload(remote));
+        }
+        if (!vault) return; // locked meanwhile: nothing more to send
+        const { text: localKey, content } = await sealed();
+        if (localKey !== remoteKey) {
+          if (found.exists && !found.movedTo) {
+            await gh('/gists/' + sync.gistId, { method: 'PATCH', body: { files: { [GIST_FILE]: { content } } } });
+          } else {
+            const g = await gh('/gists', { method: 'POST', body: { description: GIST_DESC, public: false, files: { [GIST_FILE]: { content } } } });
+            if (!g || !g.id) throw new SyncError('scope');
+            sync.gistId = g.id;
+          }
+        }
+      }
+      if (S.sync) { S.sync.lastSyncAt = Date.now(); S.sync.adopt = false; }
+      if (S.sync && !S.sync.login) { try { const me = await gh('/user'); if (me && S.sync) S.sync.login = me.login || ''; } catch (e) { /* only for the label */ } }
+      setSync('ok');
+    } catch (e) {
+      setSync(e && e.code ? e.code : 'error', e && e.code === 'error' ? e.message : '');
+      if (e && !e.code) console.error(e);
+    } finally {
+      saveNow(); // keeps the gist id and sync time; not counted as an edit
+    }
+  })();
+  try { await syncRunning; } finally {
+    syncRunning = null;
+    if (syncQueued) { syncQueued = false; syncNow({ quiet: true }); }
+  }
+}
+function scheduleSync() {
+  if (!S.sync) return;
+  syncDirty = true;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => syncNow({ quiet: true }), 2500);
+}
+setInterval(() => { if (vault && S.sync && document.visibilityState === 'visible') syncNow({ quiet: true }); }, 60000);
+document.addEventListener('visibilitychange', () => {
+  if (!vault || !S.sync) return;
+  if (document.visibilityState === 'visible') syncNow({ quiet: true });
+  else if (syncDirty) syncNow({ quiet: true }); // send changes before switching to the other device
+});
+window.addEventListener('online', () => { if (vault && S.sync) syncNow({ quiet: true }); });
+
+function ago(t) {
+  if (!t) return 'not yet';
+  const sec = Math.round((Date.now() - t) / 1000);
+  if (sec < 45) return 'just now';
+  const m = Math.round(sec / 60);
+  if (m < 60) return m + (m === 1 ? ' minute ago' : ' minutes ago');
+  const h = Math.round(m / 60);
+  if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  return 'on ' + new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+const SYNC_LABEL = {
+  idle: ['Sync on', ''], syncing: ['Syncing', ''], ok: ['Synced', 'ok'], offline: ['Offline', 'warn'], busy: ['Sync paused', 'warn'],
+  token: ['Sync stopped', 'bad'], scope: ['Sync stopped', 'bad'], password: ['Needs password', 'warn'], error: ['Sync problem', 'bad'],
+};
+function setSync(state, detail) { syncState = state; syncDetail = detail || ''; renderSync(); }
+function renderSync() {
+  const on = !!S.sync;
+  const [label, tone] = SYNC_LABEL[syncState] || SYNC_LABEL.idle;
+  const chip = $('#syncChip');
+  chip.hidden = !on || !vault;
+  chip.className = 'chip mast-chip' + (tone ? ' ' + tone : '');
+  chip.textContent = label;
+  $('#syncOff').hidden = on;
+  $('#syncOnBox').hidden = !on;
+  const cc = $('#syncCardChip');
+  cc.className = 'chip' + (on && tone ? ' ' + tone : '');
+  cc.textContent = on ? label : 'Off';
+  if (!on) return;
+  const who = S.sync.login ? ` to GitHub as ${S.sync.login}` : ' to GitHub';
+  $('#syncText').textContent = {
+    idle: `Connected${who}.`,
+    syncing: `Connected${who}. Syncing now...`,
+    ok: `Connected${who}. Last synced ${ago(S.sync.lastSyncAt)}.`,
+    offline: "GitHub can't be reached right now. Your changes are saved on this device and will sync when you're back online.",
+    busy: 'GitHub asked the app to slow down. It tries again in a minute.',
+    token: "GitHub didn't accept the token. It may have expired or been deleted. Paste a new one below.",
+    scope: "This token can't save gists. Make a new one with the gist box ticked and paste it below.",
+    password: 'Your other device uses a different password, or it was changed there. Type that password to keep syncing.',
+    error: 'Something went wrong while syncing. It tries again in a minute.' + (syncDetail ? ` (${syncDetail})` : ''),
+  }[syncState] || `Connected${who}.`;
+  $('#syncFix').hidden = syncState !== 'password';
+  $('#syncNewToken').hidden = !['token', 'scope'].includes(syncState);
+}
+setInterval(() => { if (S.sync && syncState === 'ok') renderSync(); }, 30000);
+
+const looksLikeToken = t => /^(gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})$/.test(t);
+async function connectToken(token, keepGist) {
+  const prev = S.sync;
+  S.sync = { token, gistId: keepGist && prev ? prev.gistId : '', login: '', lastSyncAt: 0, adopt: keepGist && prev ? prev.adopt : true };
+  try {
+    const me = await gh('/user');
+    if (!me) throw new SyncError('token');
+    S.sync.login = me.login || '';
+  } catch (e) {
+    S.sync = prev;
+    renderSync();
+    toast(e.code === 'offline' ? "Couldn't reach GitHub. Check your connection and try again." : "GitHub didn't accept that token. Copy it again and paste it here.");
+    return false;
+  }
+  await saveNow();
+  renderSync();
+  await syncNow();
+  if (syncState === 'ok') toast('Sync is on. Copy your setup link to add your phone.');
+  return true;
+}
+$('#syncOn').addEventListener('click', async e => {
+  const token = $('#syncToken').value.trim();
+  if (!looksLikeToken(token)) { toast("That doesn't look like a GitHub token. It starts with ghp_ or github_pat_."); return; }
+  e.target.disabled = true;
+  try { if (await connectToken(token, false)) $('#syncToken').value = ''; } finally { e.target.disabled = false; }
+});
+$('#syncTokenSave').addEventListener('click', async e => {
+  const token = $('#syncToken2').value.trim();
+  if (!looksLikeToken(token)) { toast("That doesn't look like a GitHub token. It starts with ghp_ or github_pat_."); return; }
+  e.target.disabled = true;
+  try { if (await connectToken(token, true)) $('#syncToken2').value = ''; } finally { e.target.disabled = false; }
+});
+$('#syncNowBtn').addEventListener('click', () => syncNow());
+$('#syncFix').addEventListener('click', () => { if (pendingRemote) showLock('repass'); });
+$('#syncOffBtn').addEventListener('click', async () => {
+  S.sync = null;
+  setSync('idle');
+  await saveNow();
+  toast('Sync is off on this device. Your data stays here, and your other devices keep syncing.');
 });
 
 /* ------------------------------------------------------------------ app shell */
@@ -1197,20 +1550,285 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('sw.js').catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController) toast('A new version of the app is ready.', { label: 'Reload', run: () => location.reload() });
+    if (!hadController) return;
+    if (!vault) location.reload(); // still on the lock screen: nothing to lose
+    else toast('A new version of the app is ready.', { label: 'Reload', run: () => lockNow().catch(() => location.reload()) });
   });
 }
 
 function renderAll() {
-  renderWelcome(); renderPeriod(); renderRates(); renderClients(); renderSheet(); renderSettings(); renderHistory(); update();
+  renderWelcome(); renderPeriod(); renderRates(); renderClients(); renderSheet(); renderSettings(); renderHistory(); renderSync(); renderBio(); update();
 }
 
 // for checks in the browser console and automated tests
-window.payroll = { parseDuration, parseClock, blockMinutes, paypalFromMid, round2, compute, chatText, state: S };
+window.payroll = { parseDuration, parseClock, blockMinutes, paypalFromMid, round2, compute, chatText, state: S, sync: () => ({ state: syncState, gistId: S.sync && S.sync.gistId }) };
+
+/* ------------------------------------------------------------------ staying unlocked */
+
+// A refresh keeps Jan in: IndexedDB holds this window's copy of the key, wrapped with a secret that
+// lives only in this window's sessionStorage. Closing the app or tab drops the secret, so what is
+// left in IndexedDB is useless, and other pages of the site (another tab, a tracking script) never
+// see the secret. The copy is also refused after 3 minutes without use, and wiped on Lock.
+const IDLE_MS = 3 * 60 * 1000;
+const WKEY = 'gjr-payroll-window';
+let idbOpen = null;
+function idb(mode, fn) {
+  idbOpen = idbOpen || new Promise((resolve, reject) => {
+    const r = indexedDB.open('gjr-payroll', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+  return idbOpen.then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('kv', mode);
+    const req = fn(tx.objectStore('kv'));
+    tx.oncomplete = () => resolve(req ? req.result : undefined);
+    tx.onerror = tx.onabort = () => reject(tx.error);
+  }));
+}
+// this window's id and secret, made on first use
+function windowSecret(create) {
+  let w = null;
+  try { w = JSON.parse(sessionStorage.getItem(WKEY) || 'null'); } catch (e) { w = null; }
+  if ((!w || typeof w.id !== 'string' || typeof w.secret !== 'string') && create) {
+    w = { id: bytesToB64(crypto.getRandomValues(new Uint8Array(9))).replace(/[^A-Za-z0-9]/g, ''), secret: bytesToB64(crypto.getRandomValues(new Uint8Array(32))) };
+    try { sessionStorage.setItem(WKEY, JSON.stringify(w)); } catch (e) { return null; }
+  }
+  return w && typeof w.id === 'string' && typeof w.secret === 'string' ? w : null;
+}
+const secretKey = w => crypto.subtle.importKey('raw', b64ToBytes(w.secret), 'AES-GCM', false, ['encrypt', 'decrypt']);
+const sessionGet = w => idb('readonly', st => st.get('session:' + w.id)).catch(() => null);
+function sessionDrop() {
+  const w = windowSecret(false);
+  try { sessionStorage.removeItem(WKEY); } catch (e) { /* ignore */ }
+  return w ? idb('readwrite', st => st.delete('session:' + w.id)).catch(() => {}) : Promise.resolve();
+}
+// clear copies from windows that were closed or left idle (and the older single-key format)
+function sessionSweep() {
+  return idb('readwrite', st => {
+    const req = st.openCursor();
+    req.onsuccess = () => {
+      const c = req.result;
+      if (!c) return;
+      const k = String(c.key);
+      const v = c.value;
+      if (k === 'session' || (k.startsWith('session:') && !(v && Date.now() - (+v.at || 0) <= IDLE_MS))) c.delete();
+      c.continue();
+    };
+    return null;
+  }).catch(() => {});
+}
+let lastActive = Date.now();
+let lastStamp = 0;
+let wrapped = null; // { salt, iv, data, forKey } for the key currently in use
+async function rememberSession() {
+  if (!vault || !vault.raw) return;
+  lastStamp = Date.now();
+  try {
+    const w = windowSecret(true);
+    if (!w) return; // sessionStorage blocked: a refresh asks for the password
+    if (!wrapped || wrapped.forKey !== vault.key) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const data = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await secretKey(w), vault.raw));
+      if (!vault) return;
+      wrapped = { salt: bytesToB64(vault.salt), iv: bytesToB64(iv), data: bytesToB64(data), forKey: vault.key };
+    }
+    const rec = { salt: wrapped.salt, iv: wrapped.iv, data: wrapped.data, at: lastActive };
+    await idb('readwrite', st => st.put(rec, 'session:' + w.id));
+  } catch (e) { /* a refresh then asks for the password */ }
+}
+// the key from this window's copy, or null
+async function sessionRestore(box) {
+  const w = windowSecret(false);
+  if (!w) return null;
+  const rec = await sessionGet(w);
+  if (!rec || rec.salt !== box.salt || !(Date.now() - (+rec.at || 0) <= IDLE_MS)) return null;
+  try {
+    const raw = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(rec.iv) }, await secretKey(w), b64ToBytes(rec.data)));
+    const key = await crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+    return { key, raw, salt: b64ToBytes(box.salt), password: null };
+  } catch (e) { return null; }
+}
+function noteActivity() {
+  lastActive = Date.now();
+  if (vault && lastActive - lastStamp > 10000) rememberSession();
+}
+for (const ev of ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart', 'scroll']) {
+  (ev === 'scroll' ? window : document).addEventListener(ev, noteActivity, { passive: true });
+}
+window.addEventListener('pagehide', () => { rememberSession(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') rememberSession(); });
+
+async function lockNow() {
+  await saveNow();
+  if (vault && S.sync && syncDirty) { // an edit made just before locking still reaches the other devices
+    await Promise.race([syncNow({ quiet: true }), new Promise(r => setTimeout(r, 4000))]);
+  }
+  await sessionDrop();
+  vault = null; // stops the page from writing the key back while it unloads
+  location.reload();
+}
+$('#lockNowBtn').addEventListener('click', lockNow);
+const idleTooLong = () => vault && Date.now() - lastActive > IDLE_MS;
+setInterval(() => { if (idleTooLong()) lockNow(); }, 10000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && idleTooLong()) lockNow(); });
+
+/* ------------------------------------------------------------------ fingerprint unlock */
+
+// A passkey on this device with the WebAuthn PRF extension: the fingerprint releases a secret that
+// only that passkey can produce, and the secret opens a copy of the password kept on this device.
+// Without the finger (or the phone's screen lock) the copy can't be read.
+const BKEY = 'gjr-payroll-bio-v1';
+const BASKED = 'gjr-payroll-bio-asked';
+let bioSupport = null;
+// only a yes is remembered: a sensor that wasn't ready a moment ago may be now
+async function bioAvailable() {
+  if (bioSupport) return true;
+  let yes = false;
+  try {
+    if (window.PublicKeyCredential && window.isSecureContext) {
+      const caps = PublicKeyCredential.getClientCapabilities ? await PublicKeyCredential.getClientCapabilities() : null;
+      yes = !(caps && caps['extension:prf'] === false) && !!(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+    }
+  } catch (e) { yes = false; }
+  bioSupport = yes || null;
+  return yes;
+}
+function bioSaved() {
+  const b = readJSON(BKEY);
+  return b && typeof b.cred === 'string' && typeof b.prfSalt === 'string' && isBox(b.box) ? b : null;
+}
+const randomBytes = n => crypto.getRandomValues(new Uint8Array(n));
+async function prfKey(secret) {
+  const base = await crypto.subtle.importKey('raw', secret, 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(32), info: new TextEncoder().encode('partner-payroll fingerprint unlock') },
+    base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function bioSecret(credB64, prfSalt) {
+  const cred = await navigator.credentials.get({ publicKey: {
+    challenge: randomBytes(32),
+    rpId: location.hostname,
+    allowCredentials: [{ type: 'public-key', id: b64ToBytes(credB64) }],
+    userVerification: 'required',
+    timeout: 60000,
+    extensions: { prf: { eval: { first: prfSalt } } },
+  } });
+  const r = cred && cred.getClientExtensionResults().prf;
+  if (!r || !r.results || !r.results.first) throw new Error('no-prf');
+  return new Uint8Array(r.results.first);
+}
+async function bioEnroll(password) {
+  const prfSalt = randomBytes(32);
+  const cred = await navigator.credentials.create({ publicKey: {
+    rp: { name: 'Partner Payroll', id: location.hostname },
+    user: { id: randomBytes(16), name: 'Partner Payroll', displayName: 'Partner Payroll' },
+    challenge: randomBytes(32),
+    pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+    authenticatorSelection: { authenticatorAttachment: 'platform', residentKey: 'preferred', userVerification: 'required' },
+    timeout: 60000,
+    extensions: { prf: { eval: { first: prfSalt } } },
+  } });
+  const ext = cred.getClientExtensionResults().prf || {};
+  if (ext.enabled === false) throw new Error('no-prf');
+  const credB64 = bytesToB64(new Uint8Array(cred.rawId));
+  // some phones hand the secret back straight away; others need one more touch
+  const secret = ext.results && ext.results.first ? new Uint8Array(ext.results.first) : await bioSecret(credB64, prfSalt);
+  const box = await seal(await prfKey(secret), prfSalt, JSON.stringify(password));
+  writeJSON(BKEY, { cred: credB64, prfSalt: bytesToB64(prfSalt), box });
+}
+async function renderBio() {
+  const on = !!bioSaved();
+  const ok = await bioAvailable();
+  $('#bioChip').className = 'chip' + (on ? ' ok' : '');
+  $('#bioChip').textContent = on ? 'On' : 'Off';
+  $('#bioOn').hidden = on;
+  $('#bioOn').classList.toggle('gold', ok);
+  $('#bioOff').hidden = !on;
+  if (on) $('#bioPwWrap').hidden = true;
+  $('#bioText').textContent = on
+    ? 'On for this device. The lock screen asks for your fingerprint first, and your password still works too.'
+    : ok ? 'Unlock with your fingerprint instead of typing your password. It uses a passkey saved on this device.'
+      : "This browser can't do fingerprint unlock for web apps. Chrome can still fill in your password with your fingerprint: in Chrome open Settings, Password Manager, and turn on Use screen lock.";
+}
+$('#bioOn').addEventListener('click', async () => {
+  if (!vault) return;
+  if (!(await bioAvailable())) {
+    renderBio();
+    toast("This browser can't do fingerprint unlock for web apps. Chrome can still fill in your password with your fingerprint.");
+    return;
+  }
+  let pw = vault.password;
+  if (!pw) { // the app was refreshed since the password was typed
+    const wrap = $('#bioPwWrap');
+    if (wrap.hidden) { wrap.hidden = false; $('#bioPw').focus(); toast('Type your password once, then tap the button again.'); return; }
+    pw = $('#bioPw').value;
+    if (!pw) { $('#bioPw').focus(); return; }
+    try { await unseal(await deriveKey(pw, vault.salt), JSON.parse(localStorage.getItem(VKEY))); }
+    catch (e) { toast("That password isn't right."); return; }
+    vault.password = pw;
+  }
+  try {
+    await bioEnroll(pw);
+    $('#bioPw').value = '';
+    $('#bioPwWrap').hidden = true;
+    toast('Fingerprint unlock is on for this device.');
+  } catch (e) {
+    toast(e && e.message === 'no-prf' ? "This phone or browser can't do fingerprint unlock for web apps yet. Chrome can still fill in your password with your fingerprint."
+      : e && e.name === 'NotAllowedError' ? 'Fingerprint setup was cancelled.' : "Couldn't turn on fingerprint unlock. Try again.");
+  }
+  renderBio();
+});
+$('#bioOff').addEventListener('click', () => {
+  try { localStorage.removeItem(BKEY); } catch (x) { /* ignore */ }
+  renderBio();
+  toast('Fingerprint unlock is off. You can also delete the Partner Payroll passkey in Google Password Manager.');
+});
+async function maybeOfferBio() {
+  if (bioSaved() || readJSON(BASKED) || !(await bioAvailable())) return;
+  $('#bioBanner').hidden = false;
+}
+$('#bioYes').addEventListener('click', () => { $('#bioBanner').hidden = true; $('#bioOn').click(); });
+$('#bioNo').addEventListener('click', () => { $('#bioBanner').hidden = true; writeJSON(BASKED, 1); });
+
+let bioBusy = false;
+async function unlockWithFingerprint(auto) {
+  const saved = bioSaved();
+  if (!saved || bioBusy || lockMode !== 'unlock') return;
+  bioBusy = true;
+  const err = $('#lockErr');
+  const btn = $('#bioBtn');
+  err.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Touch the sensor...';
+  try {
+    const secret = await bioSecret(saved.cred, b64ToBytes(saved.prfSalt));
+    let pw;
+    try { pw = await unseal(await prfKey(secret), saved.box); } catch (x) { throw new Error('stale'); }
+    btn.textContent = 'Opening...';
+    if (!(await openWithPassword(pw))) throw new Error('stale');
+    await afterUnlock();
+  } catch (e) {
+    if (e && e.message === 'stale') {
+      try { localStorage.removeItem(BKEY); } catch (x) { /* ignore */ }
+      btn.hidden = true;
+      $('#lockBtn').classList.add('gold');
+      err.textContent = 'Your password was changed, so fingerprint unlock needs turning on again. Type your password.';
+    } else if (!(e && e.name === 'NotAllowedError')) {
+      err.textContent = "Fingerprint didn't work this time. Try again, or type your password.";
+    } else if (!auto) {
+      err.textContent = 'Fingerprint didn\'t open it. If this keeps happening, type your password, then turn fingerprint unlock off and on again in Settings.';
+    }
+  } finally {
+    bioBusy = false;
+    btn.disabled = false;
+    btn.textContent = 'Unlock with fingerprint';
+  }
+}
+$('#bioBtn').addEventListener('click', () => unlockWithFingerprint(false));
 
 /* ------------------------------------------------------------------ lock screen */
 
-let lockMode = 'unlock'; // create | unlock | join
+let lockMode = 'unlock'; // create | unlock | join | repass
 let pendingLink = null;
 function takeLinkFromAddress() {
   const link = parseSetup(location.hash);
@@ -1222,21 +1840,28 @@ function showLock(mode) {
   lockMode = mode;
   const T = {
     create: ['Create your password', 'It locks your partners, rates, hours and pay history on this device. Nobody can open them without it.', 'Create password'],
-    join: ['Set up this device', 'Type your Payroll password to open your setup link.', 'Set up'],
     unlock: ['Partner Payroll', 'Type your password to open your payroll.', 'Unlock'],
+    join: ['Set up this device', 'Type the password you use on your other device. This device will use it too.', 'Set up'],
+    repass: ['Type your new password', "Your password was changed on another device. Type the new one to keep syncing; this device will use it too. If you didn't change it, tap Not now and turn sync off in Settings.", 'Continue'],
   }[mode];
   $('#lockTitle').textContent = T[0];
   $('#lockMsg').textContent = T[1];
   $('#lockBtn').textContent = T[2];
+  $('#lockFields').hidden = false;
   $('#lockPw2Wrap').hidden = mode !== 'create';
   $('#lockPw').setAttribute('autocomplete', mode === 'create' ? 'new-password' : 'current-password');
   $('#lockNote').hidden = mode !== 'create';
   $('#lockForgot').hidden = mode !== 'unlock';
+  $('#lockCancel').hidden = !(vault && (mode === 'join' || mode === 'repass'));
+  const bio = mode === 'unlock' && !!bioSaved();
+  $('#bioBtn').hidden = !bio;
+  $('#lockBtn').classList.toggle('gold', !bio);
   $('#forgotConfirm').hidden = true;
   $('#forgotBtn').hidden = false;
   $('#lockErr').textContent = '';
   $('#lockPw').value = '';
   $('#lockPw2').value = '';
+  $('#lockBtn').disabled = false;
   $('#lock').hidden = false;
   $('.mast').inert = true;
   $('main').inert = true;
@@ -1246,6 +1871,55 @@ function hideLock() {
   $('#lock').hidden = true;
   $('.mast').inert = false;
   $('main').inert = false;
+}
+// data saved before the lock existed moves inside it, then the plain copy goes
+function takeLegacy() {
+  const legacy = readJSON(KEY) || {};
+  const legacyHistory = readJSON(HKEY);
+  return { ...legacy, history: Array.isArray(legacyHistory) ? legacyHistory : [] };
+}
+function dropLegacy() { try { localStorage.removeItem(KEY); localStorage.removeItem(HKEY); } catch (x) { /* ignore */ } }
+
+// what a setup link brings: settings, and the sync connection when sync was on
+function applyLink(payload, fresh) {
+  const settings = payload && payload.s ? cleanSettings(payload.s) : null;
+  const sync = cleanSync(payload && payload.sync);
+  if (sync) {
+    S.sync = { ...sync, adopt: true }; // this device's first sync takes the other devices' copy
+    if (settings && fresh) S.settings = settings;
+    return 'sync';
+  }
+  if (settings) { if (fresh) S.settings = settings; else offerSetup(settings); }
+  return 'settings';
+}
+// a setup link opened while unlocked: use it if the current key or password opens it, else ask
+async function handleLink(link) {
+  if (!link || !vault) return;
+  if (link.s) { offerSetup(cleanSettings(link.s)); return; } // the very first links were not locked
+  let payload = null;
+  try { payload = await unsealWith(vault.password, link); } catch (e) { payload = null; }
+  if (!payload) { pendingLink = link; showLock('join'); return; }
+  if (link.salt !== bytesToB64(vault.salt)) { // same password, made on another device: share its key from now on
+    vault = await newVault(vault.password, b64ToBytes(link.salt), link.iter || ITER);
+    await rememberSession();
+  }
+  if (applyLink(payload, false) === 'sync') {
+    await saveNow();
+    renderSync();
+    await syncNow();
+    if (syncState === 'ok') toast('Sync is on for this device.');
+  }
+}
+
+// open this device's copy with a password; false when it's the wrong one
+async function openWithPassword(pw) {
+  const box = readJSON(VKEY);
+  const next = await newVault(pw, b64ToBytes(box.salt), box.iter || ITER);
+  let data;
+  try { data = await unseal(next.key, box); } catch (x) { return false; }
+  vault = next;
+  loadState(data);
+  return true;
 }
 
 $('#lockForm').addEventListener('submit', async e => {
@@ -1260,80 +1934,105 @@ $('#lockForm').addEventListener('submit', async e => {
     if (pw !== $('#lockPw2').value) { err.textContent = "The two passwords don't match."; return; }
   }
   const label = btn.textContent;
+  const startMode = lockMode;
   btn.disabled = true;
   btn.textContent = 'Opening...';
+  let joinedSync = false;
   try {
     if (lockMode === 'unlock') {
-      const box = readJSON(VKEY);
-      const salt = b64ToBytes(box.salt);
-      const key = await deriveKey(pw, salt, box.iter || ITER);
-      let data;
-      try { data = await unseal(key, box); } catch (x) { err.textContent = "That password isn't right."; return; }
-      vault = { key, salt, password: pw };
-      loadState(data);
-    } else {
-      let joined = null;
-      if (lockMode === 'join') {
-        joined = await openSetup(pendingLink, pw);
-        if (!joined) { err.textContent = "That password doesn't open this setup link."; return; }
-        pendingLink = null;
-      }
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      vault = { key: await deriveKey(pw, salt), salt, password: pw };
-      // anything saved before the lock existed moves inside it, then the plain copy goes
-      const legacy = readJSON(KEY) || {};
-      const legacyHistory = readJSON(HKEY);
-      loadState({ ...legacy, history: Array.isArray(legacyHistory) ? legacyHistory : [] });
-      if (joined) S.settings = joined;
+      if (!(await openWithPassword(pw))) { err.textContent = "That password isn't right. Changed it on another device? Use the old one here once; this device then asks for the new one."; return; }
+    } else if (lockMode === 'create') {
+      vault = await newVault(pw, crypto.getRandomValues(new Uint8Array(16)));
+      loadState(takeLegacy());
+      cleanKey = null;
       await saveNow();
-      try { localStorage.removeItem(KEY); localStorage.removeItem(HKEY); } catch (x) { /* ignore */ }
+      dropLegacy();
+    } else if (lockMode === 'join') {
+      const link = pendingLink;
+      const next = await newVault(pw, b64ToBytes(link.salt), link.iter || ITER);
+      let payload;
+      try { payload = await unseal(next.key, link); } catch (x) { err.textContent = "That password doesn't open this setup link."; return; }
+      const fresh = !vault;
+      if (fresh) loadState(takeLegacy());
+      vault = next;
+      pendingLink = null;
+      joinedSync = applyLink(payload, fresh) === 'sync';
+      cleanKey = null;
+      await saveNow();
+      if (fresh) dropLegacy();
+    } else if (lockMode === 'repass') {
+      const box = pendingRemote;
+      const next = await newVault(pw, b64ToBytes(box.salt), box.iter || ITER);
+      try { await unseal(next.key, box); } catch (x) { err.textContent = "That password isn't right."; return; }
+      vault = next; // this device now uses the same password as the others
+      pendingRemote = null;
+      await saveNow();
+      if (bioSaved()) { try { localStorage.removeItem(BKEY); } catch (x) { /* ignore */ } } // it held the old password
     }
-    hideLock();
-    boot();
+    await afterUnlock();
+    if (joinedSync) bootSync.then(() => { if (syncState === 'ok') toast('This device is set up and syncing.'); });
+    maybeOfferBio();
   } finally {
     btn.disabled = false;
-    btn.textContent = label;
+    if (lockMode === startMode) btn.textContent = label; // another screen may have taken over meanwhile
   }
 });
+$('#lockCancel').addEventListener('click', () => { pendingLink = null; hideLock(); });
 $('#forgotBtn').addEventListener('click', () => { $('#forgotConfirm').hidden = false; $('#forgotBtn').hidden = true; });
 $('#forgotNo').addEventListener('click', () => { $('#forgotConfirm').hidden = true; $('#forgotBtn').hidden = false; });
-$('#forgotYes').addEventListener('click', () => {
-  try { localStorage.removeItem(VKEY); } catch (x) { /* ignore */ }
-  showLock('create');
+$('#forgotYes').addEventListener('click', async () => {
+  try { localStorage.removeItem(VKEY); localStorage.removeItem(BKEY); } catch (x) { /* ignore */ }
+  await sessionDrop();
+  showLock(pendingLink && isBox(pendingLink) ? 'join' : 'create');
 });
 
-function lockNow() { saveNow().then(() => location.reload()); }
-$('#lockNowBtn').addEventListener('click', lockNow);
-// lock after 15 minutes without a tap or key press, including when the phone comes back to it
-const IDLE_MS = 15 * 60 * 1000;
-let lastActive = Date.now();
-for (const ev of ['pointerdown', 'keydown', 'wheel', 'touchstart']) document.addEventListener(ev, () => { lastActive = Date.now(); }, { passive: true });
-setInterval(() => { if (vault && Date.now() - lastActive > IDLE_MS) lockNow(); }, 30000);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && vault && Date.now() - lastActive > IDLE_MS) lockNow();
-});
-
-function boot() {
+async function afterUnlock() {
+  lastActive = Date.now();
+  await rememberSession();
+  hideLock();
+  // ask Chrome not to clear this site's data when the phone runs low on space
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (x) { /* ignore */ }
+  await boot();
+}
+async function boot() {
   renderAll();
   const hashTab = location.hash.replace('#', '');
   if (TABS.includes(hashTab)) S.tab = hashTab;
   setTab(isSetUp() ? S.tab : 'payroll');
-  if (pendingLink) {
-    const link = pendingLink;
-    pendingLink = null;
-    openSetup(link, vault.password).then(got => { if (got) offerSetup(got); else toast('That setup link was locked with a different password.'); });
-  }
+  markClean();
+  if (pendingLink) { const link = pendingLink; pendingLink = null; await handleLink(link); }
+  bootSync = S.sync && vault ? syncNow() : Promise.resolve();
 }
+let bootSync = Promise.resolve();
 window.addEventListener('hashchange', () => {
   const link = takeLinkFromAddress();
   if (!link) return;
-  if (vault) openSetup(link, vault.password).then(got => { if (got) offerSetup(got); else toast('That setup link was locked with a different password.'); });
+  if (vault) handleLink(link);
   else { pendingLink = link; if (!isBox(readJSON(VKEY)) && isBox(link)) showLock('join'); }
 });
 
-pendingLink = takeLinkFromAddress();
-if (isBox(readJSON(VKEY))) showLock('unlock');
-else if (pendingLink && isBox(pendingLink)) showLock('join');
-else showLock('create');
+async function start() {
+  pendingLink = takeLinkFromAddress();
+  const box = readJSON(VKEY);
+  if (isBox(box)) {
+    const restored = await sessionRestore(box);
+    if (restored) {
+      try {
+        const data = await unseal(restored.key, box);
+        vault = restored;
+        loadState(data);
+        sessionSweep();
+        await afterUnlock();
+        return;
+      } catch (e) { /* the saved key no longer fits: ask for the password */ }
+    }
+    await sessionDrop();
+    sessionSweep();
+    showLock('unlock');
+    if (bioSaved()) unlockWithFingerprint(true); // ask for the fingerprint straight away
+  } else if (pendingLink && isBox(pendingLink)) showLock('join');
+  else showLock('create');
+}
+start();
 refreshRates();
 })();

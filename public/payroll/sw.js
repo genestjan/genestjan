@@ -1,6 +1,6 @@
 /* Partner Payroll service worker: keeps the app working offline and installable.
    Bump VERSION whenever any file below changes, so phones pick up the new copy. */
-const VERSION = 'payroll-2026-10-09.3';
+const VERSION = 'payroll-2026-10-10.1';
 const SHELL = [
   './', 'index.html', 'app.css', 'app.js', 'pdf.js', 'manifest.webmanifest',
   'vendor/jspdf.umd.min.js', 'img/mark.png',
