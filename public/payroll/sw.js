@@ -1,6 +1,6 @@
 /* Partner Payroll service worker: keeps the app working offline and installable.
    Bump VERSION whenever any file below changes, so phones pick up the new copy. */
-const VERSION = 'payroll-2026-10-10.1';
+const VERSION = 'payroll-2026-10-15.1';
 const SHELL = [
   './', 'index.html', 'app.css', 'app.js', 'pdf.js', 'manifest.webmanifest',
   'vendor/jspdf.umd.min.js', 'img/mark.png',
@@ -30,15 +30,21 @@ self.addEventListener('fetch', event => {
     // the page itself: fresh when online, the saved copy when offline
     event.respondWith(
       fetch(req)
-        .then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./', copy)); return res; })
-        .catch(() => caches.match('./', { ignoreSearch: true }).then(r => r || caches.match('index.html')))
+        .then(res => {
+          // only the app's own page is kept for offline use, never an error page
+          if (res.ok && /\/(index\.html)?$/.test(url.pathname)) { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./', copy)); }
+          return res;
+        })
+        .catch(() => caches.open(VERSION).then(c => c.match('./', { ignoreSearch: true }).then(r => r || c.match('index.html'))))
     );
     return;
   }
+  // only this version's own cache is used: other pages on the site share the origin, so they could
+  // otherwise plant a file in a cache of their own
   event.respondWith(
-    caches.match(req, { ignoreSearch: true }).then(hit => hit || fetch(req).then(res => {
-      if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
+    caches.open(VERSION).then(c => c.match(req, { ignoreSearch: true }).then(hit => hit || fetch(req).then(res => {
+      if (res.ok) c.put(req, res.clone());
       return res;
-    }))
+    })))
   );
 });

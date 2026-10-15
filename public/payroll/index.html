@@ -29,8 +29,8 @@
     <p id="lockMsg" class="lock-msg">Opening...</p>
     <div id="lockFields" class="lock-fields">
     <button id="bioBtn" class="btn gold bio-btn" type="button" hidden>Unlock with fingerprint</button>
-    <input type="text" name="username" value="Partner Payroll" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
-    <div class="field"><label for="lockPw">Password</label><input id="lockPw" name="password" class="in" type="password" autocomplete="current-password"></div>
+    <input type="text" value="Partner Payroll" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
+    <div class="field"><label for="lockPw">Password</label><input id="lockPw" class="in" type="password" autocomplete="current-password"></div>
     <div class="field" id="lockPw2Wrap" hidden><label for="lockPw2">Type it again</label><input id="lockPw2" class="in" type="password" autocomplete="new-password"></div>
     <p id="lockErr" class="lock-err" role="alert"></p>
     <button id="lockBtn" class="btn gold lock-submit" type="submit">Unlock</button>
@@ -352,7 +352,7 @@
         <div class="card-hd"><h2 id="h-pass">Password</h2></div>
         <p class="note">Refreshing or reopening the app keeps you in. It locks after 3 minutes without use, and whenever you tap Lock.</p>
         <form id="pwForm" class="pw-form" autocomplete="on">
-          <input type="text" name="username" value="Partner Payroll" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
+          <input type="text" value="Partner Payroll" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
           <div class="fields two">
             <div class="field"><label for="pwNew">New password</label><input id="pwNew" class="in" type="password" autocomplete="new-password"></div>
             <div class="field"><label for="pwNew2">Type it again</label><input id="pwNew2" class="in" type="password" autocomplete="new-password"></div>
