@@ -1,5 +1,5 @@
-/* Payslip and payroll summary PDFs for Partner Payroll, drawn with jsPDF.
-   Loaded the first time a PDF is asked for. A4, millimetres. */
+/* Payslip and payroll summary PDFs for the Payroll tab of Work Hub, drawn with jsPDF (moved over
+   from the Partner Payroll app unchanged). Loaded the first time a payslip is asked for. A4, mm. */
 (() => {
 'use strict';
 
@@ -36,7 +36,7 @@ function newDoc(a, title) {
   doc.addFont('Lexend-SemiBold.ttf', 'Lexend', 'bold');
   doc.addFont('PlexMono-Regular.ttf', 'Mono', 'normal');
   doc.addFont('PlexMono-SemiBold.ttf', 'Mono', 'bold');
-  doc.setProperties({ title, author: 'Genest Jan Ramirez', creator: 'Partner Payroll' });
+  doc.setProperties({ title, author: 'Genest Jan Ramirez', creator: 'Work Hub' });
   return doc;
 }
 

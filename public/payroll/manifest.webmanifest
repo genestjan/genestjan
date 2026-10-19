@@ -1,7 +1,7 @@
 {
   "name": "Partner Payroll · Genest Jan Ramirez",
   "short_name": "Payroll",
-  "description": "Partner salary calculator with live PayPal rates, a timesheet calculator and branded payslip PDFs.",
+  "description": "Payroll is now part of Work Hub.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

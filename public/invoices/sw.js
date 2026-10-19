@@ -1,9 +1,9 @@
-/* Invoices service worker: keeps the app working offline and installable.
+/* Work Hub service worker: keeps the app working offline and installable.
    Bump VERSION whenever any file below changes, so phones pick up the new copy. */
-const VERSION = 'invoices-2026-10-15.1';
+const VERSION = 'invoices-2026-10-19.2';
 const SHELL = [
-  './', 'index.html', 'app.css', 'core.js', 'app.js', 'pdf.js', 'manifest.webmanifest',
-  'vendor/jspdf.umd.min.js', 'img/mark.png', 'img/mark-invoice.png',
+  './', 'index.html', 'app.css', 'core.js', 'time.js', 'payroll.js', 'app.js', 'pdf.js', 'payslip.js', 'manifest.webmanifest',
+  'vendor/jspdf.umd.min.js', 'img/mark.png',
   'fonts/Lexend-Regular.ttf', 'fonts/Lexend-SemiBold.ttf', 'fonts/PlexMono-Regular.ttf', 'fonts/PlexMono-SemiBold.ttf',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
 ];
@@ -26,13 +26,14 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   // GitHub sync, exchange rates and anything else off-site always go straight to the network
   if (url.origin !== self.location.origin) return;
+  const scope = new URL(self.registration.scope).pathname;
   if (req.mode === 'navigate') {
     // the page itself: fresh when online, the saved copy when offline
     event.respondWith(
       fetch(req)
         .then(res => {
           // only the app's own page is kept for offline use, never an error page
-          if (res.ok && /\/(index\.html)?$/.test(url.pathname)) { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./', copy)); }
+          if (res.ok && (url.pathname === scope || url.pathname === scope + 'index.html')) { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./', copy)); }
           return res;
         })
         .catch(() => caches.open(VERSION).then(c => c.match('./', { ignoreSearch: true }).then(r => r || c.match('index.html'))))

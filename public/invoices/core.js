@@ -17,6 +17,7 @@
                    opts.first=true on this device's first sync with a gist; opts.restore=true for a
                    backup, which may bring back records deleted since
      applySetup(s, opts) opts.unlocked=true for a link anyone could have made: it counts as oldest
+     text.join     optional [title, message, button] for the screen that opens a locked link
      isEmpty()     true while the app holds nothing yet (an unlocked setup link only works then)
      render()      draw everything again (after a merge from another device, a restore, a link)
      onUnlock()    the app is open: draw it and pick the starting screen
@@ -90,6 +91,27 @@ async function unseal(key, box) {
   const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(box.iv) }, key, b64ToBytes(box.data));
   return JSON.parse(new TextDecoder().decode(pt));
 }
+// a random AES key, as base64, and sealing with one (no password involved)
+const newRawKey = () => bytesToB64(randomBytes(32));
+const rawKeyCache = new Map();
+async function importRaw(b64) {
+  if (!rawKeyCache.has(b64)) rawKeyCache.set(b64, await crypto.subtle.importKey('raw', b64ToBytes(b64), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']));
+  return rawKeyCache.get(b64);
+}
+async function sealRaw(b64, text) {
+  const iv = randomBytes(12);
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await importRaw(b64), new TextEncoder().encode(text));
+  return { v: 1, iv: bytesToB64(iv), data: bytesToB64(ct) };
+}
+async function openRaw(b64, box) {
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(box.iv) }, await importRaw(b64), b64ToBytes(box.data));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+// a box locked with a password of its own (an invite code), opened the usual way by the join screen
+async function sealWithPassword(password, text) {
+  const salt = randomBytes(16);
+  return seal(await deriveKey(password, salt), salt, text);
+}
 // open a locked setup link, backup or sync copy; throws when it can't
 async function unsealWith(password, box) {
   if (vault && box.salt === bytesToB64(vault.salt)) {
@@ -98,6 +120,15 @@ async function unsealWith(password, box) {
   if (!password) throw new Error('password needed');
   return unseal(await deriveKey(password, b64ToBytes(box.salt), box.iter || ITER), box);
 }
+// another app's locked data on this site (the old Payroll app): with a password typed for it,
+// or with this app's own password when both use the same one
+const openBox = async (password, box) => unseal(await deriveKey(password, b64ToBytes(box.salt), box.iter || ITER), box);
+async function openWithCurrent(box) {
+  if (!vault || !isBox(box)) return null;
+  try { return await unsealWith(vault.password, box); } catch (e) { return null; }
+}
+// the app can say this device mustn't use the owner's sync (a partner's device)
+const syncAllowed = () => !(A && A.syncAllowed) || A.syncAllowed();
 
 /* ------------------------------------------------------------------ saving */
 
@@ -152,7 +183,9 @@ function cleanSync(x) {
   };
 }
 
-async function gh(path, opts = {}) {
+// a GitHub API call with a given token; the app's own sync uses gh() below, the team time channels
+// (another GitHub account) call this directly
+async function ghWith(token, path, opts = {}) {
   let r;
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 15000);
@@ -161,7 +194,7 @@ async function gh(path, opts = {}) {
       method: opts.method || 'GET',
       cache: 'no-store',
       signal: ctl.signal,
-      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + sync.token, ...(opts.body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token, ...(opts.body ? { 'Content-Type': 'application/json' } : {}) },
       body: opts.body ? JSON.stringify(opts.body) : undefined,
     });
   } catch (e) { throw new SyncError('offline'); } finally { clearTimeout(timer); }
@@ -172,6 +205,7 @@ async function gh(path, opts = {}) {
   if (!r.ok) throw new SyncError('error', 'GitHub answered ' + r.status);
   return r.status === 204 ? {} : r.json();
 }
+const gh = (path, opts) => ghWith(sync.token, path, opts);
 async function findGist() {
   const list = await gh('/gists?per_page=100');
   const g = Array.isArray(list) ? list.find(x => x && x.files && x.files[A.gistFile]) : null;
@@ -230,7 +264,7 @@ function refreshFromRemote() {
 }
 
 async function syncNow(opts = {}) {
-  if (!vault || !sync) return;
+  if (!vault || !sync || !syncAllowed()) return;
   if (syncRunning) { syncQueued = true; return syncRunning; }
   clearTimeout(syncTimer);
   syncDirty = false;
@@ -299,7 +333,7 @@ async function syncNow(opts = {}) {
   }
 }
 function scheduleSync() {
-  if (!sync) return;
+  if (!sync || !syncAllowed()) return;
   syncDirty = true;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(() => syncNow({ quiet: true }), 2500);
@@ -367,6 +401,9 @@ async function connectToken(token, keepGist) {
     toast(e.code === 'offline' ? "Couldn't reach GitHub. Check your connection and try again." : "GitHub didn't accept that token. Copy it again and paste it here.");
     return false;
   }
+  // an account the app keeps apart from this sync (the team account partners hold a token for)
+  const refused = A.refuseSyncLogin ? A.refuseSyncLogin(sync.login) : '';
+  if (refused) { sync = prev; renderSync(); toast(refused); return false; }
   await saveNow();
   renderSync();
   await syncNow();
@@ -390,7 +427,7 @@ function unb64url(s) {
   return new TextDecoder().decode(Uint8Array.from(bin, ch => ch.charCodeAt(0)));
 }
 async function setupLink() {
-  const linkSync = sync ? { token: sync.token, gistId: sync.gistId } : null;
+  const linkSync = sync && syncAllowed() ? { token: sync.token, gistId: sync.gistId } : null;
   const box = await seal(vault.key, vault.salt, JSON.stringify({ s: A.setupPayload(), sync: linkSync }));
   return location.origin + location.pathname + '#setup=' + b64url(JSON.stringify(box));
 }
@@ -442,9 +479,9 @@ function applyLink(payload, fresh) {
   const s = payload && payload.s && typeof payload.s === 'object' ? payload.s : null;
   const linkSync = cleanSync(payload && payload.sync);
   if (fresh) {
-    if (linkSync) sync = { ...linkSync, adopt: true };
     if (s) A.applySetup(s);
-    return linkSync ? 'sync' : 'settings';
+    if (linkSync && syncAllowed()) { sync = { ...linkSync, adopt: true }; return 'sync'; }
+    return 'settings';
   }
   const same = linkSync && sync && sync.token === linkSync.token;
   if (same && linkSync.gistId && !sync.gistId) sync.gistId = linkSync.gistId;
@@ -700,7 +737,7 @@ function showLock(mode) {
   const T = {
     create: A.text.create,
     unlock: A.text.unlock,
-    join: ['Set up this device', 'Type the password you use on your other device. This device will use it too.', 'Set up'],
+    join: A.text.join || ['Set up this device', 'Type the password you use on your other device. This device will use it too.', 'Set up'],
     repass: ['Type your new password', "Your password was changed on another device. Type the new one to keep syncing; this device will use it too. If you didn't change it, tap Not now and turn sync off in Settings.", 'Continue'],
   }[mode];
   $('#lockTitle').textContent = T[0];
@@ -771,9 +808,13 @@ async function submitLock(e) {
       let payload;
       try { payload = await unseal(next.key, link); } catch (x) { err.textContent = "That password doesn't open this setup link."; return; }
       const fresh = !vault;
+      // a link this device mustn't take (someone else's invite): it keeps its own password and data
+      const refusal = !fresh && A.refuseLink ? A.refuseLink(payload && payload.s) : '';
+      if (refusal) { pendingLink = null; $('#lockPw').value = ''; hideLock(); toast(refusal); return; }
       if (fresh) loadVault({});
       vault = next;
       pendingLink = null;
+      if (!fresh && A.afterJoin) A.afterJoin(payload && payload.s); // this device now opens with that link's password
       joinedSync = applyLink(payload, fresh) === 'sync';
       cleanKey = null;
       await saveNow();
@@ -834,6 +875,29 @@ async function restoreFrom(data, password) {
   await saveNow();
   A.render();
   toast('Backup restored. Anything newer on this device was kept.');
+}
+
+/* ------------------------------------------------------------------ changing the password */
+
+async function changePassword(pw, again) {
+  if (!vault) return false;
+  if (pw.length < 8) { toast('Use at least 8 characters.'); return false; }
+  if (pw !== again) { toast("The two passwords don't match."); return false; }
+  if (sync) {
+    // bring in the other devices' changes first, while their copy still opens with the old password
+    await syncNow();
+    if (syncState === 'password') { toast('Sync needs your current password first. Tap Type password under Sync.'); return false; }
+    if (syncState !== 'ok') { toast("Sync can't reach GitHub right now. Change the password when you're back online, so your other devices get it."); return false; }
+    sync.rotate = true; // the next sync moves to a fresh gist locked with the new password, even if this one fails
+  }
+  vault = await newVault(pw, randomBytes(16));
+  await saveNow();
+  await rememberSession();
+  if (sync) await syncNow();
+  const hadBio = !!bioSaved();
+  if (hadBio) { dropBio(); renderBio(); }
+  toast('Password changed.' + (sync ? ' Your other devices open with the old password (or fingerprint) one more time, then ask for the new one.' : '') + (hadBio ? ' Turn fingerprint unlock on again below.' : ''));
+  return true;
 }
 
 /* ------------------------------------------------------------------ start */
@@ -897,6 +961,9 @@ function wire() {
     if (p.unlocked && !(A.isEmpty && A.isEmpty())) { toast("That setup link isn't locked with your password, so it can only set up an empty app."); return; }
     if (p.sync) { await syncIdle(); if (!vault) return; } // a sync still running keeps the old connection to the end
     if (p.s) A.applySetup(p.s, { unlocked: p.unlocked });
+    if (p.sync && !syncAllowed()) p.sync = null;
+    const refused = p.sync && p.login && A.refuseSyncLogin ? A.refuseSyncLogin(p.login) : '';
+    if (refused) { p.sync = null; toast(refused); }
     if (p.sync) {
       const sameAccount = !!(sync && sync.login && p.login && sync.login === p.login);
       // a gist this device hasn't synced with before: its business details fill in what this device lacks
@@ -908,31 +975,13 @@ function wire() {
     if (p.sync) {
       await syncNow();
       toast(syncState === 'ok' ? 'Loaded, and sync is on for this device.' : 'Loaded. Sync is on, but it could not reach GitHub yet.');
-    } else toast('Settings loaded.');
+    } else toast(refused || 'Settings loaded.');
   });
   on('#setupNo', 'click', () => { pendingSetup = null; $('#setupBanner').hidden = true; });
 
   on('#pwForm', 'submit', async e => {
     e.preventDefault();
-    const pw = $('#pwNew').value;
-    if (pw.length < 8) { toast('Use at least 8 characters.'); return; }
-    if (pw !== $('#pwNew2').value) { toast("The two passwords don't match."); return; }
-    if (sync) {
-      // bring in the other devices' changes first, while their copy still opens with the old password
-      await syncNow();
-      if (syncState === 'password') { toast('Sync needs your current password first. Tap Type password under Sync.'); return; }
-      if (syncState !== 'ok') { toast("Sync can't reach GitHub right now. Change the password when you're back online, so your other devices get it."); return; }
-      sync.rotate = true; // the next sync moves to a fresh gist locked with the new password, even if this one fails
-    }
-    vault = await newVault(pw, randomBytes(16));
-    await saveNow();
-    await rememberSession();
-    if (sync) await syncNow();
-    $('#pwNew').value = '';
-    $('#pwNew2').value = '';
-    const hadBio = !!bioSaved();
-    if (hadBio) { dropBio(); renderBio(); }
-    toast('Password changed.' + (sync ? ' Your other devices open with the old password (or fingerprint) one more time, then ask for the new one.' : '') + (hadBio ? ' Turn fingerprint unlock on again below.' : ''));
+    if (await changePassword($('#pwNew').value, $('#pwNew2').value)) { $('#pwNew').value = ''; $('#pwNew2').value = ''; }
   });
 
   on('#bioOn', 'click', async () => {
@@ -1071,9 +1120,14 @@ async function start(app) {
 }
 
 window.GJCore = {
-  start, save, saveNow, toast, lockNow, ago,
+  start, save, saveNow, toast, lockNow, ago, changePassword,
   syncNow: opts => syncNow(opts),
   unlocked: () => !!vault,
-  syncInfo: () => ({ on: !!sync, state: syncState, gistId: sync ? sync.gistId : '' }),
+  syncInfo: () => ({ on: !!sync, state: syncState, gistId: sync ? sync.gistId : '', login: sync ? sync.login : '' }),
+  // for the team time channels
+  github: ghWith, newRawKey, sealRaw, openRaw, sealWithPassword, b64url,
+  // for bringing the old Payroll app's data in
+  openBox, openWithCurrent,
+  randomCode: n => Array.from(randomBytes(n), b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join(''),
 };
 })();

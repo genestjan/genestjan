@@ -1,6 +1,6 @@
-/* The invoice PDF for the Invoices app, drawn with jsPDF. Loaded the first time a PDF is asked for.
-   A4, millimetres. It draws what view() in app.js describes, so the PDF and the on-screen preview
-   always say the same thing. */
+/* The PDFs for the Invoices app, drawn with jsPDF: the invoice, the client's time report and the
+   internal team report. Loaded the first time a PDF is asked for. A4, millimetres. Each draws what
+   app.js hands it, so the PDF and the screen always say the same thing. */
 (() => {
 'use strict';
 
@@ -13,6 +13,7 @@ const C = {
 };
 const GOLD = [[200, 145, 63], [227, 197, 116], [246, 234, 162]];
 
+const BASE = new URL('.', (document.currentScript && document.currentScript.src) || location.href).href;
 let assets = null;
 async function loadAssets() {
   if (assets) return assets;
@@ -25,8 +26,8 @@ async function loadAssets() {
   const get = async p => { const r = await fetch(p); if (!r.ok) throw new Error('Missing ' + p); return toB64(await r.arrayBuffer()); };
   const names = ['Lexend-Regular', 'Lexend-SemiBold', 'PlexMono-Regular', 'PlexMono-SemiBold'];
   const fonts = {};
-  await Promise.all(names.map(async n => { fonts[n] = await get('fonts/' + n + '.ttf'); }));
-  const mark = 'data:image/png;base64,' + await get('img/mark.png');
+  await Promise.all(names.map(async n => { fonts[n] = await get(BASE + 'fonts/' + n + '.ttf'); }));
+  const mark = 'data:image/png;base64,' + await get(BASE + 'img/mark.png');
   assets = { fonts, mark };
   return assets;
 }
@@ -415,6 +416,305 @@ function draw(doc, a, v) {
   }
 }
 
+/* ---------- time reports ---------- */
+
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const pd = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+const hm = m => { const t = Math.max(0, Math.round(m)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+const hLong = m => { const t = Math.max(0, Math.round(m)); return `${Math.floor(t / 60)}h ${String(t % 60).padStart(2, '0')}m`; };
+const dShort = s => { const d = pd(s); return d ? `${WD[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}` : ''; };
+const c12 = s => { if (!/^\d\d:\d\d$/.test(s || '')) return ''; const [h, m] = s.split(':').map(Number); return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+
+function reportDoc(a, title, author) {
+  const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true });
+  for (const [n, b64] of Object.entries(a.fonts)) doc.addFileToVFS(n + '.ttf', b64);
+  doc.addFont('Lexend-Regular.ttf', 'Lexend', 'normal');
+  doc.addFont('Lexend-SemiBold.ttf', 'Lexend', 'bold');
+  doc.addFont('PlexMono-Regular.ttf', 'Mono', 'normal');
+  doc.addFont('PlexMono-SemiBold.ttf', 'Mono', 'bold');
+  // only the business's own name: nothing in the file's details says who did the work
+  doc.setProperties({ title: clean(title), author: clean(author), creator: clean(author) });
+  return doc;
+}
+// the same branded band as the invoice, with the report's name on the right
+function reportHeader(doc, a, b, kind, sub, tag) {
+  doc.setFillColor(...C.band);
+  doc.rect(0, 0, W, 46, 'F');
+  goldBar(doc, 0, 46, W, 1.6);
+  doc.addImage(a.mark, 'PNG', L - 2, 8, 30, 30);
+  const nameW = 120 - (L + 32);
+  const name = clean(b.name);
+  doc.setFont('Lexend', 'bold');
+  const size = fit(doc, name, nameW, 17, 12);
+  font(doc, 'Lexend', 'bold', size, C.white);
+  const lines = doc.getTextWidth(name) > nameW ? doc.splitTextToSize(name, nameW).slice(0, 2) : [name];
+  doc.text(lines, L + 32, lines.length > 1 ? 18 : 21.5, { lineHeightFactor: 1.15 });
+  font(doc, 'Lexend', 'normal', 9, C.bandMuted);
+  doc.text(clip(doc, b.tagline, nameW), L + 32, lines.length > 1 ? 32 : 28);
+  font(doc, 'Lexend', 'bold', 17, C.bandGold);
+  spaced(doc, kind, R, 21, 1.1, 'right');
+  font(doc, 'Lexend', 'normal', 9, C.bandMuted);
+  doc.text(clean(sub), R, 28.5, { align: 'right' });
+  if (tag) {
+    font(doc, 'Mono', 'bold', 7.5, C.white);
+    const w = doc.getTextWidth(tag) + 0.4 * (tag.length - 1) + 6;
+    doc.setFillColor(...C.bad);
+    doc.roundedRect(R - w, 33, w, 5.6, 1, 1, 'F');
+    doc.text(tag, R - w + 3, 37, { charSpace: 0.4 });
+  }
+}
+function reportSlim(doc, a, b, kind) {
+  doc.setFillColor(...C.band);
+  doc.rect(0, 0, W, 20, 'F');
+  goldBar(doc, 0, 20, W, 1.1);
+  doc.addImage(a.mark, 'PNG', L - 1, 3.5, 13, 13);
+  font(doc, 'Lexend', 'bold', 10.5, C.white);
+  doc.text(clip(doc, b.name, 110), L + 15, 11.8);
+  font(doc, 'Lexend', 'bold', 9, C.bandGold);
+  spaced(doc, kind, R, 11.8, 0.5, 'right');
+}
+function reportFooters(doc, b, right) {
+  const n = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i);
+    hair(doc, 283);
+    font(doc, 'Lexend', 'normal', 7.6, C.muted);
+    const r = `${right}  ·  Page ${i} of ${n}`;
+    doc.text(r, R, 288.5, { align: 'right' });
+    const left = [b.name, b.website, b.email].filter(Boolean).join('  ·  ');
+    doc.text(clip(doc, left, R - doc.getTextWidth(r) - 6 - L), L, 288.5);
+  }
+}
+function flowFor(doc, a, b, kind) {
+  return {
+    y: 0,
+    need(space, onNew) {
+      if (this.y + space <= BOTTOM) return false;
+      doc.addPage();
+      reportSlim(doc, a, b, kind);
+      this.y = 31;
+      if (onNew) onNew();
+      return true;
+    },
+  };
+}
+// one gold column per day, 1mm rounded top, square on a hairline baseline; only the busiest day is labelled
+function dayChart(doc, days, x, y, w, h) {
+  const n = days.length;
+  if (!n) return y;
+  const max = Math.max(...days.map(d => d.minutes), 60);
+  const slot = w / n;
+  const bw = Math.min(6.3, slot * 0.62);
+  const peak = days.reduce((bi, d, i) => (d.minutes > days[bi].minutes ? i : bi), 0);
+  // recessive gridlines at whole hours
+  const step = max / 60 > 10 ? 4 : 2;
+  doc.setDrawColor(240, 238, 233);
+  doc.setLineWidth(0.2);
+  font(doc, 'Mono', 'normal', 6.4, C.muted);
+  for (let hr = step; hr * 60 < max; hr += step) {
+    const gy = y + h - (hr * 60 / max) * h;
+    doc.line(x, gy, x + w, gy);
+    doc.text(`${hr}h`, x - 1.5, gy + 1.1, { align: 'right' });
+  }
+  days.forEach((d, i) => {
+    const cx = x + slot * i + slot / 2;
+    const bh = d.minutes ? Math.max(0.8, (d.minutes / max) * h) : 0;
+    if (bh) {
+      doc.setFillColor(184, 135, 58);
+      const r = Math.min(1, bw / 2, bh);
+      doc.roundedRect(cx - bw / 2, y + h - bh, bw, bh, r, r, 'F');
+      doc.rect(cx - bw / 2, y + h - Math.min(bh, r * 2), bw, Math.min(bh, r * 2), 'F'); // square at the baseline
+    }
+    if (i === peak && d.minutes) { font(doc, 'Mono', 'bold', 7, C.ink); doc.text(hm(d.minutes), cx, y + h - bh - 1.5, { align: 'center' }); }
+    const dt = pd(d.date);
+    const weekend = dt && (dt.getDay() === 0 || dt.getDay() === 6);
+    font(doc, 'Mono', 'normal', n > 16 ? 6 : 6.8, weekend ? C.muted : C.soft);
+    if (dt) {
+      if (n <= 16) doc.text(WD[dt.getDay()].slice(0, 2), cx, y + h + 4, { align: 'center' });
+      doc.text(String(dt.getDate()), cx, y + h + (n <= 16 ? 7.4 : 4), { align: 'center' });
+    }
+  });
+  doc.setDrawColor(...C.line);
+  doc.setLineWidth(0.3);
+  doc.line(x, y + h, x + w, y + h);
+  return y + h + (n <= 16 ? 10 : 7);
+}
+// a ranked table: name, a gold share bar, hours, share
+function shareTable(doc, f, title, rows, total, opts = {}) {
+  if (!rows.length) return;
+  const x0 = L, nameW = opts.nameW || 78, barX = L + nameW + 4, barW = 52, hx = R - 14;
+  f.need(16);
+  label(doc, title, x0, f.y);
+  f.y += 3;
+  hair(doc, f.y);
+  const max = Math.max(...rows.map(r => r.minutes), 1);
+  for (const r of rows) {
+    font(doc, 'Lexend', 'normal', 8.8, C.ink);
+    const ls = wrap(doc, r.name, nameW).slice(0, 2);
+    const rh = 3.4 + ls.length * 4.1;
+    f.need(rh + 1);
+    const ty = f.y + 4.6;
+    doc.text(ls, x0, ty, { lineHeightFactor: 1.3 });
+    doc.setFillColor(242, 240, 235);
+    doc.roundedRect(barX, ty - 2.6, barW, 2.8, 1, 1, 'F');
+    doc.setFillColor(184, 135, 58);
+    const bw = Math.max(1.2, (r.minutes / max) * barW);
+    doc.roundedRect(barX, ty - 2.6, bw, 2.8, 1, 1, 'F');
+    font(doc, 'Mono', 'normal', 8.6, C.ink);
+    doc.text(hLong(r.minutes), hx, ty, { align: 'right' });
+    font(doc, 'Mono', 'normal', 7.6, C.muted);
+    doc.text(`${total ? Math.round(r.minutes / total * 100) : 0}%`, R, ty, { align: 'right' });
+    f.y += rh;
+    hair(doc, f.y);
+  }
+  f.y += 8;
+}
+// the timesheet: one row per entry, the day's total at each change of day
+function timesheet(doc, f, entries, cols) {
+  const head = () => {
+    doc.setFillColor(...C.band);
+    doc.rect(L, f.y, R - L, 8, 'F');
+    font(doc, 'Mono', 'bold', 6.6, C.white);
+    for (const c of cols) spaced(doc, c.title, c.align === 'right' ? c.x + c.w : c.x, f.y + 5.2, 0.25, c.align);
+    f.y += 8;
+  };
+  f.need(30);
+  head();
+  let day = '';
+  for (const e of entries) {
+    if (e.date !== day) {
+      day = e.date;
+      const sum = entries.filter(x => x.date === day).reduce((t, x) => t + x.minutes, 0);
+      if (f.need(16, head)) { /* header drawn */ }
+      doc.setFillColor(...C.goldSoft);
+      doc.rect(L, f.y, R - L, 6.4, 'F');
+      font(doc, 'Lexend', 'bold', 8.4, C.ink);
+      doc.text(clean(dShort(day)), L + 2, f.y + 4.4);
+      font(doc, 'Mono', 'bold', 8.2, C.ink);
+      doc.text(hm(sum), R - 2, f.y + 4.4, { align: 'right' });
+      f.y += 6.4;
+    }
+    const cells = cols.map(c => { font(doc, c.font || 'Lexend', 'normal', c.size || 8.6, C.ink); return wrap(doc, c.get(e), c.w); });
+    const lines = Math.max(...cells.map(c => c.length), 1);
+    const rh = 3.2 + lines * 4 + 1.4;
+    f.need(rh, head);
+    cols.forEach((c, i) => {
+      font(doc, c.font || 'Lexend', c.bold ? 'bold' : 'normal', c.size || 8.6, c.muted ? C.muted : C.ink);
+      doc.text(cells[i], c.align === 'right' ? c.x + c.w : c.x, f.y + 4.6, { align: c.align || 'left', lineHeightFactor: 1.3 });
+    });
+    f.y += rh;
+    hair(doc, f.y);
+  }
+}
+
+// The client's report. v holds no "who": the app builds it without one.
+async function timeReport(v) {
+  const a = await loadAssets();
+  const b = v.business;
+  const doc = reportDoc(a, `Time report, ${v.client.name || v.client.company}, ${v.period}`, b.name);
+  reportHeader(doc, a, b, 'TIME REPORT', v.period);
+  const f = flowFor(doc, a, b, 'TIME REPORT');
+  // prepared for, period, and the total
+  label(doc, 'PREPARED FOR', L, 56);
+  font(doc, 'Lexend', 'bold', 13, C.ink);
+  doc.text(clip(doc, v.client.name || v.client.company || 'Client', 70), L, 63);
+  if (v.client.name && v.client.company) { font(doc, 'Lexend', 'normal', 8.8, C.soft); doc.text(clip(doc, v.client.company, 70), L, 68.5); }
+  label(doc, 'PERIOD', 92, 56);
+  font(doc, 'Lexend', 'bold', 10.5, C.ink);
+  doc.text(wrap(doc, v.period, 46).slice(0, 2), 92, 63);
+  const bx = 142, bw = R - bx;
+  doc.setFillColor(...C.goldSoft);
+  doc.rect(bx, 50, bw, 26, 'F');
+  goldBar(doc, bx, 50, bw, 1.1);
+  label(doc, 'TOTAL TIME', bx + 5, 57.5);
+  font(doc, 'Lexend', 'bold', 18, C.ink);
+  doc.text(hLong(v.total), R - 5, 67.5, { align: 'right' });
+  font(doc, 'Lexend', 'normal', 7.6, C.muted);
+  doc.text(`${v.days} day${v.days === 1 ? '' : 's'} worked`, R - 5, 72.5, { align: 'right' });
+  f.y = 86;
+  label(doc, 'HOURS PER DAY', L, f.y);
+  f.y = dayChart(doc, v.perDay, L + 7, f.y + 5, R - L - 7, 38) + 6;
+  shareTable(doc, f, 'BY PROJECT', v.byProject, v.total);
+  const tasks = v.byTask.slice(0, 10);
+  const rest = v.byTask.slice(10).reduce((t, x) => t + x.minutes, 0);
+  if (rest) tasks.push({ name: `${v.byTask.length - 10} other tasks`, minutes: rest });
+  shareTable(doc, f, 'BY TASK', tasks, v.total, { nameW: 82 });
+  f.need(40);
+  label(doc, 'TIMESHEET', L, f.y);
+  f.y += 3;
+  timesheet(doc, f, v.entries, [
+    { title: 'TIME', x: L + 2, w: 30, get: e => (e.start && e.end ? `${c12(e.start)} - ${c12(e.end)}` : ''), size: 7.6, muted: true },
+    { title: 'PROJECT', x: L + 34, w: 38, get: e => e.project, size: 8.2 },
+    { title: 'WORK DONE', x: L + 75, w: 82, get: e => e.note || '' },
+    { title: 'HOURS', x: R - 20, w: 18, get: e => hm(e.minutes), font: 'Mono', align: 'right', bold: true },
+  ]);
+  reportFooters(doc, b, 'Time report');
+  return doc;
+}
+
+// The internal team report: who did what, and how it was logged. Never for clients.
+async function teamReport(v) {
+  const a = await loadAssets();
+  const b = v.business;
+  const doc = reportDoc(a, `Team report (internal), ${v.period}`, b.name);
+  reportHeader(doc, a, b, 'TEAM REPORT', v.period, 'INTERNAL');
+  const f = flowFor(doc, a, b, 'TEAM REPORT · INTERNAL');
+  f.y = 56;
+  label(doc, 'SUMMARY', L, f.y);
+  f.y += 3;
+  const X = { name: L, days: 92, hours: 116, timer: 142, typed: 166, edited: R };
+  doc.setFillColor(...C.band);
+  doc.rect(L, f.y, R - L, 8, 'F');
+  font(doc, 'Mono', 'bold', 6.6, C.white);
+  spaced(doc, 'PERSON', L + 2, f.y + 5.2, 0.25);
+  spaced(doc, 'DAYS', X.days, f.y + 5.2, 0.25, 'right');
+  spaced(doc, 'HOURS', X.hours, f.y + 5.2, 0.25, 'right');
+  spaced(doc, 'BY TIMER', X.timer, f.y + 5.2, 0.25, 'right');
+  spaced(doc, 'TYPED IN', X.typed, f.y + 5.2, 0.25, 'right');
+  spaced(doc, 'EDITED', X.edited - 2, f.y + 5.2, 0.25, 'right');
+  f.y += 8;
+  for (const p of v.people) {
+    const y = f.y + 5.2;
+    font(doc, 'Lexend', 'bold', 9, C.ink); doc.text(clip(doc, p.name, 60), L + 2, y);
+    font(doc, 'Mono', 'normal', 8.6, C.ink);
+    doc.text(String(p.days), X.days, y, { align: 'right' });
+    doc.text(hm(p.total), X.hours, y, { align: 'right' });
+    doc.text(`${p.total ? Math.round(p.timed / p.total * 100) : 0}%`, X.timer, y, { align: 'right' });
+    doc.text(hm(p.typed), X.typed, y, { align: 'right' });
+    doc.text(String(p.edited), X.edited - 2, y, { align: 'right' });
+    f.y += 7.6;
+    hair(doc, f.y);
+  }
+  f.y += 8;
+  for (const p of v.people) {
+    if (!p.total) continue;
+    f.need(70);
+    goldBar(doc, L, f.y, R - L, 0.9);
+    f.y += 7;
+    font(doc, 'Lexend', 'bold', 13, C.ink);
+    doc.text(clean(p.name), L, f.y);
+    font(doc, 'Mono', 'bold', 12, C.ink);
+    doc.text(hLong(p.total), R, f.y, { align: 'right' });
+    f.y += 5;
+    font(doc, 'Lexend', 'normal', 8.2, C.muted);
+    doc.text(`${p.days} days · ${p.total ? Math.round(p.timed / p.total * 100) : 0}% from the live timer · ${hm(p.typed)} typed in · ${p.edited} timed entries edited · ${p.noNote} without a description`, L, f.y);
+    f.y += 4;
+    f.y = dayChart(doc, p.perDay, L + 7, f.y + 3, R - L - 7, 26) + 5;
+    shareTable(doc, f, 'BY CLIENT AND PROJECT', p.byWork, p.total, { nameW: 82 });
+    f.need(30);
+    timesheet(doc, f, p.entries, [
+      { title: 'TIME', x: L + 2, w: 28, get: e => (e.start && e.end ? `${c12(e.start)} - ${c12(e.end)}` : 'typed in') + (e.edited ? ' · edited' : ''), size: 7.2, muted: true },
+      { title: 'CLIENT · PROJECT', x: L + 32, w: 42, get: e => `${e.client} · ${e.project}`, size: 8 },
+      { title: 'WORK DONE', x: L + 77, w: 80, get: e => e.note || '' },
+      { title: 'HOURS', x: R - 20, w: 18, get: e => hm(e.minutes), font: 'Mono', align: 'right', bold: true },
+    ]);
+    f.y += 10;
+  }
+  reportFooters(doc, b, 'Internal team report');
+  return doc;
+}
+
 /* ---------- public ---------- */
 
 async function invoice(v) {
@@ -424,5 +724,5 @@ async function invoice(v) {
   footers(doc, v);
   return doc;
 }
-window.InvoicePDF = { invoice };
+window.InvoicePDF = { invoice, timeReport, teamReport };
 })();

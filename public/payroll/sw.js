@@ -1,9 +1,9 @@
-/* Partner Payroll service worker: keeps the app working offline and installable.
+/* Payroll moved to Work Hub: this service worker now only keeps the "moved" page working offline,
+   and replaces the old app's cached copy on phones that installed it.
    Bump VERSION whenever any file below changes, so phones pick up the new copy. */
-const VERSION = 'payroll-2026-10-15.1';
+const VERSION = 'payroll-2026-10-19.1';
 const SHELL = [
-  './', 'index.html', 'app.css', 'app.js', 'pdf.js', 'manifest.webmanifest',
-  'vendor/jspdf.umd.min.js', 'img/mark.png',
+  './', 'index.html', 'app.css', 'moved.js', 'manifest.webmanifest', 'img/mark.png',
   'fonts/Lexend-Regular.ttf', 'fonts/Lexend-SemiBold.ttf', 'fonts/PlexMono-Regular.ttf', 'fonts/PlexMono-SemiBold.ttf',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
 ];
@@ -24,7 +24,7 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // exchange rates and anything else off-site always go straight to the network
+  // anything off-site always goes straight to the network
   if (url.origin !== self.location.origin) return;
   if (req.mode === 'navigate') {
     // the page itself: fresh when online, the saved copy when offline

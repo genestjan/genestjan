@@ -1,7 +1,7 @@
 {
-  "name": "Invoices · Genest Jan Ramirez",
-  "short_name": "Invoices",
-  "description": "Branded invoices with payment tracking, locked with your password and synced between your devices.",
+  "name": "Work Hub · Genest Jan Ramirez",
+  "short_name": "Work Hub",
+  "description": "Invoices, time tracking, client reports and partner payroll, locked with your password and synced between your devices.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

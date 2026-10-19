@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://api.github.com https://gist.githubusercontent.com https://api.exchangerate-api.com https://open.er-api.com; worker-src 'self'; manifest-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
-<title>Invoices</title>
-<meta name="description" content="Branded invoices, payment tracking and sync between devices.">
+<title>Work Hub</title>
+<meta name="description" content="Invoices, time tracking, client reports and partner payroll, locked and synced between devices.">
 <meta name="theme-color" content="#242424">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
@@ -14,34 +14,36 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Invoices">
+<meta name="apple-mobile-web-app-title" content="Work Hub">
 <link rel="preload" href="fonts/Lexend-Regular.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="fonts/PlexMono-Regular.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="app.css">
 <script src="core.js" defer></script>
+<script src="time.js" defer></script>
+<script src="payroll.js" defer></script>
 <script src="app.js" defer></script>
 </head>
 <body>
 
 <div id="lock" class="lock">
   <form id="lockForm" class="lock-card" autocomplete="on" novalidate>
-    <img class="lock-mark" src="img/mark-invoice.png" alt="" width="96" height="96">
+    <img class="lock-mark" src="img/mark.png" alt="" width="96" height="96">
     <div class="lock-brand">Genest Jan Ramirez</div>
-    <h1 id="lockTitle">Invoices</h1>
+    <h1 id="lockTitle">Work Hub</h1>
     <p id="lockMsg" class="lock-msg">Opening...</p>
     <div id="lockFields" class="lock-fields" hidden>
       <button id="bioBtn" class="btn gold bio-btn" type="button" hidden>Unlock with fingerprint</button>
-      <input type="text" value="Invoices" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
+      <input type="text" value="Work Hub" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
       <div class="field"><label for="lockPw">Password</label><input id="lockPw" class="in" type="password" autocomplete="current-password"></div>
       <div class="field" id="lockPw2Wrap" hidden><label for="lockPw2">Type it again</label><input id="lockPw2" class="in" type="password" autocomplete="new-password"></div>
       <p id="lockErr" class="lock-err" role="alert"></p>
       <button id="lockBtn" class="btn gold lock-submit" type="submit">Unlock</button>
       <button id="lockCancel" class="link" type="button" hidden>Not now</button>
-      <p id="lockNote" class="lock-note" hidden>There's no reset link. If you forget it, your invoices can't be opened. Let Chrome save it when it offers, and turn on fingerprint unlock in Settings.</p>
+      <p id="lockNote" class="lock-note" hidden>There's no reset link. If you forget it, what's saved here can't be opened. Let Chrome save it when it offers, and turn on fingerprint unlock in Settings.</p>
       <div id="lockForgot" class="lock-forgot" hidden>
         <button id="forgotBtn" class="link" type="button">Forgot your password?</button>
         <div id="forgotConfirm" class="lock-forgot" hidden>
-          <p>If you changed your password on another device, try your old one first. There's no way to reset it. You can erase the invoices saved on this device and start again. With sync on, a setup link brings them back afterwards. This can't be undone.</p>
+          <p>If you changed your password on another device, try your old one first. There's no way to reset it. You can erase what's saved on this device and start again: with sync on, a setup link brings it back afterwards (partners: a new invite link from Jan, and time already sent stays safe). This can't be undone.</p>
           <button id="forgotYes" class="btn btn-sm" type="button">Erase and start again</button>
           <button id="forgotNo" class="link" type="button">Cancel</button>
         </div>
@@ -60,7 +62,7 @@
       </div>
     </div>
     <div class="mast-meta">
-      <div class="eyebrow">Invoices</div>
+      <div class="eyebrow">Work Hub</div>
       <div class="mast-date" id="mastDate"></div>
       <div class="mast-actions">
         <button id="installBtn" class="btn btn-sm gold" type="button" hidden>Install app</button>
@@ -71,29 +73,51 @@
   </div>
   <div class="tabbar">
     <nav class="tabs" role="tablist" aria-label="Sections">
-      <button class="tab" role="tab" type="button" id="tab-overview" aria-controls="panel-overview" aria-selected="true">Overview</button>
-      <button class="tab" role="tab" type="button" id="tab-invoices" aria-controls="panel-invoices" aria-selected="false" tabindex="-1">Invoices</button>
-      <button class="tab" role="tab" type="button" id="tab-clients" aria-controls="panel-clients" aria-selected="false" tabindex="-1">Clients</button>
+      <button class="tab owner-only" role="tab" type="button" id="tab-overview" aria-controls="panel-overview" aria-selected="true">Overview</button>
+      <button class="tab owner-only" role="tab" type="button" id="tab-invoices" aria-controls="panel-invoices" aria-selected="false" tabindex="-1">Invoices</button>
+      <button class="tab" role="tab" type="button" id="tab-time" aria-controls="panel-time" aria-selected="false" tabindex="-1">Time</button>
+      <button class="tab partner-only" role="tab" type="button" id="tab-hours" aria-controls="panel-hours" aria-selected="false" tabindex="-1">My hours</button>
+      <button class="tab owner-only" role="tab" type="button" id="tab-reports" aria-controls="panel-reports" aria-selected="false" tabindex="-1">Reports</button>
+      <button class="tab owner-only" role="tab" type="button" id="tab-payroll" aria-controls="panel-payroll" aria-selected="false" tabindex="-1">Payroll</button>
+      <button class="tab owner-only" role="tab" type="button" id="tab-clients" aria-controls="panel-clients" aria-selected="false" tabindex="-1">Clients</button>
       <button class="tab" role="tab" type="button" id="tab-settings" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
     </nav>
-    <button class="btn btn-sm gold new-btn" type="button" data-new>New invoice</button>
+    <button class="btn btn-sm gold new-btn owner-only" type="button" data-new>New invoice</button>
   </div>
   <div class="goldline" aria-hidden="true"></div>
 </header>
 
 <main class="wrap" inert>
 
+  <!-- a partner's first visit, and a partner whose access ended -->
+  <section id="firstRun" class="card welcome partner-only" hidden>
+    <h2>Choose your own password</h2>
+    <p>You opened Work Hub with an invite code. Choose a password only you know; you'll use it (or your fingerprint) from now on.</p>
+    <form id="ownPwForm" class="pw-form" autocomplete="on">
+      <input type="text" value="Work Hub" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
+      <div class="fields two">
+        <div class="field"><label for="ownPw">New password</label><input id="ownPw" class="in" type="password" autocomplete="new-password"></div>
+        <div class="field"><label for="ownPw2">Type it again</label><input id="ownPw2" class="in" type="password" autocomplete="new-password"></div>
+      </div>
+      <div class="card-ft"><button class="btn gold" type="submit">Save my password</button></div>
+    </form>
+  </section>
+  <section id="noAccess" class="card leak partner-only" hidden>
+    <b id="noAccessTitle">Your access was removed.</b>
+    <p id="noAccessText">Ask Jan for a new invite link.</p>
+  </section>
+
   <!-- OVERVIEW -->
-  <section id="panel-overview" class="panel" role="tabpanel" aria-labelledby="tab-overview">
+  <section id="panel-overview" class="panel owner-only" role="tabpanel" aria-labelledby="tab-overview">
     <section id="welcome" class="card welcome" hidden>
-      <h2>Set up your invoices</h2>
+      <h2>Set up Work Hub</h2>
       <p>Add your business details and your clients once. Everything stays locked with your password.</p>
       <div class="welcome-actions">
         <button class="btn gold" type="button" data-goto="settings">Add business details</button>
         <button class="btn" type="button" data-goto="clients">Add a client</button>
       </div>
       <div class="field">
-        <label for="setupPaste">Already set up on another device? Paste your setup link</label>
+        <label for="setupPaste">Already set up on another device, or got an invite link? Paste it here</label>
         <div class="inline">
           <input id="setupPaste" class="in" type="url" placeholder="https://genestjanramirez.com/invoices/#setup=..." autocomplete="off">
           <button id="setupPasteBtn" class="btn" type="button">Load</button>
@@ -102,6 +126,7 @@
     </section>
 
     <div class="kpis" id="kpis"></div>
+    <div id="workCards" class="ov-grid work-cards" hidden></div>
 
     <div class="ov-grid">
       <section class="card" aria-labelledby="h-attn">
@@ -117,7 +142,7 @@
   </section>
 
   <!-- INVOICES -->
-  <section id="panel-invoices" class="panel" role="tabpanel" aria-labelledby="tab-invoices" hidden>
+  <section id="panel-invoices" class="panel owner-only" role="tabpanel" aria-labelledby="tab-invoices" hidden>
     <div class="toolbar">
       <div class="filters" role="group" aria-label="Show">
         <button class="fchip" type="button" data-filter="all" aria-pressed="true">All</button>
@@ -132,8 +157,74 @@
     <div id="invList" class="inv-list big"></div>
   </section>
 
+  <!-- TIME -->
+  <section id="panel-time" class="panel" role="tabpanel" aria-labelledby="tab-time" hidden>
+    <div id="timeRoot"></div>
+  </section>
+
+  <!-- MY HOURS (partners) -->
+  <section id="panel-hours" class="panel partner-only" role="tabpanel" aria-labelledby="tab-hours" hidden>
+    <div class="rp-controls card">
+      <div class="rp-fields">
+        <div class="field"><label for="hrPreset">Period</label>
+          <select id="hrPreset" class="in">
+            <option value="this-half">This half-month</option><option value="last-half">Last half-month</option>
+            <option value="this-month">This month</option><option value="last-month">Last month</option>
+            <option value="this-week">This week</option><option value="last-week">Last week</option>
+          </select></div>
+      </div>
+    </div>
+    <div id="hrOut" class="rp-out"></div>
+  </section>
+
+  <!-- REPORTS -->
+  <section id="panel-reports" class="panel owner-only" role="tabpanel" aria-labelledby="tab-reports" hidden>
+    <div class="rp-controls card">
+      <div class="filters" id="rpModes" role="group" aria-label="Report">
+        <button class="fchip" type="button" data-rmode="client" aria-pressed="true">Client report</button>
+        <button class="fchip" type="button" data-rmode="team" aria-pressed="false">Team report (internal)</button>
+      </div>
+      <div class="rp-fields">
+        <div class="field" id="rpClientWrap"><label for="rpClient">Client</label><select id="rpClient" class="in"></select></div>
+        <div class="field" id="rpWhoWrap" hidden><label for="rpWho">Who</label><select id="rpWho" class="in"></select></div>
+        <div class="field"><label for="rpPreset">Period</label>
+          <select id="rpPreset" class="in">
+            <option value="this-half">This half-month</option><option value="last-half">Last half-month</option>
+            <option value="this-month">This month</option><option value="last-month">Last month</option>
+            <option value="this-week">This week</option><option value="last-week">Last week</option>
+            <option value="custom">Choose dates</option>
+          </select></div>
+        <div class="field rp-custom" id="rpCustom" hidden>
+          <label for="rpFrom">From and to</label>
+          <div class="inline"><input id="rpFrom" class="in" type="date"><label class="sr" for="rpTo">To</label><input id="rpTo" class="in" type="date"></div>
+        </div>
+      </div>
+      <div class="card-ft">
+        <button id="rpPdf" class="btn gold" type="button">Download PDF</button>
+        <button id="rpEmail" class="btn" type="button">Email to client</button>
+        <button id="rpInvoice" class="btn" type="button">Create invoice from this</button>
+        <span id="rpInternal" class="chip warn" hidden>Internal: never send to a client</span>
+      </div>
+    </div>
+    <div id="rpOut" class="rp-out"></div>
+  </section>
+
+  <!-- PAYROLL -->
+  <section id="panel-payroll" class="panel owner-only" role="tabpanel" aria-labelledby="tab-payroll" hidden>
+    <section class="card welcome" data-import-card hidden>
+      <h2>Bring your Payroll data across</h2>
+      <p>Your partners, client rates, the pay run you're on and your pay history come into Work Hub, and sync with your other devices from then on. The old Payroll app stays as it is.</p>
+      <div class="field" data-import-pw hidden>
+        <label for="importPw">Your Payroll password</label>
+        <input id="importPw" class="in" type="password" autocomplete="off">
+      </div>
+      <div class="welcome-actions"><button class="btn gold" type="button" data-import-go>Bring it across</button></div>
+    </section>
+    <div id="payrollRoot"></div>
+  </section>
+
   <!-- EDITOR -->
-  <section id="panel-editor" class="panel" aria-labelledby="edTitle" hidden>
+  <section id="panel-editor" class="panel owner-only" aria-labelledby="edTitle" hidden>
     <div class="ed-head">
       <button class="link back" type="button" data-goto="invoices">‹ All invoices</button>
       <div class="ed-title">
@@ -156,6 +247,15 @@
           <div class="field">
             <label for="edCc">Send a copy to (optional)</label>
             <input id="edCc" class="in" type="text" placeholder="name@company.com, other@company.com" autocomplete="off">
+          </div>
+        </section>
+
+        <section class="card time-card" id="edTimeCard" aria-labelledby="h-time" hidden>
+          <div class="card-hd"><h3 id="h-time">Tracked time</h3><span id="edTimeSum" class="mono"></span></div>
+          <p id="edTimeText" class="note"></p>
+          <div class="card-ft">
+            <button id="edTimeFill" class="btn gold" type="button">Fill items from tracked time</button>
+            <label class="check check-sm" id="edTimeLinkWrap"><input type="checkbox" id="edTimeLink"> Keep in step with new time while it's a draft</label>
           </div>
         </section>
 
@@ -279,7 +379,7 @@
   </section>
 
   <!-- CLIENTS -->
-  <section id="panel-clients" class="panel" role="tabpanel" aria-labelledby="tab-clients" hidden>
+  <section id="panel-clients" class="panel owner-only" role="tabpanel" aria-labelledby="tab-clients" hidden>
     <div class="cl-grid">
       <section class="card" aria-labelledby="h-cl">
         <div class="card-hd"><h2 id="h-cl">Clients</h2><button id="clAdd" class="btn btn-sm gold" type="button">Add client</button></div>
@@ -305,6 +405,19 @@
           <input id="clItem" class="in" data-cf="item" autocomplete="off" placeholder="VA Work for {client} - {hours} hours for the period of {period}">
           <small class="muted">{client}, {hours} and {period} fill themselves in on each invoice.</small>
         </div>
+        <div class="cl-pay">
+          <div class="card-hd"><h3>Payroll</h3><span class="muted small">Only you see this</span></div>
+          <div class="fields three">
+            <div class="field"><label for="clPayRate">Partner rate (USD an hour)</label><input id="clPayRate" class="in mono" inputmode="decimal" data-cf="payRate" autocomplete="off" placeholder="0.00"></div>
+            <div class="field"><label for="clAbout">Shown on payslips as</label><input id="clAbout" class="in" data-cf="about" autocomplete="off" placeholder="e.g. Social media"></div>
+            <div class="field"><span class="label">Commission</span><label class="check"><input type="checkbox" id="clCommission" data-cf="commission"> Partners can share a commission</label></div>
+          </div>
+        </div>
+        <div id="clProjectsCard" class="cl-projects" hidden>
+          <div class="card-hd"><h3>Projects</h3><button id="clAddProject" class="btn btn-sm" type="button">+ Add project</button></div>
+          <p class="note">Time is tracked against a project. One line per project goes on the invoice, at the project's rate or the client's.</p>
+          <div id="clProjects" class="proj-list"></div>
+        </div>
         <div class="card-ft">
           <button id="clNewInv" class="btn gold" type="button">New invoice for this client</button>
           <button id="clDel" class="btn ghost" type="button">Remove client</button>
@@ -321,7 +434,14 @@
   <!-- SETTINGS -->
   <section id="panel-settings" class="panel" role="tabpanel" aria-labelledby="tab-settings" hidden>
     <div class="set-grid">
-      <section class="card" aria-labelledby="h-biz">
+      <section class="card partner-only" id="meCard" aria-labelledby="h-me">
+        <div class="card-hd"><h2 id="h-me">You</h2><span id="meChip" class="chip">Not synced yet</span></div>
+        <p id="meText" class="note"></p>
+        <p class="note">You see only the clients and projects Jan gives you, and only your own time.</p>
+        <div class="card-ft"><button id="meSyncNow" class="btn" type="button">Sync now</button></div>
+      </section>
+
+      <section class="card owner-only" aria-labelledby="h-biz">
         <div class="card-hd"><h2 id="h-biz">Your business</h2></div>
         <div class="fields two">
           <div class="field"><label for="bzName">Name on invoices</label><input id="bzName" class="in" data-bf="name" autocomplete="off"></div>
@@ -332,7 +452,7 @@
         <div class="field"><label for="bzAddress">Address</label><textarea id="bzAddress" class="in" rows="4" data-bf="address"></textarea></div>
       </section>
 
-      <section class="card" aria-labelledby="h-paydet">
+      <section class="card owner-only" aria-labelledby="h-paydet">
         <div class="card-hd"><h2 id="h-paydet">How clients pay you</h2></div>
         <div class="fields two">
           <div class="field"><label for="bzPpme">PayPal.me name</label><div class="affix"><span>paypal.me/</span><input id="bzPpme" class="in" data-bf="paypalMe" autocomplete="off" placeholder="yourname"></div></div>
@@ -342,7 +462,7 @@
         <div class="field"><label for="bzPayNote">Payment note</label><input id="bzPayNote" class="in" data-bf="payNote" autocomplete="off"></div>
       </section>
 
-      <section class="card" aria-labelledby="h-defs">
+      <section class="card owner-only" aria-labelledby="h-defs">
         <div class="card-hd"><h2 id="h-defs">Invoice defaults</h2></div>
         <div class="fields three">
           <div class="field"><label for="bzNext">Start numbers from</label><input id="bzNext" class="in mono" data-bf="nextNumber" autocomplete="off" placeholder="000001" aria-describedby="bzNextHint"><small id="bzNextHint" class="muted"></small></div>
@@ -356,14 +476,14 @@
         </div>
       </section>
 
-      <section class="card" aria-labelledby="h-mail">
+      <section class="card owner-only" aria-labelledby="h-mail">
         <div class="card-hd"><h2 id="h-mail">Email message</h2></div>
         <div class="field"><label for="bzSubject">Subject</label><input id="bzSubject" class="in" data-bf="emailSubject" autocomplete="off"></div>
         <div class="field"><label for="bzBody">Message</label><textarea id="bzBody" class="in" rows="9" data-bf="emailBody"></textarea></div>
         <p class="note">{first}, {number}, {total}, {due}, {paylink} and {business} fill themselves in.</p>
       </section>
 
-      <section class="card" aria-labelledby="h-sync">
+      <section class="card owner-only" aria-labelledby="h-sync">
         <div class="card-hd"><h2 id="h-sync">Sync laptop and phone</h2><span id="syncCardChip" class="chip">Off</span></div>
         <div id="syncOff" class="stack-sm">
           <p class="note">Keeps every device on the same invoices, clients and settings. The data is saved in a secret gist on your GitHub account, locked with your password, so GitHub only ever stores scrambled text. You can use the same token as the Payroll app.</p>
@@ -393,9 +513,41 @@
         </div>
       </section>
 
+      <section class="card owner-only" id="teamCard" aria-labelledby="h-team">
+        <div class="card-hd"><h2 id="h-team">Team</h2><span id="teamChip" class="chip">Off</span></div>
+        <p class="note">Your partners get paid in Payroll and log their time in this same app on their own phone or computer, with their own password. There they only see the clients and projects you give them and their own time: never your invoices, rates, payroll or each other's time. Client reports and invoices never show who did the work.</p>
+        <div id="partnerList" class="set-list"></div>
+        <div class="inline">
+          <label class="sr" for="partnerName">New partner's name</label>
+          <input id="partnerName" class="in" placeholder="Partner's name" autocomplete="off">
+          <button id="partnerAdd" class="btn" type="button">Add partner</button>
+        </div>
+        <h3>Partner logins</h3>
+        <div id="teamOff" class="stack-sm">
+          <ol class="steps">
+            <li>Make a separate, free GitHub account just for the team (for example yourname-team). Not your own: partners get its token.</li>
+            <li>Signed in as that account, <a class="link" href="https://github.com/settings/tokens/new?scopes=gist&amp;description=Team%20time" target="_blank" rel="noopener">make a token</a> with No expiration and only <b>gist</b> ticked.</li>
+            <li>Paste it here. Then Invite link on each partner gives them their login.</li>
+          </ol>
+          <div class="inline">
+            <label class="sr" for="teamToken">Team GitHub token</label>
+            <input id="teamToken" class="in mono" type="password" placeholder="ghp_..." autocomplete="off" spellcheck="false">
+            <button id="teamConnect" class="btn gold" type="button">Connect</button>
+          </div>
+        </div>
+        <div id="teamOn" class="stack-sm" hidden>
+          <p id="teamAccount" class="note"></p>
+          <div class="card-ft"><button id="teamOffBtn" class="btn ghost" type="button">Disconnect the team account</button></div>
+        </div>
+        <div class="fields two">
+          <div class="field"><label for="bzTimer">Remind about a timer running longer than</label><div class="affix"><input id="bzTimer" class="in mono" inputmode="decimal" data-bf="timerLong" autocomplete="off"><span>hours</span></div></div>
+        </div>
+      </section>
+
       <section class="card" aria-labelledby="h-devices">
         <div class="card-hd"><h2 id="h-devices">Add another device</h2></div>
-        <p class="note">Copy your setup link, then open it on the other device. It only opens with your password. With sync on, it also connects that device to sync, so everything comes across.</p>
+        <p class="note owner-only">Copy your setup link, then open it on the other device. It only opens with your password. With sync on, it also connects that device to sync, so everything comes across.</p>
+        <p class="note partner-only">Copy your setup link and open it on your other phone or computer. It only opens with your password, and your time comes across.</p>
         <div class="card-ft"><button id="copySetup" class="btn" type="button">Copy setup link</button></div>
         <textarea id="setupOut" class="in mono out" rows="3" readonly hidden aria-label="Setup link"></textarea>
         <div class="field">
@@ -409,7 +561,7 @@
         <p class="note"><b>Install it like an app.</b> Android and computer: open this page in Chrome and choose Install app (or Add to Home screen). iPhone: tap Share, then Add to Home Screen.</p>
       </section>
 
-      <section class="card" aria-labelledby="h-backup">
+      <section class="card owner-only" aria-labelledby="h-backup">
         <div class="card-hd"><h2 id="h-backup">Backup</h2></div>
         <p class="note">A backup file holds every invoice, client and setting, locked with your password. Restoring it adds what's missing and keeps anything newer.</p>
         <div class="card-ft">
@@ -426,9 +578,9 @@
 
       <section class="card" aria-labelledby="h-pass">
         <div class="card-hd"><h2 id="h-pass">Password</h2></div>
-        <p class="note">Refreshing keeps you in. The app locks after 3 minutes without use, when you tap Lock, or when you fully close it.</p>
+        <p class="note">Refreshing keeps you in. The app locks after 3 minutes without use, when you tap Lock, or when you fully close it. A running timer keeps going while it's locked.</p>
         <form id="pwForm" class="pw-form" autocomplete="on">
-          <input type="text" value="Invoices" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
+          <input type="text" value="Work Hub" autocomplete="username" class="sr" tabindex="-1" readonly aria-hidden="true">
           <div class="fields two">
             <div class="field"><label for="pwNew">New password</label><input id="pwNew" class="in" type="password" autocomplete="new-password"></div>
             <div class="field"><label for="pwNew2">Type it again</label><input id="pwNew2" class="in" type="password" autocomplete="new-password"></div>
@@ -482,6 +634,7 @@
       <button id="sdPdf" class="btn" type="button">Download PDF</button>
     </div>
     <p class="note" id="sdHint"></p>
+    <label class="check" id="sdReportWrap" hidden><input type="checkbox" id="sdReport" checked> Attach the time report</label>
     <label class="check"><input type="checkbox" id="sdMark" checked> Mark as sent</label>
   </div>
 </div>
@@ -499,6 +652,22 @@
     </div>
     <div class="field"><label for="psNote">Note</label><input id="psNote" class="in" autocomplete="off" placeholder="Transaction ID or anything to remember"></div>
     <div class="card-ft"><button id="psSave" class="btn gold" type="button">Save payment</button></div>
+  </div>
+</div>
+
+<!-- inviting a partner -->
+<div id="inviteSheet" class="sheet small-sheet" role="dialog" aria-modal="true" aria-labelledby="ivTitle" hidden>
+  <div class="sheet-card">
+    <div class="card-hd"><h2 id="ivTitle">Invite</h2><button id="ivClose" class="link" type="button">Close</button></div>
+    <p class="note">Send the message and the code separately (for example the link by email, the code by Messenger), so one stolen message isn't enough.</p>
+    <div class="field"><label for="ivMsg">Message with the link</label><textarea id="ivMsg" class="in" rows="6" readonly></textarea></div>
+    <input id="ivLink" type="hidden">
+    <div class="iv-code"><span class="eyebrow">Invite code</span><strong id="ivCode" class="mono"></strong></div>
+    <div class="act-grid">
+      <button id="ivCopyMsg" class="btn gold" type="button">Copy message</button>
+      <button id="ivCopyCode" class="btn" type="button">Copy code</button>
+    </div>
+    <p class="note">A new invite link works on as many of their devices as they like. Removing the partner stops it working.</p>
   </div>
 </div>
 
