@@ -1,25 +1,28 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Page } from '../components/ui';
-import { update, useAppState, type Match } from '../lib/store';
+import { put, useAppState, type Match } from '../lib/store';
 import { FORMATS, type FormatId } from '../lib/types';
 import { planFor } from '../lib/lineup';
-import { KEY_PHRASES, PRESETS, VALUES } from '../lib/presets';
+import { KEY_PHRASES, PRESETS } from '../lib/presets';
+import { PROGRAMMES } from '../lib/model';
 
 export default function MatchSetup() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { matches, players, blocked } = useAppState();
+  const { matches, blocked, strategies, availability, teams } = useAppState();
+  const all = useAppState().players;
   const m = matches.find((x) => x.id === id);
-  if (!m) return <Page title="Match"><Link to="/" className="btn">Home</Link></Page>;
-  const set = (patch: Partial<Match>) => update((s) => ({ ...s, matches: s.matches.map((x) => (x.id === m.id ? { ...x, ...patch } : x)) }));
+  if (!m) return <Page title="Match"><Link to="/match" className="btn">Matches</Link></Page>;
+  const players = all.filter((p) => p.teamId === m.teamId && !p.left);
+  const set = (patch: Partial<Match>) => put('matches', { ...m, ...patch });
   const avail = players.filter((p) => m.availableIds.includes(p.id) && !blocked.includes(p.id));
-  const plan = planFor({ ...m, availableIds: avail.map((p) => p.id) }, players);
+  const plan = planFor({ ...m, availableIds: avail.map((p) => p.id) }, all);
   const fmt = FORMATS[m.format];
   const enough = avail.length >= fmt.slots;
   const toggleKey = (k: string) => set({ keys: m.keys.includes(k) ? m.keys.filter((x) => x !== k) : m.keys.length < 3 ? [...m.keys, k] : m.keys });
 
   return (
-    <Page title="Match setup" back={<Link to="/" className="btn ghost">Home</Link>}>
+    <Page title="Match setup" back={<Link to="/match" className="btn ghost">Back</Link>}>
       <div className="card mb-4 grid gap-3 p-4">
         <input className="field" aria-label="Match name" value={m.name} onChange={(e) => set({ name: e.target.value })} />
         <select className="field" aria-label="Format" value={m.format} onChange={(e) => set({ format: e.target.value as FormatId, locks: {} })}>
@@ -36,6 +39,7 @@ export default function MatchSetup() {
       </div>
 
       <h2 className="mb-2 text-3xl">Who is here ({avail.length})</h2>
+      {m.eventId && <button className="btn ghost mb-3" onClick={() => set({ availableIds: availability.filter((a) => a.eventId === m.eventId && a.status === 'going' && players.some((p) => p.id === a.playerId)).map((a) => a.playerId) })}>Use the parents' Going replies</button>}
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {players.map((p) => {
           const out = blocked.includes(p.id);
@@ -81,8 +85,8 @@ export default function MatchSetup() {
       <div className="card mb-4 grid gap-3 p-4">
         <div><div className="mb-1 font-semibold">Our 3 keys ({m.keys.length}/3)</div>
           <div className="flex flex-wrap gap-2">{KEY_PHRASES.map((k) => <button key={k} className={`btn ${m.keys.includes(k) ? '' : 'ghost'}`} onClick={() => toggleKey(k)}>{k}</button>)}</div></div>
-        <label className="text-sm">The move<select className="field" value={m.moveKey} onChange={(e) => set({ moveKey: e.target.value })}>{PRESETS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-        <label className="text-sm">Focus value today<select className="field" value={m.focusValue} onChange={(e) => set({ focusValue: e.target.value })}>{VALUES.map((v) => <option key={v}>{v}</option>)}</select></label>
+        <label className="text-sm">The move<select className="field" value={m.moveKey} onChange={(e) => set({ moveKey: e.target.value })}>{PRESETS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}{strategies.map((p) => <option key={p.id} value={p.id}>{p.name} (mine)</option>)}</select></label>
+        <label className="text-sm">Focus value today<select className="field" value={m.focusValue} onChange={(e) => set({ focusValue: e.target.value })}>{PROGRAMMES[teams.find((t) => t.id === m.teamId)?.programme ?? 'rangers'].values.map((v) => <option key={v}>{v}</option>)}</select></label>
       </div>
 
       <div className="fixed inset-x-0 bottom-0 flex gap-2 p-3" style={{ background: 'var(--bg)', paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>

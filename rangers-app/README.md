@@ -111,17 +111,16 @@ Only paid option worth knowing: Supabase Pro (USD 25 a month) removes the 7-day 
 
 ## 7. Status
 
-Update this table at the end of every phase.
+| Phase | Status | Notes |
+|---|---|---|
+| Plan and research | Done | This folder |
+| 0. Setup | Built | App, CI and deploy workflows in `app/`; domain, crest and accounts still to do (`app/SETUP.md`) |
+| 1. Match Day Kit | Built | Offline match planner, live match, Match Day Board, tactics editor |
+| 2. Accounts, families, privacy | Built, not tested live | Coach and parent logins, invites, consent, privacy; database rules tested locally |
+| 3. Schedule and reminders | Built, push not tested live | Events, replies, attendance, announcements, messages, heat and thunder checks |
+| 4. Training | Built | Session builder, 30 drills, run mode, curriculum |
+| 5. Development and wellbeing | Built | Term reviews, recognition, badges, growth, injuries, head-knock block |
+| 6. Club support | Built | Tournament fund, boot bank, optional contributions |
+| 7. Polish and scale | Partly | TV link built (untested live); translations, player logins, rollover not built |
 
-| Phase | Status | Date | Notes |
-|---|---|---|---|
-| Plan and research | Done | 23 Oct 2026 | This folder |
-| Coach interview and decisions | Not started | | |
-| 0. Setup | Built (code in `app/`); domain and crest still to do | 23 Oct 2026 | Placeholder icons |
-| 1. Match Day Kit | Built, needs a field test | 23 Oct 2026 | Board editor still to build; see app/README.md |
-| 2. Accounts, families, privacy | Not started | | |
-| 3. Schedule and reminders | Not started | | |
-| 4. Training | Not started | | |
-| 5. Development and wellbeing | Not started | | |
-| 6. Club support | Not started | | |
-| 7. Polish and scale | Not started | | |
+All phases were built in one go at the club's request instead of one at a time, so **field testing is still ahead of us**: use `docs/05-build-roadmap.md` (field-test gate) on a staging project and one pilot team before the whole club joins. One design change from the blueprint is recorded in `docs/adr/0009-records-table.md`.

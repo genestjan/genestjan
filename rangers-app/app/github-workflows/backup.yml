@@ -1,0 +1,20 @@
+# Weekly encrypted database backup, stored in a PRIVATE repository (rangersfc/rangers-app-backups).
+# Secrets: SUPABASE_DB_URL (the "connection string" from the Supabase dashboard), AGE_PUBLIC_KEY, BACKUP_REPO_TOKEN (fine-grained token, contents: write on the backups repo only).
+# Keep the matching age PRIVATE key offline with two admins. Test a restore into a scratch project once.
+name: Weekly backup
+on: { schedule: [{ cron: '41 18 * * 0' }], workflow_dispatch: {} }
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq age postgresql-client
+      - run: |
+          pg_dump "${{ secrets.SUPABASE_DB_URL }}" --no-owner --schema=public --data-only --format=custom -f backup.dump
+          age -r "${{ secrets.AGE_PUBLIC_KEY }}" -o "backup-$(date +%F).dump.age" backup.dump
+          rm backup.dump
+      - run: |
+          git clone "https://x-access-token:${{ secrets.BACKUP_REPO_TOKEN }}@github.com/${{ github.repository_owner }}/rangers-app-backups.git" repo
+          mv backup-*.dump.age repo/ && cd repo
+          ls -1t backup-*.dump.age | tail -n +13 | xargs -r git rm -q
+          git config user.name backup-bot && git config user.email backup@users.noreply.github.com
+          git add -A && git commit -qm "Backup $(date +%F)" && git push

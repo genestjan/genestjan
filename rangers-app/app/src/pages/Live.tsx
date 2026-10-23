@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Page } from '../components/ui';
-import { update, useAppState, type Match, type MatchEvent } from '../lib/store';
+import { getState, put, useAppState, type Match, type MatchEvent, uid } from '../lib/store';
 import { clockSeconds, isEnded, isRunning, onField, playedFor, windowIndexAt } from '../lib/matchClock';
 import { formatClock, owedSeconds } from '../lib/fairShare';
 import { planFor } from '../lib/lineup';
@@ -27,9 +27,9 @@ export default function Live() {
     if (running && wi !== lastWin.current) { if (lastWin.current >= 0) navigator.vibrate?.([300, 120, 300]); lastWin.current = wi; }
   }, [wi, running]);
 
-  if (!m || !plan) return <Page title="Match"><Link to="/" className="btn">Home</Link></Page>;
+  if (!m || !plan) return <Page title="Match"><Link to="/match" className="btn">Matches</Link></Page>;
   const fmt = FORMATS[m.format];
-  const add = (...evs: MatchEvent[]) => update((s) => ({ ...s, matches: s.matches.map((x) => (x.id === m.id ? { ...x, log: [...x.log, ...evs] } : x)) }));
+  const add = (...evs: MatchEvent[]) => put('matches', { ...getState().matches.find((x) => x.id === m.id)!, log: [...getState().matches.find((x) => x.id === m.id)!.log, ...evs] });
   const T = Date.now();
   const on = onField(log);
   const present = squad.length;
@@ -57,7 +57,7 @@ export default function Live() {
   const head = (pid: string) => {
     if (!confirm(`Suspected head injury for ${nameOf(pid)}? They come off now and stay out of lineups until a head coach clears them. If in doubt, sit them out.`)) return;
     add({ t: T, type: 'injury', playerId: pid, head: true }, ...(on.has(pid) ? [{ t: T, type: 'off' as const, playerId: pid }] : []));
-    update((s) => ({ ...s, blocked: [...new Set([...s.blocked, pid])] }));
+    put('injuries', { id: uid(), playerId: pid, date: new Date().toISOString().slice(0, 10), kind: 'Suspected head injury', bodyPart: 'Head', notes: 'Recorded during a match', head: true, familyNotified: false });
   };
   const field = squad.filter((p) => on.has(p.id)), bench = squad.filter((p) => !on.has(p.id))
     .sort((a, b) => owedSeconds(playedFor(log, b.id, now), sec, fmt.slots, present) - owedSeconds(playedFor(log, a.id, now), sec, fmt.slots, present));
@@ -78,11 +78,15 @@ export default function Live() {
     );
   };
 
+  if (ended && !getState().minutes.some((x) => x.matchId === m.id)) {
+    const endT = log.find((e) => e.type === 'end')!.t;
+    for (const p of squad) put('minutes', { id: uid(), playerId: p.id, matchId: m.id, name: m.name, date: new Date(endT).toISOString().slice(0, 10), minutes: Math.round(playedFor(log, p.id, endT) / 60) });
+  }
   if (ended) {
-    const rows = squad.map((p) => ({ name: p.firstName, min: Math.round(playedFor(log, p.id, now) / 60) }));
+    const rows = squad.map((p) => ({ id: p.id, name: p.firstName, min: Math.round(playedFor(log, p.id, now) / 60) }));
     const csv = ['Player,Minutes', ...rows.map((r) => `${r.name},${r.min}`)].join('\n');
     return (
-      <Page title="Full time" back={<Link to="/" className="btn ghost">Home</Link>}>
+      <Page title="Full time" back={<Link to="/match" className="btn ghost">Matches</Link>}>
         <div className="card mb-4 p-4">{rows.map((r) => <div key={r.name} className="flex justify-between py-1"><span>{r.name}</span><b>{r.min} min</b></div>)}</div>
         <div className="flex gap-2">
           <button className="btn flex-1" onClick={() => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `${m.name}.csv`; a.click(); }}>Export CSV</button>
