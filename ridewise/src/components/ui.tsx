@@ -8,10 +8,10 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 
 export function PageTitle({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
   return (
-    <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-600">{subtitle}</p>}
+        <h1 className="text-[1.7rem] font-bold leading-tight tracking-tight text-navy">{title}</h1>
+        {subtitle && <p className="mt-1 text-base text-slate-600">{subtitle}</p>}
       </div>
       {action}
     </header>
@@ -29,7 +29,7 @@ const NOTICE: Record<Level | 'ok', { cls: string; Icon: typeof Info; word: strin
 export function Notice({ level, title, children, role }: { level: Level | 'ok'; title?: string; children?: ReactNode; role?: 'alert' | 'status' }) {
   const n = NOTICE[level];
   return (
-    <div role={role ?? (level === 'danger' ? 'alert' : 'status')} className={`flex gap-3 rounded-xl border p-3 text-sm ${n.cls}`}>
+    <div role={role ?? (level === 'danger' ? 'alert' : 'status')} className={`flex gap-3 rounded-2xl border p-4 text-base ${n.cls}`}>
       <n.Icon aria-hidden className="mt-0.5 h-5 w-5 shrink-0" />
       <div className="min-w-0">
         <p className="font-semibold">
@@ -44,10 +44,10 @@ export function Notice({ level, title, children, role }: { level: Level | 'ok'; 
 
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
-    <div className="rounded-xl bg-slate-100 p-3">
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className="mt-0.5 text-lg font-bold text-navy">{value}</dd>
-      {hint && <p className="text-xs text-slate-500">{hint}</p>}
+    <div className="rounded-2xl bg-brand-50 p-3.5">
+      <dt className="text-sm font-medium text-slate-600">{label}</dt>
+      <dd className="mt-0.5 font-display text-xl font-bold text-navy">{value}</dd>
+      {hint && <p className="text-sm text-slate-500">{hint}</p>}
     </div>
   );
 }
@@ -130,8 +130,8 @@ export function Progress({ pct, label }: { pct: number; label: string }) {
         <span>{label}</span>
         <span>{pct}%</span>
       </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
-        <div className="h-full rounded-full bg-go transition-all" style={{ width: `${pct}%` }} />
+      <div className="h-3 overflow-hidden rounded-full bg-brand-100" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+        <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -140,7 +140,7 @@ export function Progress({ pct, label }: { pct: number; label: string }) {
 export function EmptyState({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <div className="card text-center">
-      <p className="text-lg font-semibold text-navy">{title}</p>
+      <p className="font-display text-xl font-bold text-navy">{title}</p>
       {children && <div className="mx-auto mt-1 max-w-md text-sm text-slate-600">{children}</div>}
       {action && <div className="mt-4 flex flex-wrap justify-center gap-2">{action}</div>}
     </div>

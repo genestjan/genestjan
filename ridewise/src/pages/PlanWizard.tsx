@@ -42,14 +42,14 @@ export default function PlanWizard() {
   return (
     <div>
       <PageTitle title="Plan a Ride" subtitle={plan.isSample ? 'Editing the sample plan (demo data)' : plan.name} />
-      <ol className="mb-4 grid grid-cols-5 gap-1" aria-label="Planning steps">
+      <ol className="mb-4 flex gap-2 overflow-x-auto pb-1" aria-label="Planning steps">
         {STEPS.map((s, i) => (
           <li key={s}>
             <button
               type="button"
               onClick={() => setStep(i + 1)}
               aria-current={step === i + 1 ? 'step' : undefined}
-              className={`w-full rounded-lg px-1 py-2 text-xs font-semibold ${step === i + 1 ? 'bg-navy text-white' : 'bg-slate-200 text-slate-700'}`}
+              className={`min-h-[44px] whitespace-nowrap rounded-full px-4 text-sm font-bold ${step === i + 1 ? 'bg-brand-700 text-white shadow-card' : 'bg-white text-brand-800 ring-1 ring-brand-200'}`}
             >
               {i + 1}. {s}
             </button>

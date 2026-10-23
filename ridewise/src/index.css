@@ -1,26 +1,43 @@
+@import '@fontsource/montserrat/latin-600.css';
+@import '@fontsource/montserrat/latin-700.css';
+@import '@fontsource/montserrat/latin-800.css';
+@import '@fontsource/roboto/latin-400.css';
+@import '@fontsource/roboto/latin-500.css';
+@import '@fontsource/roboto/latin-700.css';
+@import '@fontsource/roboto/latin-900.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  html { -webkit-tap-highlight-color: transparent; }
-  body { @apply bg-slate-50 text-slate-900 antialiased; }
-  :focus-visible { @apply outline outline-2 outline-offset-2 outline-sky; }
+  html { -webkit-tap-highlight-color: transparent; font-size: 17px; }
+  body { @apply bg-page font-sans text-navy antialiased; }
+  h1, h2, h3 { @apply font-display; }
+  :focus-visible { @apply outline outline-[3px] outline-offset-2 outline-brand-500; }
 }
 
 @layer components {
-  .btn { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
+  /* Pill buttons, big enough for a gloved thumb. */
+  .btn { @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full px-5 py-2 text-base font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50; }
   .btn-primary { @apply btn bg-navy text-white hover:bg-navy-3; }
-  .btn-go { @apply btn bg-go text-white hover:brightness-110; }
-  .btn-secondary { @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-100; }
+  .btn-go { @apply btn bg-brand-700 text-white shadow-sm hover:bg-brand-800; }
+  .btn-soft { @apply btn bg-brand-100 text-brand-800 hover:bg-brand-200; }
+  .btn-secondary { @apply btn border-2 border-brand-300 bg-white text-brand-800 hover:bg-brand-50; }
   .btn-danger { @apply btn bg-danger text-white hover:brightness-110; }
-  .btn-ghost { @apply btn text-slate-700 hover:bg-slate-200; }
-  .card { @apply rounded-2xl border border-slate-200 bg-white p-4 shadow-sm; }
-  .input { @apply min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 placeholder:text-slate-400 focus:border-sky focus:outline-none focus:ring-2 focus:ring-sky/30; }
-  .label { @apply mb-1 block text-sm font-medium text-slate-700; }
-  .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .btn-ghost { @apply btn text-brand-800 hover:bg-brand-100; }
+  .card { @apply rounded-3xl bg-white p-5 shadow-card; }
+  .card-outline { @apply rounded-3xl border-2 border-brand-300 bg-white p-5 shadow-card; }
+  .input { @apply min-h-[48px] w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-2 text-base text-navy placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20; }
+  .label { @apply mb-1 block text-sm font-medium text-slate-600; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold; }
 }
 
 .leaflet-container { font: inherit; }
 .rw-pin { display: grid; place-items: center; border-radius: 9999px; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,.4); color: white; font-weight: 700; font-size: 12px; }
-.rw-arrow { color: #0f1b2d; font-size: 16px; line-height: 16px; text-shadow: 0 0 2px white; }
+.rw-arrow { color: #17404d; font-size: 16px; line-height: 16px; text-shadow: 0 0 2px white; }
+
+/* Rounder, softer map controls to match the app. */
+.leaflet-bar { border: none !important; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 18px rgba(36,52,71,.16) !important; }
+.leaflet-bar a { width: 40px !important; height: 40px !important; line-height: 40px !important; color: #236472 !important; font-weight: 700; }
+.leaflet-top.leaflet-right { margin-top: 0.4rem; }

@@ -4,6 +4,11 @@ import { useStore } from '../store/store';
 import { NumberField, Card, Field, Notice, PageTitle, confirmAction } from '../components/ui';
 import { config } from '../config';
 import { currentUserEmail, sendMagicLink, signOut, syncConfigured, syncNow } from '../services/sync';
+import { useAuth } from '../store/auth';
+import { AVATAR_COLORS } from '../store/accounts';
+import { biometricAvailable } from '../lib/biometric';
+import { Avatar, ErrorLine, PasswordInput } from '../components/auth/parts';
+import type { UnlockMode } from '../store/accounts';
 import type { RidePlan } from '../types';
 
 export default function Settings() {
@@ -49,6 +54,7 @@ export default function Settings() {
     <div className="space-y-4">
       <PageTitle title="Settings" />
       {msg && <Notice level={msg.level} title={msg.text} />}
+      <AccountSection />
       <Card className="space-y-3">
         <h2 className="font-bold text-navy">Reminders</h2>
         <p className="text-sm text-slate-600">Starting points, not prescriptions. Drink and eat to your own needs, the heat and how hard you are working.</p>
@@ -173,6 +179,138 @@ function AccountCard() {
         </form>
       )}
       {msg && <p className="text-sm" role="status">{msg}</p>}
+    </Card>
+  );
+}
+
+function AccountSection() {
+  const { current, unlockMode, setOpenMode, updateProfile, updatePassword, deleteCurrent, logOut, lock } = useAuth();
+  const [name, setName] = useState(current?.name ?? '');
+  const [color, setColor] = useState(current?.color ?? AVATAR_COLORS[0]);
+  const [canFinger, setCanFinger] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [pwOpen, setPwOpen] = useState(false);
+  const [oldPw, setOldPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [delPw, setDelPw] = useState('');
+  const [delOpen, setDelOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    biometricAvailable().then(setCanFinger);
+  }, []);
+  if (!current) return null;
+
+  const modes: { value: UnlockMode; title: string; text: string; show: boolean }[] = [
+    { value: 'fingerprint', title: 'Fingerprint or face', text: 'Your phone checks that it is you.', show: canFinger || unlockMode === 'fingerprint' },
+    { value: 'open', title: 'Just open', text: 'Fastest. Anyone with your phone can open it.', show: true },
+    { value: 'password', title: 'My password', text: 'You type it every time.', show: true },
+  ];
+
+  return (
+    <Card className="space-y-4">
+      <div className="flex items-center gap-3">
+        <Avatar account={{ name, color }} size={56} />
+        <div>
+          <h2 className="text-xl font-bold text-navy">My account</h2>
+          <p className="text-base text-slate-600">Saved safely on this phone, locked with your password.</p>
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="My name" htmlFor="acc-name">
+          <input id="acc-name" className="input" value={name} maxLength={30} onChange={(e) => setName(e.target.value)} />
+        </Field>
+        <fieldset>
+          <legend className="label">My color</legend>
+          <div className="flex flex-wrap gap-2">
+            {AVATAR_COLORS.map((c, i) => (
+              <label key={c} className="cursor-pointer">
+                <input type="radio" name="my-color" className="peer sr-only" checked={color === c} onChange={() => setColor(c)} aria-label={['Blue', 'Green', 'Orange', 'Purple', 'Red', 'Teal'][i]} />
+                <span className="block h-10 w-10 rounded-full ring-offset-2 peer-checked:ring-4 peer-checked:ring-navy peer-focus-visible:ring-4 peer-focus-visible:ring-sky" style={{ background: c }} />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+      <button type="button" className="btn-secondary" disabled={!name.trim() || (name === current.name && color === current.color)} onClick={async () => { await updateProfile(name, color); setNote('Saved!'); }}>
+        Save my name and color
+      </button>
+
+      <fieldset className="space-y-2">
+        <legend className="label text-base">How should this phone open RideWise?</legend>
+        {modes.filter((m) => m.show).map((m) => (
+          <label key={m.value} className="block cursor-pointer">
+            <input
+              type="radio"
+              name="open-mode-settings"
+              className="peer sr-only"
+              checked={unlockMode === m.value}
+              onChange={async () => {
+                setError(null);
+                const r = await setOpenMode(m.value);
+                if (!r.ok) setError(r.message ?? 'That did not work.');
+                else setNote('Saved!');
+              }}
+            />
+            <span className="block rounded-2xl border-2 border-slate-200 p-3 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-focus-visible:ring-4 peer-focus-visible:ring-sky">
+              <span className="block text-lg font-bold">{m.title}</span>
+              <span className="block text-base text-slate-700">{m.text}</span>
+            </span>
+          </label>
+        ))}
+        {!canFinger && unlockMode !== 'fingerprint' && <p className="text-sm text-slate-600">Fingerprint is not available in this browser. Chrome on Android usually has it.</p>}
+      </fieldset>
+      <ErrorLine text={error} />
+      {note && <p role="status" className="text-base font-semibold text-go">{note}</p>}
+
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className="btn-secondary" onClick={() => void lock()}>Lock for now</button>
+        <button type="button" className="btn-secondary" onClick={() => void logOut()}>Log out (ask for password next time)</button>
+        <button type="button" className="btn-ghost" onClick={() => setPwOpen((o) => !o)} aria-expanded={pwOpen}>Change my password</button>
+      </div>
+      {pwOpen && (
+        <form
+          className="space-y-3 rounded-2xl bg-slate-50 p-3"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            try {
+              await updatePassword(oldPw, newPw);
+              setOldPw('');
+              setNewPw('');
+              setPwOpen(false);
+              setNote('Your password was changed.');
+            } catch (err) {
+              setError((err as Error).message);
+            }
+          }}
+        >
+          <PasswordInput id="old-pw" label="My password now" value={oldPw} onChange={setOldPw} autoComplete="current-password" />
+          <PasswordInput id="new-pw" label="My new password" value={newPw} onChange={setNewPw} autoComplete="new-password" hint="At least 8 letters or numbers." />
+          <button type="submit" className="btn-primary" disabled={!oldPw || !newPw}>Change password</button>
+        </form>
+      )}
+
+      <div className="border-t border-slate-200 pt-3">
+        <button type="button" className="btn-ghost text-danger" onClick={() => setDelOpen((o) => !o)} aria-expanded={delOpen}>Delete my account</button>
+        {delOpen && (
+          <form
+            className="mt-2 space-y-3 rounded-2xl bg-danger-soft p-3"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!confirmAction(`Delete ${current.name}'s account and all saved rides on this phone? This cannot be undone.`)) return;
+              try {
+                await deleteCurrent(delPw);
+              } catch (err) {
+                setError((err as Error).message);
+              }
+            }}
+          >
+            <p className="text-base font-semibold text-red-900">This removes all of {current.name}'s rides from this phone for good. Save a copy first if you want to keep them.</p>
+            <PasswordInput id="del-pw" label="Type your password to say yes" value={delPw} onChange={setDelPw} autoComplete="current-password" />
+            <button type="submit" className="btn-danger" disabled={!delPw}>Delete everything</button>
+          </form>
+        )}
+      </div>
     </Card>
   );
 }

@@ -12,7 +12,7 @@ export function EmergencyButton({ compact = false }: { compact?: boolean }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={compact ? 'btn min-h-[40px] bg-danger px-3 text-white' : 'btn-danger w-full text-lg'}
+        className={compact ? 'btn min-h-[42px] bg-danger px-4 text-sm font-bold uppercase tracking-wide text-white' : 'btn-danger w-full text-lg'}
         aria-haspopup="dialog"
       >
         <Siren aria-hidden className="h-5 w-5" /> {compact ? 'SOS' : 'Emergency help'}
@@ -35,7 +35,7 @@ export function EmergencyPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[3000] flex items-end justify-center bg-black/50 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="emergency-title">
-      <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-5 sm:rounded-3xl">
+      <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-4xl bg-white p-6 sm:rounded-4xl">
         <div className="flex items-start justify-between">
           <h2 id="emergency-title" className="text-xl font-bold text-danger">
             Emergency help
