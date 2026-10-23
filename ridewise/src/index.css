@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-slate-50 text-slate-900 antialiased; }
+  :focus-visible { @apply outline outline-2 outline-offset-2 outline-sky; }
+}
+
+@layer components {
+  .btn { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-navy text-white hover:bg-navy-3; }
+  .btn-go { @apply btn bg-go text-white hover:brightness-110; }
+  .btn-secondary { @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-100; }
+  .btn-danger { @apply btn bg-danger text-white hover:brightness-110; }
+  .btn-ghost { @apply btn text-slate-700 hover:bg-slate-200; }
+  .card { @apply rounded-2xl border border-slate-200 bg-white p-4 shadow-sm; }
+  .input { @apply min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 placeholder:text-slate-400 focus:border-sky focus:outline-none focus:ring-2 focus:ring-sky/30; }
+  .label { @apply mb-1 block text-sm font-medium text-slate-700; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+}
+
+.leaflet-container { font: inherit; }
+.rw-pin { display: grid; place-items: center; border-radius: 9999px; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,.4); color: white; font-weight: 700; font-size: 12px; }
+.rw-arrow { color: #0f1b2d; font-size: 16px; line-height: 16px; text-shadow: 0 0 2px white; }

@@ -23,9 +23,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            ridewise/package-lock.json
       - run: npm ci
       - run: npm run build
       # next.config.mjs sets output:'export', so the static site lands in out/
+      # RideWise (cycling pit stop planner) is its own Vite app, served at /ridewise/
+      - run: npm ci
+        working-directory: ridewise
+      - run: npm test
+        working-directory: ridewise
+      - run: npm run build
+        working-directory: ridewise
+      - run: cp -r ridewise/dist out/ridewise
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

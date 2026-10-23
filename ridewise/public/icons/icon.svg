@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0f1b2d"/>
+  <path d="M96 352 C 170 352, 170 210, 256 210 S 342 120, 416 120" fill="none" stroke="#38bdf8" stroke-width="22" stroke-linecap="round" stroke-dasharray="2 40"/>
+  <circle cx="96" cy="352" r="26" fill="#22c55e"/>
+  <circle cx="256" cy="210" r="30" fill="#ffffff"/>
+  <circle cx="256" cy="210" r="13" fill="#0f1b2d"/>
+  <path d="M416 82 l0 76" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+  <path d="M416 82 l52 18 l-52 18 z" fill="#f59e0b"/>
+  <text x="256" y="440" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#ffffff" text-anchor="middle">RideWise</text>
+</svg>
