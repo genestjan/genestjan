@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, MapPin, Search } from 'lucide-react';
 import type { Candidate, LatLng, StopCategory } from '../types';
@@ -23,6 +23,12 @@ export default function MapPage() {
   const [hidden, setHidden] = useState<Set<MapGroup>>(new Set(['fuel']));
   const [pinMode, setPinMode] = useState(false);
   const [pin, setPin] = useState<LatLng | null>(null);
+  const mapBox = useRef<HTMLDivElement>(null);
+  const startPinMode = () => {
+    setPinMode((m) => !m);
+    // The button sits below the map; bring the map back into view.
+    if (!pinMode) mapBox.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
 
   const visible = useMemo(
     () => (plan?.candidates ?? []).filter((c) => !hidden.has(GROUP_OF[c.category]) && c.insideCorridor),
@@ -71,6 +77,12 @@ export default function MapPage() {
         subtitle={`${plan.start.label} → ${plan.end.label} · ${formatKm(plan.route.distanceM / 1000)} by bicycle`}
         action={plan.isSample ? <Badge tone="caution">Sample: demonstration data</Badge> : undefined}
       />
+      <div ref={mapBox} className="relative">
+      {pinMode && !pin && (
+        <p className="absolute inset-x-2 top-2 z-10 rounded-xl bg-caution px-3 py-2 text-center text-sm font-semibold text-white shadow" role="status">
+          Tap the map where the stop is. <button type="button" className="underline" onClick={() => setPinMode(false)}>Cancel</button>
+        </p>
+      )}
       <RouteMap
         route={plan.route}
         start={plan.start.point}
@@ -83,6 +95,7 @@ export default function MapPage() {
         extraPoints={pin ? [{ point: pin, label: 'New stop' }] : []}
         focus={selected?.point ?? pin}
       />
+      </div>
       <p className="text-xs text-slate-500">
         Route: {plan.route.providerLabel}, retrieved {plan.route.retrievedAt.slice(0, 10)}. Arrows show the direction of travel. Map data © OpenStreetMap contributors.
       </p>
@@ -164,7 +177,7 @@ export default function MapPage() {
       <Card className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-bold text-navy">Add a stop that is not on the map</h2>
-          <button type="button" className={pinMode ? 'btn-go' : 'btn-secondary'} onClick={() => setPinMode((m) => !m)} aria-pressed={pinMode}>
+          <button type="button" className={pinMode ? 'btn-go' : 'btn-secondary'} onClick={startPinMode} aria-pressed={pinMode}>
             <MapPin aria-hidden className="h-4 w-4" />
             {pinMode ? 'Tap the map to drop the pin' : 'Drop a pin'}
           </button>

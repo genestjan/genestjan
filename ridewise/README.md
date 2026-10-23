@@ -92,32 +92,48 @@ with `RIDEWISE_BASE=/ npm run build` and serve `dist/` from any static host.
 | Detours | Estimate: 2 × straight-line distance × 1.3, labelled as estimate |
 | Times | Estimates from distance ÷ group pace + buffer + stop durations |
 | Weather, sunrise/sunset | Open-Meteo with retrieval time; "not verified" when unavailable |
-| Sample ride | Real OSRM route geometry bundled from 2026-10-23, labelled demo data everywhere |
+| Sample ride | Real OSRM route and a real (partial) OpenStreetMap places snapshot from 2026-10-23, labelled demo data everywhere |
+| Sunrise/sunset | Calculated on the device (solar equations), labelled "calculated" |
 
 ## Verification status (honest)
 
-Verified during development (2026-10-23):
+Checked against real data (retrieved 2026-10-23):
 
-- Real OSRM bicycle route Jollibee (Digos-Makar Rd, Lagao) → DCOTT: **135.13 km**, 3,601
-  points, plus a 292.8 km alternative. The geometry is bundled for the sample ride and a test
-  checks our distance maths against OSRM's within 1% (we compute 135.58 km).
-- Real Nominatim results: six Jollibee branches in GenSan; DCOTT at 7.05557, 125.60109.
-- 76 unit/component tests and 7 end-to-end tests pass. The e2e tests use the real recorded
-  route and geocoding responses; place-search results in e2e are synthetic and named
-  "TEST …". Production build passes, and the full site builds with RideWise inside.
+- **Route:** OSRM bicycle route Jollibee (Digos-Makar Rd, Lagao) → DCOTT: **135.13 km**,
+  3,601 points, plus a 292.8 km alternative. Our distance maths agrees with OSRM within 1%.
+- **Endpoints:** six Jollibee branches in GenSan (the app makes the rider choose); DCOTT at
+  7.05557, 125.60109.
+- **Places:** 479 real OpenStreetMap places along the route (122 convenience stores and
+  sari-sari stores, 258 restaurants/carinderias/fast food, 40 pharmacies, 39 hospitals,
+  17 bicycle shops, 3 water points), fetched section by section through Nominatim. **290
+  are within 1 km of the route.** The planning engine, run on this real data
+  (`src/lib/realdata.test.ts`), builds a 12-stop relaxed itinerary entirely from real
+  places (7-Elevens, Bracero Eatery in Malalag, Central Convenience in Sulop, Nanay Soting
+  Resto in Santa Cruz, a lunch stop at 11:48 AM) and finishes about 5:09 PM. It also flags
+  a 7-Eleven tagged "closed" and a restaurant whose listed hours say it is closed at the ETA.
+  This snapshot ships with the sample ride so the demo is real and works offline.
+- **Daylight:** the built-in sunrise/sunset calculation matches Open-Meteo for GenSan and
+  Davao within 3 minutes (7 Nov 2026: sunrise 05:26, sunset 17:16 to 17:19). Every plan now
+  warns about riding before sunrise or close to sunset.
+- **Weather:** the parser is tested on a real Open-Meteo response (GenSan, 7 Nov 2026).
+
+Automated checks: 86 unit/component tests and 10 browser tests on an Android-sized screen,
+covering planning, editing, saving/reloading, sharing, pin-dropping a sari-sari store,
+offline reload through the service worker, live ride with check-ins and emergency panel,
+checklists, validation, and no uncaught errors on any page. The browser tests use the real
+recorded route and geocoding responses; their live place-search results are synthetic and
+named "TEST …" so they can never be mistaken for real data.
 
 Not yet verified:
 
-- **Live Overpass place search for this route.** The public Overpass server answered "at
-  capacity" to every request from the development environment (including tiny queries), so
-  the real list of stores along GenSan → Davao has not been seen. The app retries with
-  backoff across three mirrors and tells the rider clearly if all are busy. First real test
-  should be on a phone.
-- Live calls from a phone browser to OSRM, Nominatim and Open-Meteo (CORS and rate limits
-  behave differently from the server-side checks done here).
-- Supabase sync, the migration and the ORS proxy have not been run against a live project.
-- Background GPS: browsers pause location when the screen is off. RideWise says so and falls
-  back to manual progress.
+- **The live Overpass search itself.** All public Overpass servers refused requests from
+  the development environment. A phone browser is the normal client for these servers, but
+  this has not been seen working yet. If it fails, the app says so and keeps the rider's own
+  stops; the sample still has real places.
+- Live calls from a phone browser to OSRM, Nominatim and Open-Meteo.
+- Supabase sync, the migration and the ORS proxy against a live project.
+- Background GPS: browsers pause location when the screen is off; RideWise says so and
+  falls back to manual progress.
 
 ## Features
 

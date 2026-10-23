@@ -79,6 +79,23 @@ describe('computeSchedule', () => {
     expect(s.rows[1].arrivalMs).toBe(t('2026-11-07T08:15'));
   });
 
+  it('shifts every time when the ride actually starts late, and can show the original plan', () => {
+    const base = testPlan({ stops: [stop('a', cand('A', 20), 10)] });
+    const late = ok(computeSchedule(base, { startedAtMs: t('2026-11-07T05:30') }));
+    expect(late.rows[0].arrivalMs).toBe(t('2026-11-07T06:30'));
+    base.stops[0].actualArrival = new Date(t('2026-11-07T06:45')).toISOString();
+    const original = ok(computeSchedule(base, { ignoreActuals: true, startedAtMs: t('2026-11-07T05:30') }));
+    expect(original.rows[0].arrivalMs).toBe(t('2026-11-07T06:00'));
+  });
+
+  it('calculates daylight and warns about riding in the dark', () => {
+    const s = ok(computeSchedule(testPlan({ departureLocal: '2026-11-07T04:30' })));
+    expect(s.daylight).not.toBeNull();
+    expect(s.warnings.some((w) => w.code === 'before-sunrise')).toBe(true);
+    const evening = ok(computeSchedule(testPlan({ departureLocal: '2026-11-07T13:30' })));
+    expect(evening.warnings.some((w) => w.code === 'after-sunset')).toBe(true);
+  });
+
   it('flags a departure recorded before arrival', () => {
     const base = testPlan({ stops: [stop('a', cand('A', 20), 10)] });
     base.stops[0].actualArrival = new Date(t('2026-11-07T06:30')).toISOString();
@@ -186,6 +203,14 @@ describe('suggestStops', () => {
     const plan = testPlan({ candidates: [cand('A', 14), cand('B', 28)], stops: [mine] });
     const ids = suggestStops(plan).stops.map((s) => s.id);
     expect(ids).toContain('mine');
+  });
+
+  it('does not treat a skipped stop as a place the group stops', () => {
+    const skipped = stop('sk', cand('S', 14, { verification: 'user-verified' }), 10, { status: 'skipped' });
+    const plan = testPlan({ candidates: [cand('A', 13), cand('S', 14)], stops: [skipped] });
+    const ids = suggestStops(plan).stops.map((s) => s.id);
+    expect(ids).toContain('sk'); // kept in the list
+    expect(suggestStops(plan).stops.some((s) => s.place.id === 'A')).toBe(true); // a real stop still chosen
   });
 
   it('prefers a restaurant as the meal stop around lunch', () => {

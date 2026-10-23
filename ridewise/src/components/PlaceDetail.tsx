@@ -22,7 +22,8 @@ export function verificationBadge(c: Candidate) {
 
 export function sourceText(c: Candidate) {
   if (c.source === 'user' || c.source === 'map-pin') return `Added by a rider on ${c.retrievedAt.slice(0, 10)}`;
-  return `OpenStreetMap contributors via Overpass${c.osmRef ? ` (${c.osmRef})` : ''}, retrieved ${c.retrievedAt.slice(0, 10)}`;
+  const via = c.source === 'osm-nominatim' ? 'Nominatim (sample snapshot)' : 'Overpass';
+  return `OpenStreetMap contributors via ${via}${c.osmRef ? ` (${c.osmRef})` : ''}, retrieved ${c.retrievedAt.slice(0, 10)}`;
 }
 
 /** Estimated arrival at a candidate if the group rode straight there from the last stop before it. */

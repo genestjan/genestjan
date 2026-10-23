@@ -15,7 +15,7 @@ import { Card, Field, Notice, NumberField, PageTitle } from '../components/ui';
 import { EndpointPicker, endpointFromPin } from '../components/EndpointPicker';
 import { RouteMap } from '../components/RouteMap';
 
-const STEPS = ['Route', 'Rider', 'Bike', 'Preferences', 'Group'];
+const STEPS = ['Route', 'Rider', 'Bike', 'Prefs', 'Group'];
 
 export default function PlanWizard() {
   const nav = useNavigate();
@@ -87,13 +87,15 @@ function RouteStep({ plan, edit }: StepProps) {
 
   const setEndpoint = (which: 'start' | 'end' | number, e: Endpoint) =>
     edit((p) =>
+      // Any change to the ends or waypoints invalidates the current route.
       typeof which === 'number'
-        ? { ...p, waypoints: p.waypoints.map((w, i) => (i === which ? e : w)) }
+        ? { ...p, waypoints: p.waypoints.map((w, i) => (i === which ? e : w)), route: undefined, alternatives: undefined }
         : { ...p, [which]: e, route: undefined, alternatives: undefined },
     );
+  const unconfirmedWaypoints = plan.waypoints.filter((w) => !w.point).length;
 
   const calculate = async () => {
-    if (!plan.start.point || !plan.end.point) return;
+    if (!plan.start.point || !plan.end.point || unconfirmedWaypoints) return;
     setBusy(true);
     setError(null);
     try {
@@ -157,11 +159,15 @@ function RouteStep({ plan, edit }: StepProps) {
       />
 
       <Card className="space-y-3">
-        <button type="button" className="btn-primary w-full" onClick={calculate} disabled={busy || !plan.start.point || !plan.end.point}>
+        <button type="button" className="btn-primary w-full" onClick={calculate} disabled={busy || !plan.start.point || !plan.end.point || unconfirmedWaypoints > 0}>
           {busy ? <Loader2 aria-hidden className="h-4 w-4 animate-spin" /> : <RouteIcon aria-hidden className="h-4 w-4" />}
           {busy ? 'Asking the bicycle router…' : plan.route ? 'Recalculate bicycle route' : 'Calculate bicycle route'}
         </button>
         {(!plan.start.point || !plan.end.point) && <p className="text-sm text-slate-600">Confirm both the start and destination first.</p>}
+        {unconfirmedWaypoints > 0 && <p className="text-sm text-caution">Choose a place for each waypoint, or remove the empty ones.</p>}
+        {!plan.route && (plan.stops.length > 0 || plan.candidates.length > 0) && (
+          <Notice level="caution" title="The route changed">Recalculate it. Places from the old route will be cleared; stops you added yourself are kept and re-measured.</Notice>
+        )}
         {error && <Notice level="danger" title="Route not available">{error} You can still try again later; nothing has been guessed.</Notice>}
         {options && options.length > 0 && <RouteCompare plan={plan} options={options} onChoose={(r) => edit((p) => selectRoute(p, r, options))} />}
         <Notice level="info" title="A mapped route is a planning aid">
@@ -280,8 +286,8 @@ function RiderStep({ plan, edit }: StepProps) {
               <option value="strong">Strong</option>
             </select>
           </Field>
-          <NumberField id="r-speed" label="Comfortable cruising speed" suffix="km/h" value={rider.comfortableKmh ?? NaN} min={5} max={45} onChange={(n) => setRider({ ...rider, comfortableKmh: Number.isFinite(n) ? n : undefined })} hint="Used as a suggestion for the group pace." />
-          <NumberField id="r-break" label="Usual break every" suffix="min" value={rider.usualBreakMin ?? NaN} min={10} max={240} onChange={(n) => setRider({ ...rider, usualBreakMin: Number.isFinite(n) ? n : undefined })} />
+          <NumberField id="r-speed" optional label="Comfortable cruising speed" suffix="km/h" value={rider.comfortableKmh ?? NaN} min={5} max={45} onChange={(n) => setRider({ ...rider, comfortableKmh: Number.isFinite(n) ? n : undefined })} hint="Used as a suggestion for the group pace." />
+          <NumberField id="r-break" optional label="Usual break every" suffix="min" value={rider.usualBreakMin ?? NaN} min={10} max={240} onChange={(n) => setRider({ ...rider, usualBreakMin: Number.isFinite(n) ? n : undefined })} />
           <Field label="Food preferences" htmlFor="r-diet">
             <input id="r-diet" className="input" value={rider.dietary ?? ''} onChange={(e) => setRider({ ...rider, dietary: e.target.value })} placeholder="e.g. no pork, vegetarian" />
           </Field>
@@ -459,6 +465,7 @@ function GroupStep({ plan, edit, onDone }: StepProps & { onDone: () => void }) {
           <NumberField id="g-riders" label="Number of riders" value={g.riders} min={1} max={100} onChange={(n) => set({ riders: n })} />
           <NumberField
             id="g-slow"
+            optional
             label="Slowest comfortable pace"
             suffix="km/h"
             value={g.slowestComfortableKmh ?? NaN}

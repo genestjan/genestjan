@@ -8,8 +8,9 @@
 import type { Candidate, PlannedStop, RidePlan, StopCategory, StopKind } from '../types';
 import { hoursStatusAt, type HoursStatus } from './hours';
 import { SUPPLY_CATEGORIES, CATEGORY_LABEL } from './discovery';
-import { formatDuration, formatKm, localClock, localDayKey, parseLocal, hhmmToMinutes } from './time';
+import { formatDuration, formatKm, formatTime, localClock, localDayKey, parseLocal, hhmmToMinutes } from './time';
 import { haversineM } from './geo';
+import { sunTimes } from './sun';
 
 export type Level = 'info' | 'caution' | 'danger';
 export type ScheduleWarning = {
@@ -24,6 +25,8 @@ export type ScheduleWarning = {
     | 'duplicate'
     | 'backwards'
     | 'after-sunset'
+    | 'near-sunset'
+    | 'before-sunrise'
     | 'next-day'
     | 'long-day'
     | 'bad-actuals'
@@ -58,10 +61,17 @@ export type Schedule =
       finish: { segmentKm: number; movingMin: number; bufferMin: number; arrivalMs: number; cumKm: number };
       totals: { distanceKm: number; movingMin: number; bufferMin: number; restMin: number; elapsedMin: number; stops: number };
       warnings: ScheduleWarning[];
+      /** Calculated for the start (sunrise) and the finish (sunset). */
+      daylight: { sunriseMs: number; sunsetMs: number } | null;
     };
 
 export type ScheduleOptions = {
+  /** Override the calculated sunset (tests, or a provider's value). */
   sunsetMs?: number | null;
+  /** When the ride actually started; later times shift from here. */
+  startedAtMs?: number | null;
+  /** Ignore recorded arrival/departure times (the original plan). */
+  ignoreActuals?: boolean;
 };
 
 export function validateSpeed(speedKmh: number): string | null {
@@ -86,8 +96,9 @@ export function computeSchedule(plan: RidePlan, opts: ScheduleOptions = {}): Sch
   if (!plan.route || plan.route.coords.length < 2) return { ok: false, error: 'No route yet. Calculate a route first.' };
   const speedErr = validateSpeed(plan.settings.speedKmh);
   if (speedErr) return { ok: false, error: speedErr };
-  const departureMs = parseLocal(plan.departureLocal, plan.timeZone);
-  if (departureMs === null) return { ok: false, error: 'Departure date or time is not valid.' };
+  const plannedDepartureMs = parseLocal(plan.departureLocal, plan.timeZone);
+  if (plannedDepartureMs === null) return { ok: false, error: 'Departure date or time is not valid.' };
+  const departureMs = opts.ignoreActuals || !opts.startedAtMs ? plannedDepartureMs : opts.startedAtMs;
 
   const tz = plan.timeZone;
   const speed = plan.settings.speedKmh;
@@ -142,7 +153,7 @@ export function computeSchedule(plan: RidePlan, opts: ScheduleOptions = {}): Sch
     cumKm += segmentKm;
     let arrival = clock + (movingMin + bufferMin) * 60000;
     let usesActuals = false;
-    if (stop.actualArrival) {
+    if (stop.actualArrival && !opts.ignoreActuals) {
       const a = Date.parse(stop.actualArrival);
       if (Number.isFinite(a)) {
         arrival = a;
@@ -152,7 +163,7 @@ export function computeSchedule(plan: RidePlan, opts: ScheduleOptions = {}): Sch
     const duration = Math.max(0, Number.isFinite(stop.durationMin) ? stop.durationMin : 0);
     const restMin = duration + regroup;
     let departure = arrival + restMin * 60000;
-    if (stop.actualDeparture) {
+    if (stop.actualDeparture && !opts.ignoreActuals) {
       const d = Date.parse(stop.actualDeparture);
       if (Number.isFinite(d)) {
         if (d < arrival) {
@@ -241,12 +252,33 @@ export function computeSchedule(plan: RidePlan, opts: ScheduleOptions = {}): Sch
 
   warnings.push(...supplyGapWarnings(plan, totalKm));
 
-  if (opts.sunsetMs && arrivalMs > opts.sunsetMs) {
-    warnings.push({
-      level: 'caution',
-      code: 'after-sunset',
-      message: 'Estimated arrival is after sunset. Leave earlier, shorten stops, or make sure every bike has working front and rear lights.',
-    });
+  const first = plan.route.coords[0];
+  const last = plan.route.coords[plan.route.coords.length - 1];
+  const rise = sunTimes(departureMs, first[0], first[1]);
+  const set = sunTimes(arrivalMs, last[0], last[1]);
+  const daylight = rise && set ? { sunriseMs: rise.sunriseMs, sunsetMs: opts.sunsetMs ?? set.sunsetMs } : null;
+  if (daylight) {
+    const t = (ms: number) => formatTime(ms, tz);
+    if (departureMs < daylight.sunriseMs) {
+      warnings.push({
+        level: 'info',
+        code: 'before-sunrise',
+        message: `Departure is ${formatDuration((daylight.sunriseMs - departureMs) / 60000)} before sunrise (${t(daylight.sunriseMs)}, calculated). Use front and rear lights and reflective gear until it is fully light.`,
+      });
+    }
+    if (arrivalMs > daylight.sunsetMs) {
+      warnings.push({
+        level: 'caution',
+        code: 'after-sunset',
+        message: `Estimated arrival (${t(arrivalMs)}) is after sunset (${t(daylight.sunsetMs)}). Leave earlier, shorten stops, or make sure every bike has working front and rear lights.`,
+      });
+    } else if (daylight.sunsetMs - arrivalMs < 45 * 60000) {
+      warnings.push({
+        level: 'caution',
+        code: 'near-sunset',
+        message: `Estimated arrival (${t(arrivalMs)}) leaves only ${formatDuration((daylight.sunsetMs - arrivalMs) / 60000)} before sunset (${t(daylight.sunsetMs)}). Any delay means riding in the dark: carry lights or leave earlier.`,
+      });
+    }
   }
   if (localDayKey(arrivalMs, tz) !== localDayKey(departureMs, tz)) {
     warnings.push({ level: 'caution', code: 'next-day', message: 'Estimated arrival falls on a later calendar day than departure.' });
@@ -270,6 +302,7 @@ export function computeSchedule(plan: RidePlan, opts: ScheduleOptions = {}): Sch
       stops: number,
     },
     warnings,
+    daylight,
   };
 }
 
@@ -382,7 +415,7 @@ export function suggestStops(plan: RidePlan): SuggestionResult {
   // Stop once the finish is within one interval: no stop is needed there.
   while (totalKm - prevKm > intervalKm) {
     const target = prevKm + intervalKm;
-    const anchor = anchors.find((s) => s.place.routeKm > prevKm + 0.05 && s.place.routeKm <= target + 0.05);
+    const anchor = anchors.find((s) => s.status !== 'skipped' && s.place.routeKm > prevKm + 0.05 && s.place.routeKm <= target + 0.05);
     let chosen: PlannedStop | null = null;
     if (anchor) {
       chosen = anchor;
@@ -393,11 +426,17 @@ export function suggestStops(plan: RidePlan): SuggestionResult {
         let bestScore = -Infinity;
         for (const c of pool) {
           if (c.routeKm <= lo || c.routeKm > hi) continue;
-          if (out.some((s) => s.place.id === c.id)) continue;
+          // Never re-suggest a place already chosen, kept or skipped by the rider.
+          if (out.some((s) => s.place.id === c.id) || anchors.some((s) => s.place.id === c.id)) continue;
           let s = c.score + ((c.routeKm - prevKm) / intervalKm) * 12;
-          const hrs = hoursStatusAt(c.openingHours, etaAt(c.routeKm), plan.timeZone);
+          const eta = etaAt(c.routeKm);
+          const hrs = hoursStatusAt(c.openingHours, eta, plan.timeZone);
+          // Before 6 AM or after 9 PM, unknown hours are a real risk: favour places listed as open.
+          const hour = localClock(eta, plan.timeZone).minutes / 60;
+          const offHours = hour < 6 || hour >= 21;
           if (hrs === 'listed-closed') s -= 40;
-          if (hrs === 'listed-open') s += 4;
+          if (hrs === 'listed-open') s += offHours ? 15 : 4;
+          if (hrs === 'unknown' && offHours) s -= 10;
           if (wantMeal && (c.category === 'restaurant' || c.category === 'cafe')) s += 30;
           if (s > bestScore) {
             bestScore = s;

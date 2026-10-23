@@ -7,7 +7,9 @@ import { estimateDetourKm, isValidLatLng, projectOntoRoute } from './geo';
 import { scorePlace } from './discovery';
 
 export function selectRoute(plan: RidePlan, route: RouteResult, alternatives: RouteResult[]): RidePlan {
-  const changed = plan.route && plan.route.id !== route.id;
+  // No previous route (ends were edited) or a different one: positions along
+  // the old route are stale.
+  const changed = !plan.route || plan.route.id !== route.id;
   return {
     ...plan,
     route,

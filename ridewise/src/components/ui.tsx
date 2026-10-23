@@ -85,6 +85,7 @@ export function NumberField({
   step = 1,
   suffix,
   hint,
+  optional = false,
 }: {
   id: string;
   label: string;
@@ -95,8 +96,10 @@ export function NumberField({
   step?: number;
   suffix?: string;
   hint?: string;
+  optional?: boolean;
 }) {
-  const invalid = !Number.isFinite(value) || (min !== undefined && value < min) || (max !== undefined && value > max);
+  const empty = !Number.isFinite(value);
+  const invalid = empty ? !optional : (min !== undefined && value < min) || (max !== undefined && value > max);
   return (
     <Field label={suffix ? `${label} (${suffix})` : label} htmlFor={id} hint={hint}>
       <input

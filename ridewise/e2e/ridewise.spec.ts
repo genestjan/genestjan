@@ -1,8 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mockServices } from './mocks';
 
+const pageErrors: string[] = [];
 test.beforeEach(async ({ page }) => {
+  pageErrors.length = 0;
   page.on('dialog', (d) => d.accept());
+  page.on('pageerror', (e) => pageErrors.push(e.message));
+});
+test.afterEach(() => {
+  // Any uncaught exception in the app fails the test.
+  expect(pageErrors).toEqual([]);
 });
 
 async function planGensanDavao(page: Page) {
@@ -84,17 +91,80 @@ test('place search failure is reported honestly and nothing is invented', async 
   await expect(page.getByText(/No mapped water or food stop between km 0.0 and km 135.1/)).toBeVisible();
 });
 
-test('sample ride is labelled as demo data and works with the bundled real route', async ({ page }) => {
+test('sample ride is labelled as demo data and uses the bundled real route and places', async ({ page }) => {
   await mockServices(page);
   await page.goto('./');
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
   await expect(page.getByText('Sample: demonstration data')).toBeVisible();
   await expect(page.getByText(/135\.1 km by bicycle/)).toBeVisible();
-  await page.getByRole('button', { name: 'Find real stops along this route' }).click();
-  await expect(page.getByText(/places found/)).toBeVisible();
-  await page.getByRole('button', { name: 'Suggest pit stops from these places' }).click();
+  await expect(page.getByText(/OpenStreetMap snapshot bundled with the sample/)).toBeVisible();
+  await page.getByRole('link', { name: 'Stops' }).click();
+  const stops = page.locator('li.card').filter({ hasText: /^STOP \d\d/ });
+  await expect(stops.first()).toBeVisible();
+  expect(await stops.count()).toBeGreaterThan(8);
+  // Real OpenStreetMap places, never the synthetic TEST data.
+  await expect(page.getByText(/TEST Place/)).toHaveCount(0);
+  await expect(page.getByText('7-Eleven').first()).toBeVisible();
+  // Daylight is calculated for every plan.
+  await expect(page.getByText(/before sunrise/)).toBeVisible();
+
+  // Opening the sample again reuses it instead of piling up copies.
+  await page.getByRole('link', { name: 'Home' }).click();
+  await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await page.getByRole('link', { name: 'Home' }).click();
+  await expect(page.getByText('Sample: GenSan to Davao (demo data)', { exact: true })).toHaveCount(2); // card title + recent list
+});
+
+test('share link opens a read-only plan without private names', async ({ page, context }) => {
+  await mockServices(page);
+  await page.goto('./');
+  await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await page.getByRole('link', { name: 'Stops' }).click();
+  await page.getByRole('button', { name: 'Share plan' }).click();
+  const url = await page.getByLabel('Share link').inputValue();
+  expect(url).toContain('#/share/');
+  expect(url.length).toBeLessThan(40_000);
+  const viewer = await context.newPage();
+  await mockServices(viewer);
+  await viewer.goto(url);
+  await expect(viewer.getByText('Shared ride plan · read-only', { exact: false })).toBeVisible();
+  await expect(viewer.getByText(/Stop 1:/).first()).toBeVisible();
+  await viewer.getByRole('button', { name: 'Save a copy to this phone' }).click();
+  await expect(viewer.getByRole('heading', { name: 'Pit Stop Schedule' })).toBeVisible();
+});
+
+test('a rider can drop a pin for an unmapped sari-sari store', async ({ page }) => {
+  await mockServices(page);
+  await page.goto('./');
+  await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await page.getByRole('button', { name: 'Drop a pin' }).click();
+  await expect(page.getByText('Tap the map where the stop is.')).toBeInViewport();
+  // Bottom-right of the whole-route view is empty (the route runs bottom-left to top-right).
+  const map = page.locator('.leaflet-container').first();
+  const box = (await map.boundingBox())!;
+  await map.click({ position: { x: box.width - 40, y: box.height - 70 } });
+  await page.getByLabel('Store or place name').fill('Aling Nena Sari-sari');
+  await page.getByLabel('Water', { exact: true }).check();
+  await page.getByRole('button', { name: 'Save stop' }).click();
+  await page.getByRole('link', { name: 'Stops' }).click();
+  const card = page.locator('li.card').filter({ hasText: 'Aling Nena Sari-sari' });
+  await expect(card).toContainText('User-submitted, unverified');
+});
+
+test('installed app shell reloads offline from the service worker', async ({ page, context }) => {
+  await mockServices(page);
+  await page.goto('./');
+  await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload(); // now controlled by the service worker
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByText('Offline: saved plans only')).toBeVisible();
   await page.getByRole('link', { name: 'Stops' }).click();
   await expect(page.locator('li.card').filter({ hasText: /^STOP 01/ })).toBeVisible();
+  await context.setOffline(false);
 });
 
 test('live ride: unwell check-in pauses pressure, shows emergency help; location denied falls back to manual', async ({ page }) => {

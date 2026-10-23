@@ -10,6 +10,7 @@ import { CHECKLISTS, progress } from '../lib/checklists';
 import { SUPPLY_CATEGORIES } from '../lib/discovery';
 import { projectOntoRoute } from '../lib/geo';
 import { updateStop } from '../lib/planOps';
+import { computeSchedule } from '../lib/schedule';
 import { formatDuration, formatKm, formatTime } from '../lib/time';
 import { useNow } from '../lib/hooks';
 import { googleDirectionsUrl } from '../lib/navlinks';
@@ -57,7 +58,11 @@ export default function Live() {
     watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
         const proj = projectOntoRoute({ lat: pos.coords.latitude, lng: pos.coords.longitude }, coords);
-        if (proj) updateSession(plan.id, (s) => ({ ...s, progressKm: proj.routeKm, progressSource: 'gps' }));
+        // Persisting the store is not free; only save meaningful movement.
+        if (proj)
+          updateSession(plan.id, (s) =>
+            s.progressSource === 'gps' && Math.abs((s.progressKm ?? 0) - proj.routeKm) < 0.05 ? s : { ...s, progressKm: proj.routeKm, progressSource: 'gps' },
+          );
         setGpsError(proj && proj.offRouteM > 1500 ? `You seem to be ${(proj.offRouteM / 1000).toFixed(1)} km from the planned route.` : null);
       },
       (err) => {
@@ -81,11 +86,16 @@ export default function Live() {
       notified.current.add(key);
       navigator.vibrate?.(200);
       if (prefs.notifications && 'Notification' in window && Notification.permission === 'granted') {
-        try {
-          new Notification('RideWise', { body: d.message, tag: d.id });
-        } catch {
-          /* some mobile browsers only allow notifications from a service worker */
-        }
+        // Android Chrome rejects `new Notification()`; the service worker path works there and on desktop.
+        const show = () => {
+          try {
+            new Notification('RideWise', { body: d.message, tag: d.id });
+          } catch {
+            /* not supported in this browser: the in-app banner still shows */
+          }
+        };
+        if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistration().then((reg) => (reg ? reg.showNotification('RideWise', { body: d.message, tag: d.id }) : show())).catch(show);
+        else show();
       }
     }
   }, [overdue, prefs.notifications]);
@@ -100,6 +110,12 @@ export default function Live() {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-bold text-navy">Live Ride</h1>
+        {plan.status === 'completed' && (
+          <Notice level="ok" title="Ride completed. Nice work.">
+            Times are saved in <Link className="font-semibold underline" to="/history">Ride History</Link>. Do the{' '}
+            <Link className="font-semibold underline" to="/checklists?kind=post-ride">post-ride check</Link> while it is fresh. You can start this plan again below.
+          </Notice>
+        )}
         <Notice level="info" title="Use your phone only when safely stopped">Check-ins, navigation and edits are for pit stops, not while moving.</Notice>
         {plan.isSample && <Notice level="caution" title="This is the sample plan (demonstration data)." />}
         <Card className="space-y-3">
@@ -146,10 +162,15 @@ export default function Live() {
   const nextRow = schedule.rows.find((r) => r.stop.id === next?.id);
   const lastDone = [...plan.stops].reverse().find((s) => s.status === 'completed' || s.status === 'arrived');
   const progressKm = session.progressSource === 'gps' ? session.progressKm ?? 0 : Math.max(session.progressKm ?? 0, lastDone?.place.routeKm ?? 0);
-  const toNextKm = next ? Math.max(0, next.place.routeKm - progressKm) + next.place.detourKm / 2 : Math.max(0, total - progressKm);
+  const atNext = next?.status === 'arrived';
+  const toNextKm = !next ? Math.max(0, total - progressKm) : atNext ? 0 : Math.max(0, next.place.routeKm - progressKm) + next.place.detourKm / 2;
   const toNextMin = (toNextKm / plan.settings.speedKmh) * 60;
   const remainingKm = Math.max(0, total - progressKm);
   const fatigue = fatigueStatus(session, now, plan.settings.maxRideMinBetweenStops);
+  // The original plan, for an honest "where are we" — never a reason to hurry.
+  const original = computeSchedule(plan, { ignoreActuals: true });
+  const driftMin = original.ok ? Math.round((schedule.finish.arrivalMs - original.finish.arrivalMs) / 60000) : 0;
+  const sunsetRisk = schedule.warnings.find((w) => w.code === 'after-sunset' || w.code === 'near-sunset');
   const nextSupply = plan.stops.find((s) => s.status === 'planned' && s.place.routeKm > progressKm && SUPPLY_CATEGORIES.includes(s.place.category));
   const supplyMsg = supplyWarning(session.supplies, nextSupply ? nextSupply.place.routeKm - progressKm : null, plan.settings.speedKmh);
   const iso = () => new Date().toISOString();
@@ -228,7 +249,9 @@ export default function Live() {
           <div>
             <p className="text-xs uppercase text-slate-500">Next stop</p>
             <p className="text-lg font-bold leading-tight text-navy">{next ? next.place.name : 'Destination'}</p>
-            <p className="text-sm text-slate-600">{next ? `Planned ${nextRow?.arrivalMs ? formatTime(nextRow.arrivalMs, tz) : '—'}` : `Planned ${formatTime(schedule.finish.arrivalMs, tz)}`}</p>
+            <p className="text-sm text-slate-600">
+              {!next ? `Est. ${formatTime(schedule.finish.arrivalMs, tz)}` : atNext && next.actualArrival ? `Arrived ${formatTime(Date.parse(next.actualArrival), tz)}` : `Est. ${nextRow?.arrivalMs ? formatTime(nextRow.arrivalMs, tz) : '—'}`}
+            </p>
           </div>
           <div>
             <p className="text-xs uppercase text-slate-500">To next stop</p>
@@ -247,6 +270,12 @@ export default function Live() {
           </div>
         </div>
         {lastDone && <p className="text-center text-sm text-slate-600">Current/last stop: {lastDone.place.name}</p>}
+        <p className="text-center text-sm text-slate-700" role="status">
+          Estimated finish {formatTime(schedule.finish.arrivalMs, tz)}
+          {Math.abs(driftMin) >= 5 ? ` · ${formatDuration(Math.abs(driftMin))} ${driftMin > 0 ? 'later' : 'earlier'} than the original plan` : ' · on the original plan'}
+          {driftMin >= 5 && '. The schedule has adjusted; no need to rush.'}
+        </p>
+        {sunsetRisk && <Notice level="caution" title={sunsetRisk.message} />}
         {next && (
           <a className="btn-secondary w-full" href={googleDirectionsUrl(next.place.point)} target="_blank" rel="noreferrer">
             Navigate to {next.place.name} in Google Maps
@@ -270,12 +299,12 @@ export default function Live() {
       {overdue.length === 0 && due[0] && <p className="text-sm text-slate-600"><Bell aria-hidden className="inline h-4 w-4" /> Next reminder: {due[0].label} at {formatTime(due[0].dueAt, tz)}</p>}
 
       <div className="grid grid-cols-2 gap-2">
-        {session.state === 'riding' && (
-          <button type="button" className="btn-go min-h-[64px] text-lg" onClick={arrived} disabled={!next || next.status === 'arrived'}>
+        {session.state === 'riding' && !atNext && (
+          <button type="button" className="btn-go min-h-[64px] text-lg" onClick={arrived} disabled={!next}>
             <MapPinned aria-hidden className="h-6 w-6" /> Arrived at stop
           </button>
         )}
-        {session.state === 'at-stop' && (
+        {(session.state === 'at-stop' || atNext) && session.state !== 'safety-pause' && (
           <>
             <button type="button" className="btn-secondary min-h-[64px] text-lg" onClick={() => setRestEnds(Date.now() + (nextRow?.restMin ?? 10) * 60000)}>
               <Coffee aria-hidden className="h-6 w-6" /> Start rest timer
@@ -285,7 +314,7 @@ export default function Live() {
             </button>
           </>
         )}
-        {session.state === 'riding' && (
+        {session.state === 'riding' && !atNext && (
           <button type="button" className="btn-secondary min-h-[64px] text-lg" onClick={pause}>
             <Pause aria-hidden className="h-6 w-6" /> Pause
           </button>
@@ -323,14 +352,16 @@ export default function Live() {
       <Card className="space-y-2">
         <p className="font-semibold">Water and food</p>
         {(['water', 'food', 'electrolytes'] as const).map((k) => (
-          <div key={k} className="flex flex-wrap items-center gap-2">
-            <span className="w-24 text-sm font-medium capitalize">{k}</span>
-            {(['full', 'half', 'low', 'empty'] as SupplyLevel[]).map((v) => (
-              <button key={v} type="button" aria-pressed={session.supplies[k] === v} onClick={() => setSupply(k, v)} className={`btn min-h-[40px] border px-3 capitalize ${session.supplies[k] === v ? 'border-navy bg-navy text-white' : 'border-slate-300 bg-white'}`}>
-                {v}
-              </button>
-            ))}
-          </div>
+          <fieldset key={k}>
+            <legend className="mb-1 text-sm font-medium capitalize">{k}</legend>
+            <div className="grid grid-cols-4 gap-2">
+              {(['full', 'half', 'low', 'empty'] as SupplyLevel[]).map((v) => (
+                <button key={v} type="button" aria-pressed={session.supplies[k] === v} aria-label={`${k}: ${v}`} onClick={() => setSupply(k, v)} className={`btn min-h-[44px] border px-1 capitalize ${session.supplies[k] === v ? 'border-navy bg-navy text-white' : 'border-slate-300 bg-white'}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </fieldset>
         ))}
         <p className="text-sm text-slate-600">
           Next planned water/food stop: {nextSupply ? `${nextSupply.place.name}, ${formatKm(nextSupply.place.routeKm - progressKm)} ahead` : 'none planned ahead'}.

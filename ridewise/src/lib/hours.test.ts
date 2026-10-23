@@ -22,6 +22,9 @@ describe('opening hours', () => {
     expect(hoursStatusAt(h, at('2026-11-08T01:00'), tz)).toBe('listed-open');
     expect(hoursStatusAt(h, at('2026-11-08T03:00'), tz)).toBe('listed-closed');
   });
+  it('tolerates spaces around dashes', () => {
+    expect(hoursStatusAt('Mo-Su 08:00 - 21:00', at('2026-11-07T10:00'), tz)).toBe('listed-open');
+  });
   it('refuses to guess unusual formats', () => {
     expect(parseOpeningHours('Mo-Fr 08:00-17:00; PH off')).toBeNull();
     expect(hoursStatusAt('sunrise-sunset', at('2026-11-07T10:00'), tz)).toBe('unknown');

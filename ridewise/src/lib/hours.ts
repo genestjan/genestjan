@@ -49,7 +49,7 @@ function parseRanges(spec: string): [number, number][] | null {
 
 export function parseOpeningHours(raw: string | undefined): Rule[] | null {
   if (!raw) return null;
-  const s = raw.trim();
+  const s = raw.trim().replace(/\s*-\s*/g, '-');
   if (s === '24/7') return [{ days: new Array(7).fill(true), ranges: [[0, 1440]], off: false }];
   const rules: Rule[] = [];
   for (const chunk of s.split(';')) {

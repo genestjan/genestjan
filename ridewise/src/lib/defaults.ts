@@ -1,6 +1,7 @@
 import type { PlanSettings, RidePlan, RideStyle, StopCategory } from '../types';
 import { config } from '../config';
-import { newId } from './schedule';
+import { newId, suggestStops } from './schedule';
+import { elementsToPlaces, placesToCandidates, type OsmElement } from './discovery';
 import { nowLocal } from './time';
 
 export const ALL_STOP_TYPES: StopCategory[] = [
@@ -61,19 +62,26 @@ export function newPlan(partial: Partial<RidePlan> = {}): RidePlan {
 }
 
 /**
- * Demonstration plan. The route geometry is a real OSRM bicycle route
- * (retrieved 2026-10-23) bundled so the demo works without a connection.
- * It is labelled as sample data everywhere it appears.
+ * Demonstration plan. The route geometry is a real OSRM bicycle route and the
+ * places are a real (partial) OpenStreetMap snapshot, both retrieved
+ * 2026-10-23 and bundled so the demo works without a connection. It is
+ * labelled as sample data everywhere it appears; "Search again" on the Map
+ * page replaces the snapshot with a live search.
  */
 export async function samplePlan(): Promise<RidePlan> {
-  const data = (await import('../data/gensan-davao-route.json')).default as unknown as {
+  const [routeMod, placesMod] = await Promise.all([import('../data/gensan-davao-route.json'), import('../data/gensan-davao-places-snapshot.json')]);
+  const data = routeMod.default as unknown as {
     source: string;
     retrievedAt: string;
     distanceM: number;
     durationS: number;
     coordinates: [number, number][];
   };
-  return newPlan({
+  const snapshot = placesMod.default as unknown as { retrievedAt: string; elements: OsmElement[] };
+  const coords = data.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+  const settings = defaultSettings('relaxed');
+  const { places } = elementsToPlaces(snapshot.elements, snapshot.retrievedAt, 'osm-nominatim');
+  const plan = newPlan({
     name: 'Sample: GenSan to Davao (demo data)',
     isSample: true,
     start: {
@@ -97,9 +105,14 @@ export async function samplePlan(): Promise<RidePlan> {
       profile: 'bike',
       distanceM: data.distanceM,
       providerDurationS: data.durationS,
-      coords: data.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]),
+      coords,
       retrievedAt: `${data.retrievedAt}T00:00:00.000Z`,
     },
+    settings,
+    candidates: placesToCandidates(places, coords, settings.corridorM, settings.preferOnRoute),
+    candidatesRetrievedAt: snapshot.retrievedAt,
+    candidatesSource: 'OpenStreetMap snapshot bundled with the sample (partial; search again for the full, current list)',
     status: 'planned',
   });
+  return { ...plan, stops: suggestStops(plan).stops };
 }

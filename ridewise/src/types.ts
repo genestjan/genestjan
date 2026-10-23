@@ -113,7 +113,6 @@ export type PlannedStop = {
   actualArrival?: string;
   actualDeparture?: string;
   suppliesReplenished?: boolean;
-  checklistDone?: boolean;
   autoSuggested?: boolean;
 };
 

@@ -79,7 +79,7 @@ export function EmergencyPanel({ onClose }: { onClose: () => void }) {
                   <li key={c.id} className="rounded-xl border border-slate-200 p-2">
                     <p className="font-medium">{c.name}</p>
                     <p className="text-xs text-slate-600">
-                      {CATEGORY_LABEL[c.category]} · about {formatKm(away)} along the route from your last known position · OpenStreetMap listing, not verified
+                      {CATEGORY_LABEL[c.category]} · about {formatKm(away)} along the route from {session ? 'your last known position' : 'the start'} · {c.source === 'user' ? 'added by a rider' : 'OpenStreetMap listing, not verified'}
                     </p>
                     <a className="mt-1 inline-block text-sm font-semibold text-sky underline" href={googleDirectionsUrl(c.point)} target="_blank" rel="noreferrer">
                       Directions in Google Maps

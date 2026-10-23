@@ -1,6 +1,5 @@
 import type { RidePlan } from '../types';
 import type { useWeather } from '../lib/usePlan';
-import { sunsetFor } from '../lib/usePlan';
 import { describeCode, hourAt, weatherAdvice } from '../services/weather';
 import { formatDateTime, formatTime, localDayKey, parseLocal } from '../lib/time';
 import { Notice } from './ui';
@@ -9,7 +8,7 @@ import { computeSchedule } from '../lib/schedule';
 export function WeatherCard({ plan, weather }: { plan: RidePlan; weather: ReturnType<typeof useWeather> }) {
   const { report, load, loading, error } = weather;
   const dep = parseLocal(plan.departureLocal, plan.timeZone);
-  const schedule = computeSchedule(plan, { sunsetMs: sunsetFor(plan, report) });
+  const schedule = computeSchedule(plan);
   const daysAhead = dep ? (dep - Date.now()) / 86400000 : 0;
 
   if (!report) {

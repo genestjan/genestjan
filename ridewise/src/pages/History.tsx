@@ -45,7 +45,7 @@ export default function History() {
                         isSample: false,
                         createdAt: now,
                         status: p.route ? 'planned' : 'draft',
-                        stops: p.stops.map((s) => ({ ...s, status: 'planned', actualArrival: undefined, actualDeparture: undefined, suppliesReplenished: false, checklistDone: false })),
+                        stops: p.stops.map((s) => ({ ...s, status: 'planned', actualArrival: undefined, actualDeparture: undefined, suppliesReplenished: false })),
                       });
                     }}
                   >
@@ -70,7 +70,7 @@ export default function History() {
               <li key={h.id} className="py-2 text-sm">
                 <p className="font-semibold">{h.planName}</p>
                 <p className="text-slate-600">
-                  {formatDateTime(Date.parse(h.startedAt), 'Asia/Manila')} · total {formatDuration(h.elapsedMin)} · riding {formatDuration(h.movingMin)} · {h.distanceKm != null ? `${formatKm(h.distanceKm)} (to last stop reached)` : 'distance not recorded'} · {h.stopsCompleted} stops
+                  {formatDateTime(Date.parse(h.startedAt), 'Asia/Manila')} · total {formatDuration(h.elapsedMin)} · riding {formatDuration(h.movingMin)} · {h.distanceKm != null ? `${formatKm(h.distanceKm)} (to last stop reached)` : 'distance not recorded'} · {h.stopsCompleted} {h.stopsCompleted === 1 ? 'stop' : 'stops'}
                 </p>
               </li>
             ))}

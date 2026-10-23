@@ -4,7 +4,6 @@ import { useActivePlan, useStore } from '../store/store';
 import { computeSchedule } from './schedule';
 import { fetchRouteWeather, type WeatherReport } from '../services/weather';
 import { pointAtKm } from './geo';
-import { localDayKey, parseLocal } from './time';
 
 // Weather lives in memory only and always shows its retrieval time.
 const weatherCache = new Map<string, WeatherReport>();
@@ -41,20 +40,13 @@ export function useWeather(plan: RidePlan | null) {
   return { report, load, ...state };
 }
 
-export function sunsetFor(plan: RidePlan, report: WeatherReport | null): number | null {
-  if (!report) return null;
-  const dep = parseLocal(plan.departureLocal, plan.timeZone);
-  if (dep === null) return null;
-  const finish = report.points[report.points.length - 1];
-  return finish?.sunset[localDayKey(dep, plan.timeZone)] ?? null;
-}
-
 export function usePlanSchedule() {
   const plan = useActivePlan();
   const updatePlan = useStore((s) => s.updatePlan);
   const weather = useWeather(plan);
-  const sunsetMs = plan ? sunsetFor(plan, weather.report) : null;
-  const schedule = useMemo(() => (plan ? computeSchedule(plan, { sunsetMs }) : null), [plan, sunsetMs]);
+  const session = useStore((s) => (plan ? s.sessions[plan.id] : undefined));
+  const startedAtMs = session ? Date.parse(session.startedAt) : null;
+  const schedule = useMemo(() => (plan ? computeSchedule(plan, { startedAtMs }) : null), [plan, startedAtMs]);
   const edit = useCallback((fn: (p: RidePlan) => RidePlan) => plan && updatePlan(plan.id, fn), [plan, updatePlan]);
   return { plan, schedule, edit, weather };
 }

@@ -12,6 +12,8 @@ import { googleDirectionsUrl } from '../lib/navlinks';
 import { encodeShare } from '../lib/share';
 import { formatDuration, formatKm, formatTime, localDayKey } from '../lib/time';
 import { useNow } from '../lib/hooks';
+import { checklistKey, useStore } from '../store/store';
+import { CHECKLISTS, progress } from '../lib/checklists';
 import { Badge, Card, EmptyState, Field, Notice, NumberField, PageTitle, Stat, confirmAction } from '../components/ui';
 import { verificationBadge } from '../components/PlaceDetail';
 import { etaFor } from '../components/PlaceDetail';
@@ -165,6 +167,9 @@ function StopCard({ row, plan, schedule, edit, t }: { row: ScheduleRow; plan: Ri
   const [timer, setTimer] = useState<number | null>(null);
   const [replacing, setReplacing] = useState(false);
   const warnings = schedule.warnings.filter((w) => w.stopId === s.id);
+  const check = useStore((st) => st.checklists[checklistKey('pit-stop', plan.id, s.id)]);
+  const customPit = useStore((st) => st.customItems['pit-stop']);
+  const checkP = progress([...CHECKLISTS['pit-stop'].items, ...customPit], check?.states ?? {});
   const up = (patch: Partial<PlannedStop>) => edit((p) => updateStop(p, s.id, patch));
   const nowIso = () => new Date().toISOString();
   const title = s.status === 'skipped' ? 'Skipped' : `STOP ${String(row.number).padStart(2, '0')}: ${kindLabel(s.kind)}`;
@@ -183,7 +188,8 @@ function StopCard({ row, plan, schedule, edit, t }: { row: ScheduleRow; plan: Ri
             {s.status === 'arrived' && <Badge tone="go">Arrived</Badge>}
             {s.status === 'completed' && <Badge tone="go"><CheckCircle2 aria-hidden className="h-3 w-3" />Completed</Badge>}
             {s.suppliesReplenished && <Badge tone="go"><Droplets aria-hidden className="h-3 w-3" />Supplies topped up</Badge>}
-            {s.checklistDone && <Badge tone="go">Bike checked</Badge>}
+            {checkP.pct === 100 && checkP.criticalProblems.length === 0 && <Badge tone="go">Bike checked</Badge>}
+            {checkP.criticalProblems.length > 0 && <Badge tone="danger">Bike problem: do not ride</Badge>}
           </div>
         </div>
         <div className="text-right text-sm">
@@ -234,8 +240,8 @@ function StopCard({ row, plan, schedule, edit, t }: { row: ScheduleRow; plan: Ri
             <Clock aria-hidden className="h-4 w-4" /> Rest timer
           </button>
         )}
-        <Link className="btn-secondary" to={`/checklists?kind=pit-stop&stop=${s.id}`} onClick={() => up({ checklistDone: true })}>
-          <ClipboardCheck aria-hidden className="h-4 w-4" /> Checklist
+        <Link className="btn-secondary" to={`/checklists?kind=pit-stop&stop=${s.id}`}>
+          <ClipboardCheck aria-hidden className="h-4 w-4" /> Checklist{checkP.done > 0 && checkP.pct < 100 ? ` ${checkP.pct}%` : ''}
         </Link>
         <button type="button" className="btn-secondary" onClick={() => up({ suppliesReplenished: !s.suppliesReplenished })} aria-pressed={!!s.suppliesReplenished}>
           <Droplets aria-hidden className="h-4 w-4" /> {s.suppliesReplenished ? 'Supplies done' : 'Supplies replenished'}

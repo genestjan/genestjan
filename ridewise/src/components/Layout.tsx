@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Bike, CalendarClock, ClipboardCheck, History, Home, Map, MoreHorizontal, Route, Settings, WifiOff, X } from 'lucide-react';
 import { useOnline } from '../lib/hooks';
@@ -20,6 +20,19 @@ export function Layout({ children }: { children: ReactNode }) {
   const [more, setMore] = useState(false);
   const loc = useLocation();
   const moreActive = NAV.some((n) => !n.primary && loc.pathname.startsWith(n.to));
+  const navRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!more) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !navRef.current?.contains(e.target as Node)) setMore(false);
+    };
+    document.addEventListener('pointerdown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('pointerdown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [more]);
 
   return (
     <div className="min-h-dvh md:flex">
@@ -69,7 +82,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Bottom bar on phones */}
-      <nav className="fixed inset-x-0 bottom-0 z-[1000] border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Main navigation">
+      <nav ref={navRef} className="fixed inset-x-0 bottom-0 z-[1000] border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Main navigation">
         <ul className="grid grid-cols-6">
           {NAV.filter((n) => n.primary).map(({ to, short, Icon }) => (
             <li key={to}>

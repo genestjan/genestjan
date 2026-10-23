@@ -50,6 +50,14 @@ describe('plan editing', () => {
     expect(replacementOptions(p, p.stops[0]).map((c) => c.id)).toEqual(['B']);
   });
 
+  it('recalculating after the ends changed clears places from the old route', () => {
+    const p = testPlan({ candidates: [cand('A', 20)], stops: [stop('auto', cand('A', 20), 10, { autoSuggested: true }), stop('mine', cand('M', 30))] });
+    const edited = { ...p, route: undefined };
+    const q = selectRoute(edited, p.route!, [p.route!]);
+    expect(q.candidates).toEqual([]);
+    expect(q.stops.map((s) => s.id)).toEqual(['mine']);
+  });
+
   it('switching routes re-measures rider stops and clears stale candidates', () => {
     const p = testPlan({ candidates: [cand('A', 20)], stops: [stop('mine', cand('M', 20)), stop('auto', cand('A', 20), 10, { autoSuggested: true })] });
     const newRoute = { ...p.route!, id: 'other', coords: straightRoute(100).map(([la, ln]) => [la, ln + 0.001] as [number, number]) };

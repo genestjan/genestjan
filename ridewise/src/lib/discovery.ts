@@ -102,7 +102,11 @@ function addressOf(tags: Record<string, string>): string | undefined {
 
 export type ParseReport = { kept: number; missingCoords: number; unclassified: number; duplicates: number };
 
-export function elementsToPlaces(elements: OsmElement[], retrievedAt: string): { places: Place[]; report: ParseReport } {
+export function elementsToPlaces(
+  elements: OsmElement[],
+  retrievedAt: string,
+  source: Place['source'] = 'osm-overpass',
+): { places: Place[]; report: ParseReport } {
   const report: ParseReport = { kept: 0, missingCoords: 0, unclassified: 0, duplicates: 0 };
   const places: Place[] = [];
   const seen = new Set<string>();
@@ -126,7 +130,7 @@ export function elementsToPlaces(elements: OsmElement[], retrievedAt: string): {
       report.unclassified++;
       continue;
     }
-    const name = tags.name ?? tags['name:en'] ?? tags.brand;
+    const name = (tags.name ?? tags['name:en'] ?? tags.brand)?.trim() || undefined;
     places.push({
       id: `osm:${ref}`,
       name: name ?? `Unnamed ${CATEGORY_LABEL[category].toLowerCase()}`,
@@ -136,7 +140,7 @@ export function elementsToPlaces(elements: OsmElement[], retrievedAt: string): {
       address: addressOf(tags),
       openingHours: tags.opening_hours,
       brand: tags.brand,
-      source: 'osm-overpass',
+      source,
       osmRef: ref,
       verification: isReportedClosed(tags) ? 'reported-closed' : 'osm-listed',
       retrievedAt,
@@ -188,7 +192,7 @@ export function scorePlace(c: Omit<Candidate, 'score'>, preferOnRoute: boolean):
   let s = CATEGORY_WEIGHT[c.category] ?? 0;
   if (c.verification === 'user-verified') s += 25;
   if (c.verification === 'reported-closed') s -= 100;
-  if (!c.unnamed) s += 6;
+  if (!c.unnamed) s += 12; // a named place is far easier for a group to find
   if (c.openingHours) s += 6;
   if (c.hasToilets) s += 4;
   // Closer to the road is better; the penalty is steeper when the group

@@ -24,7 +24,9 @@ export default function Dashboard() {
     nav('/plan');
   };
   const startSample = async () => {
-    savePlan(await samplePlan());
+    const existing = Object.values(plans).find((p) => p.isSample);
+    if (existing) setActive(existing.id);
+    else savePlan(await samplePlan());
     nav('/map');
   };
 

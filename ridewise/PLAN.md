@@ -73,6 +73,9 @@ departure    = arrival + stop duration + regroup time  (or the recorded actual d
 finish       = last departure + final segment
 ```
 
+Daylight: sunrise at the start and sunset at the finish are calculated on the device (solar
+equations, matches Open-Meteo within 3 minutes), so every plan gets lights warnings.
+
 Warnings: long segments vs. max riding time, supply gaps (danger when the map has nothing in
 the stretch), listed-closed at ETA, reported-closed, unconfirmed fuel stations, outside the
 corridor, duplicates, backwards order, departure-before-arrival, after sunset (when weather
@@ -94,5 +97,6 @@ keep every rider-added or mandatory stop, and record a gap instead of inventing 
 | 6 | Persistence (IndexedDB), history, export/import, share links | Done |
 | 7 | PWA, icons, offline shell, site integration and CI | Done |
 | 8 | Supabase schema, RLS, ORS proxy, optional sync | Written; not run against a live project |
-| 9 | Live verification against public APIs from a real phone | **Pending (see README "Verification status")** |
-| 10 | Future: GPX import/export, live group GPS, QR share, elevation-aware pacing, Filipino/Cebuano | Not started |
+| 9 | Real-data verification (route, 479 OSM places, daylight, weather) | Done from recorded responses |
+| 10 | Live verification of Overpass and other APIs from a real phone | **Pending (see README "Verification status")** |
+| 11 | Future: GPX import/export, live group GPS, QR share, elevation-aware pacing, Filipino/Cebuano | Not started |

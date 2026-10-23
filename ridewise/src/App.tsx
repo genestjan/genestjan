@@ -17,7 +17,7 @@ const SharedPlan = lazy(() => import('./pages/SharedPlan'));
 export default function App() {
   const hydrated = useStore((s) => s.hydrated);
   return (
-    <HashRouter>
+    <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Layout>
         {!hydrated ? (
           <p role="status">Loading your saved rides…</p>
