@@ -95,7 +95,7 @@ export default function SchedulePage() {
         </div>
       )}
 
-      <ol className="space-y-3">
+      <ol className="relative space-y-3 before:absolute before:bottom-4 before:left-6 before:top-4 before:w-0.5 before:bg-brand-200">
         <li className="card flex items-center gap-3 border-go/40">
           <Flag aria-hidden className="h-6 w-6 text-go" />
           <div>
@@ -116,6 +116,7 @@ export default function SchedulePage() {
           </div>
         </li>
       </ol>
+      <p className="px-1 text-center text-sm text-slate-500">Estimated schedule. Actual times may vary based on pace.</p>
 
       <Card className="space-y-2">
         <h2 className="font-bold text-navy">Edit the plan</h2>

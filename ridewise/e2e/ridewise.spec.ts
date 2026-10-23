@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mockServices } from './mocks';
+import { startApp } from './helpers';
 
 const pageErrors: string[] = [];
 test.beforeEach(async ({ page }) => {
@@ -13,7 +14,7 @@ test.afterEach(() => {
 });
 
 async function planGensanDavao(page: Page) {
-  await page.goto('./');
+  await startApp(page);
   await page.getByRole('button', { name: 'Plan My Ride' }).click();
   await expect(page.getByRole('heading', { name: 'Plan a Ride' })).toBeVisible();
 
@@ -70,8 +71,8 @@ test('plans GenSan to Davao with a real route, builds and edits the schedule, an
   await expect(page.locator('li.card').filter({ hasText: /^STOP 0/ }).first()).toContainText('Arrived');
 
   // Map shows the route distance and the place detail with source and hours label.
-  await page.getByRole('link', { name: 'Map' }).first().click();
-  await expect(page.getByText(/135\.1 km by bicycle/)).toBeVisible();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Map' }).first().click();
+  await expect(page.getByRole('definition').filter({ hasText: /^135\.1 km$/ })).toBeVisible();
   await page.getByText('List view').scrollIntoViewIfNeeded();
   await page.getByRole('button', { name: /TEST Place 2/ }).first().click();
   await expect(page.getByText('OpenStreetMap listing, not verified').first()).toBeVisible();
@@ -86,19 +87,20 @@ test('place search failure is reported honestly and nothing is invented', async 
   await page.getByRole('button', { name: 'Find real stops and build my schedule' }).click();
   await expect(page.getByText(/Place search is unavailable right now/)).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText(/No places could be loaded, so no stops were suggested/)).toBeVisible();
-  await page.getByRole('link', { name: 'Stops' }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Stops' }).click();
   await expect(page.locator('li.card').filter({ hasText: /^STOP 0/ })).toHaveCount(0);
   await expect(page.getByText(/No mapped water or food stop between km 0.0 and km 135.1/)).toBeVisible();
 });
 
 test('sample ride is labelled as demo data and uses the bundled real route and places', async ({ page }) => {
   await mockServices(page);
-  await page.goto('./');
+  await startApp(page);
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await expect(page.getByRole('heading', { name: 'Route Details' })).toBeVisible();
   await expect(page.getByText('Sample: demonstration data')).toBeVisible();
-  await expect(page.getByText(/135\.1 km by bicycle/)).toBeVisible();
+  await expect(page.getByRole('definition').filter({ hasText: /^135\.1 km$/ })).toBeVisible();
   await expect(page.getByText(/OpenStreetMap snapshot bundled with the sample/)).toBeVisible();
-  await page.getByRole('link', { name: 'Stops' }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Stops' }).click();
   const stops = page.locator('li.card').filter({ hasText: /^STOP \d\d/ });
   await expect(stops.first()).toBeVisible();
   expect(await stops.count()).toBeGreaterThan(8);
@@ -109,17 +111,19 @@ test('sample ride is labelled as demo data and uses the bundled real route and p
   await expect(page.getByText(/before sunrise/)).toBeVisible();
 
   // Opening the sample again reuses it instead of piling up copies.
-  await page.getByRole('link', { name: 'Home' }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Home' }).click();
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
-  await page.getByRole('link', { name: 'Home' }).click();
+  await expect(page.getByRole('heading', { name: 'Route Details' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Home' }).click();
   await expect(page.getByText('Sample: GenSan to Davao (demo data)', { exact: true })).toHaveCount(2); // card title + recent list
 });
 
 test('share link opens a read-only plan without private names', async ({ page, context }) => {
   await mockServices(page);
-  await page.goto('./');
+  await startApp(page);
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
-  await page.getByRole('link', { name: 'Stops' }).click();
+  await expect(page.getByRole('heading', { name: 'Route Details' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Stops' }).click();
   await page.getByRole('button', { name: 'Share plan' }).click();
   const url = await page.getByLabel('Share link').inputValue();
   expect(url).toContain('#/share/');
@@ -135,8 +139,9 @@ test('share link opens a read-only plan without private names', async ({ page, c
 
 test('a rider can drop a pin for an unmapped sari-sari store', async ({ page }) => {
   await mockServices(page);
-  await page.goto('./');
+  await startApp(page);
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await expect(page.getByRole('heading', { name: 'Route Details' })).toBeVisible();
   await page.getByRole('button', { name: 'Drop a pin' }).click();
   await expect(page.getByText('Tap the map where the stop is.')).toBeInViewport();
   // Bottom-right of the whole-route view is empty (the route runs bottom-left to top-right).
@@ -146,15 +151,17 @@ test('a rider can drop a pin for an unmapped sari-sari store', async ({ page }) 
   await page.getByLabel('Store or place name').fill('Aling Nena Sari-sari');
   await page.getByLabel('Water', { exact: true }).check();
   await page.getByRole('button', { name: 'Save stop' }).click();
-  await page.getByRole('link', { name: 'Stops' }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Stops' }).click();
   const card = page.locator('li.card').filter({ hasText: 'Aling Nena Sari-sari' });
   await expect(card).toContainText('User-submitted, unverified');
 });
 
 test('installed app shell reloads offline from the service worker', async ({ page, context }) => {
   await mockServices(page);
-  await page.goto('./');
+  await startApp(page);
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await expect(page.getByRole('heading', { name: 'Route Details' })).toBeVisible();
+  await page.waitForTimeout(500); // let the encrypted save land before reloading
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
   });
@@ -162,16 +169,17 @@ test('installed app shell reloads offline from the service worker', async ({ pag
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByText('Offline: saved plans only')).toBeVisible();
-  await page.getByRole('link', { name: 'Stops' }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Stops' }).click();
   await expect(page.locator('li.card').filter({ hasText: /^STOP 01/ })).toBeVisible();
   await context.setOffline(false);
 });
 
 test('live ride: unwell check-in pauses pressure, shows emergency help; location denied falls back to manual', async ({ page }) => {
   await mockServices(page);
-  await page.goto('./');
+  await startApp(page);
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
-  await page.getByRole('link', { name: 'Ride' }).click();
+  await expect(page.getByRole('heading', { name: 'Route Details' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Ride' }).click();
   await expect(page.getByText('Use your phone only when safely stopped')).toBeVisible();
   await page.getByRole('button', { name: 'Feeling good' }).click();
   await page.getByRole('button', { name: 'Start ride' }).click();
@@ -194,6 +202,7 @@ test('live ride: unwell check-in pauses pressure, shows emergency help; location
 
 test('checklist flags safety-critical problems', async ({ page }) => {
   await mockServices(page);
+  await startApp(page);
   await page.goto('./#/checklists');
   await page.getByRole('button', { name: 'Brakes working front and rear: problem' }).click();
   await expect(page.getByRole('alert')).toContainText('Do not ride until this is fixed');
@@ -203,12 +212,13 @@ test('checklist flags safety-critical problems', async ({ page }) => {
 
 test('mobile navigation and offline indicator', async ({ page, context }) => {
   await mockServices(page);
-  await page.goto('./');
+  await startApp(page);
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await expect(page.getByRole('heading', { name: 'Route Details' })).toBeVisible();
   const bottom = page.getByRole('navigation', { name: 'Main navigation' }).last();
   await expect(bottom).toBeVisible();
   await bottom.getByRole('button', { name: 'More' }).click();
-  await page.getByRole('link', { name: 'Ride History' }).click();
+  await page.locator('a[href="#/history"]:visible').first().click();
   await expect(page.getByRole('heading', { name: 'Ride History' })).toBeVisible();
 
   await context.setOffline(true);
@@ -220,12 +230,13 @@ test('mobile navigation and offline indicator', async ({ page, context }) => {
 
 test('form validation rejects an impossible speed', async ({ page }) => {
   await mockServices(page);
-  await page.goto('./');
+  await startApp(page);
   await page.getByRole('button', { name: /Start Sample Ride/ }).click();
+  await expect(page.getByRole('heading', { name: 'Route Details' })).toBeVisible();
   await expect(page.getByText('Sample: demonstration data')).toBeVisible();
   await page.goto('./#/plan?step=4');
   await page.getByLabel('Group moving speed (km/h)').fill('0');
   await expect(page.getByText('Riding speed must be more than 0 km/h.')).toBeVisible();
-  await page.getByRole('link', { name: 'Stops' }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Stops' }).click();
   await expect(page.getByText('Riding speed must be more than 0 km/h.')).toBeVisible();
 });

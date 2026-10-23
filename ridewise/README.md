@@ -159,3 +159,12 @@ Filipino and Cebuano, maintenance logs, community stop reviews.
 
 RideWise is a planning aid. It does not diagnose, does not know road conditions, and never
 asks a rider to keep going to protect the schedule. In an emergency call **911**.
+
+## Accounts, fingerprint and tutorial (v2)
+
+- **Accounts live on the phone, encrypted.** Each rider's saved rides are encrypted with AES-GCM. The key is protected by their password (PBKDF2-SHA256, 250,000 rounds). Several riders can share one phone and cannot see each other's rides.
+- **Open options:** password every time, "Just open" (no lock on this phone), or fingerprint/face (WebAuthn platform authenticator). The fingerprint is a local gate. It never leaves the phone and is not sent to any server.
+- **Forgotten password:** the data cannot be recovered. That is the price of real encryption. The rider can reset, which removes that rider's saved rides.
+- **Cloud sync** (Supabase) is still optional and has not been verified live.
+- **First-time tutorial:** 8 short pages written for a 7-year-old reading level. Replay it from More > Help.
+- **Redesign:** a teal/peach brand, pill buttons, step pills on Plan, a Route Details card with a real elevation chart (Open-Meteo Copernicus DEM) on Map, a stop timeline, and big metric cards in Ride mode.

@@ -95,6 +95,8 @@ export type RouteResult = {
   surfaceSummary?: Record<string, number>; // label -> share 0..1
   wayTypeSummary?: Record<string, number>;
   steps?: RouteStep[];
+  /** Terrain heights at evenly spaced points along the route (see lib/elevation). */
+  elevation?: { elevationM: number[]; retrievedAt: string; source: string };
   retrievedAt: string;
 };
 

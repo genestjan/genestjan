@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, MapPin, Search } from 'lucide-react';
 import type { Candidate, LatLng, StopCategory } from '../types';
@@ -7,11 +7,14 @@ import { discoverAlongRoute } from '../services/places';
 import { addStop, addCustomPlace, applySuggestions, verifyPlace, validateCustomPlace, type CustomPlaceInput } from '../lib/planOps';
 import { CATEGORY_LABEL } from '../lib/discovery';
 import { GROUP_OF, GROUP_STYLE, type MapGroup } from '../components/mapStyle';
-import { formatDateTime, formatKm } from '../lib/time';
+import { formatDateTime, formatDuration, formatKm } from '../lib/time';
 import { useOnline } from '../lib/hooks';
 import { Badge, Card, EmptyState, Field, Notice, PageTitle } from '../components/ui';
 import { MapLegend, RouteMap } from '../components/RouteMap';
 import { PlaceDetail } from '../components/PlaceDetail';
+import { ElevationChart } from '../components/ElevationChart';
+import { ELEVATION_SAMPLES, buildProfile, hasElevation } from '../lib/elevation';
+import { fetchRouteElevation } from '../services/elevation';
 
 export default function MapPage() {
   const { plan, schedule, edit } = usePlanSchedule();
@@ -29,6 +32,31 @@ export default function MapPage() {
     // The button sits below the map; bring the map back into view.
     if (!pinMode) mapBox.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
+
+  const [hillsBusy, setHillsBusy] = useState(false);
+  const [hillsError, setHillsError] = useState<string | null>(null);
+  const routeId = plan?.route?.id;
+  const hasHills = hasElevation(plan?.route);
+  const loadHills = useCallback(async () => {
+    const route = plan?.route;
+    if (!route) return;
+    setHillsBusy(true);
+    setHillsError(null);
+    try {
+      const data = await fetchRouteElevation(route.coords);
+      edit((p) => (p.route && p.route.id === route.id ? { ...p, route: { ...p.route, elevation: data } } : p));
+    } catch (e) {
+      setHillsError((e as Error).message);
+    } finally {
+      setHillsBusy(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeId]);
+  // Look up the hills by themselves, once per route, when there is a connection.
+  useEffect(() => {
+    if (routeId && !hasHills && online) void loadHills();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeId, online]);
 
   const visible = useMemo(
     () => (plan?.candidates ?? []).filter((c) => !hidden.has(GROUP_OF[c.category]) && c.insideCorridor),
@@ -70,35 +98,81 @@ export default function MapPage() {
     return acc;
   }, {} as Record<MapGroup, number>);
 
+  const info = hasElevation(plan.route) ? buildProfile(plan.route.coords, plan.route.elevation) : null;
+  const rideMin = schedule?.ok ? schedule.totals.movingMin + schedule.totals.bufferMin : (plan.route.distanceM / 1000 / plan.settings.speedKmh) * 60;
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <PageTitle
         title="Route Map"
-        subtitle={`${plan.start.label} → ${plan.end.label} · ${formatKm(plan.route.distanceM / 1000)} by bicycle`}
+        subtitle={`${plan.start.label} → ${plan.end.label}`}
         action={plan.isSample ? <Badge tone="caution">Sample: demonstration data</Badge> : undefined}
       />
       <div ref={mapBox} className="relative">
-      {pinMode && !pin && (
-        <p className="absolute inset-x-2 top-2 z-10 rounded-xl bg-caution px-3 py-2 text-center text-sm font-semibold text-white shadow" role="status">
-          Tap the map where the stop is. <button type="button" className="underline" onClick={() => setPinMode(false)}>Cancel</button>
-        </p>
-      )}
-      <RouteMap
-        route={plan.route}
-        start={plan.start.point}
-        end={plan.end.point}
-        candidates={visible}
-        stops={plan.stops}
-        selectedId={selected?.id}
-        onSelect={(c) => setSelected(c)}
-        onMapClick={pinMode ? (p) => setPin(p) : undefined}
-        extraPoints={pin ? [{ point: pin, label: 'New stop' }] : []}
-        focus={selected?.point ?? pin}
-      />
+        {pinMode && !pin && (
+          <p className="absolute inset-x-3 top-3 z-[1100] rounded-full bg-caution px-4 py-2 text-center text-sm font-bold text-white shadow-lift" role="status">
+            Tap the map where the stop is. <button type="button" className="underline" onClick={() => setPinMode(false)}>Cancel</button>
+          </p>
+        )}
+        <RouteMap
+          className="h-[52dvh] min-h-[320px]"
+          route={plan.route}
+          start={plan.start.point}
+          end={plan.end.point}
+          candidates={visible}
+          stops={plan.stops}
+          selectedId={selected?.id}
+          onSelect={(c) => setSelected(c)}
+          onMapClick={pinMode ? (p) => setPin(p) : undefined}
+          extraPoints={pin ? [{ point: pin, label: 'New stop' }] : []}
+          focus={selected?.point ?? pin}
+        />
       </div>
-      <p className="text-xs text-slate-500">
-        Route: {plan.route.providerLabel}, retrieved {plan.route.retrievedAt.slice(0, 10)}. Arrows show the direction of travel. Map data © OpenStreetMap contributors.
-      </p>
+
+      <section className="card" aria-labelledby="route-details">
+        <h2 id="route-details" className="font-display text-xl font-bold text-navy">Route Details</h2>
+        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-4">
+          <div>
+            <dt className="text-sm text-slate-500">Total distance</dt>
+            <dd className="font-display text-2xl font-bold">{formatKm(plan.route.distanceM / 1000)}</dd>
+          </div>
+          <div>
+            <dt className="text-sm text-slate-500">Time on the bike</dt>
+            <dd className="font-display text-2xl font-bold">{formatDuration(rideMin)}</dd>
+            <dd className="text-xs text-slate-500">an estimate, at {plan.settings.speedKmh} km/h</dd>
+          </div>
+          <div>
+            <dt className="text-sm text-slate-500">Total climb</dt>
+            <dd className="font-display text-2xl font-bold">{info ? `about ${info.ascentM} m` : '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-sm text-slate-500">Steepest hill</dt>
+            <dd className="font-display text-2xl font-bold">{info ? `${info.steepestUpPct.toFixed(1)}%` : '—'}</dd>
+            {info && <dd className="text-xs text-slate-500">averaged over about {(plan.route.distanceM / 1000 / (ELEVATION_SAMPLES - 1)).toFixed(1)} km</dd>}
+          </div>
+        </dl>
+        {info ? (
+          <div className="mt-4">
+            <h3 className="mb-1 text-base font-semibold text-slate-700">Hills along the way</h3>
+            <ElevationChart route={plan.route} stops={plan.stops} />
+            <p className="mt-2 text-xs text-slate-500">
+              Highest point {info.highestM} m. From a 90 m terrain map ({plan.route.elevation!.source}), retrieved {plan.route.elevation!.retrievedAt.slice(0, 10)}. Small bumps do not show, so these are estimates.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl bg-brand-50 p-3 text-base">
+            {hillsBusy ? 'Looking up the hills…' : hillsError ? `I could not get the hills: ${hillsError}` : online ? 'Hills are not loaded yet.' : 'Hills need internet. Open this page once with signal to save them.'}
+            {!hillsBusy && online && (
+              <button type="button" className="btn-soft ml-2 min-h-[40px]" onClick={() => void loadHills()}>
+                {hillsError ? 'Try again' : 'Show hills'}
+              </button>
+            )}
+          </div>
+        )}
+        <p className="mt-3 text-xs text-slate-500">
+          Route: {plan.route.providerLabel}, retrieved {plan.route.retrievedAt.slice(0, 10)}. Arrows show which way to ride. Map data © OpenStreetMap contributors.
+        </p>
+      </section>
 
       {selected && schedule && (
         <PlaceDetail

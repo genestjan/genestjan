@@ -12,7 +12,7 @@ export const GROUP_OF: Record<StopCategory, MapGroup> = {
 export const GROUP_STYLE: Record<MapGroup, { color: string; letter: string; label: string }> = {
   food: { color: '#c2410c', letter: 'F', label: 'Food' },
   store: { color: '#7c3aed', letter: 'S', label: 'Convenience / store' },
-  water: { color: '#0369a1', letter: 'W', label: 'Water' },
+  water: { color: '#2b7bb9', letter: 'W', label: 'Water' },
   rest: { color: '#4d7c0f', letter: 'R', label: 'Rest / toilet' },
   repair: { color: '#334155', letter: 'B', label: 'Bike repair' },
   medical: { color: '#b91c1c', letter: '+', label: 'Medical' },

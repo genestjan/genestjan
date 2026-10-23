@@ -66,6 +66,11 @@ export async function mockServices(page: Page, opts: { overpass?: 'ok' | 'fail' 
   );
   await page.route(/overpass/, (r) => (opts.overpass === 'fail' ? r.fulfill({ status: 502, body: 'at capacity' }) : r.fulfill({ json: syntheticOverpass() })));
   await page.route(/open-meteo/, (r) => {
+    const url = new URL(r.request().url());
+    if (url.pathname.includes('/elevation')) {
+      const n = (url.searchParams.get('latitude') ?? '').split(',').length;
+      return r.fulfill({ json: { elevation: Array.from({ length: n }, (_, i) => 20 + 300 * Math.sin((i / n) * Math.PI)) } });
+    }
     const times = Array.from({ length: 48 }, (_, i) => new Date(Date.UTC(2026, 9, 24, i)).toISOString().slice(0, 13) + ':00');
     return r.fulfill({
       json: {

@@ -10,7 +10,7 @@ import type {
   RideSession,
   RiderProfile,
 } from '../types';
-import { deviceStorage } from './storage';
+import { vaultStorage } from './storage';
 import { newId } from '../lib/schedule';
 import { adviceFor } from '../lib/fatigue';
 
@@ -35,7 +35,7 @@ type State = {
   customItems: Record<ChecklistKind, ChecklistItem[]>;
   rider: RiderProfile;
   history: HistoryEntry[];
-  prefs: { hydrateEveryMin: number; snackEveryMin: number; suppliesEveryMin: number; notifications: boolean; keepElapsedDuringStops: boolean };
+  prefs: { hydrateEveryMin: number; snackEveryMin: number; suppliesEveryMin: number; notifications: boolean; keepElapsedDuringStops: boolean; tutorialDone?: boolean };
   hydrated: boolean;
 
   savePlan: (p: RidePlan) => void;
@@ -56,6 +56,8 @@ type State = {
   setRider: (r: RiderProfile) => void;
   setPrefs: (p: Partial<State['prefs']>) => void;
   wipeAll: () => void;
+  /** Forget everything held in memory (used when locking). */
+  clearMemory: () => void;
 };
 
 export const checklistKey = (kind: ChecklistKind, planId?: string, stopId?: string) => [kind, planId ?? '-', stopId ?? '-'].join('|');
@@ -68,7 +70,7 @@ const initial = {
   customItems: { 'pre-ride': [], 'pit-stop': [], 'post-ride': [] },
   rider: { style: 'relaxed' as const },
   history: [],
-  prefs: { hydrateEveryMin: 20, snackEveryMin: 45, suppliesEveryMin: 90, notifications: false, keepElapsedDuringStops: true },
+  prefs: { hydrateEveryMin: 20, snackEveryMin: 45, suppliesEveryMin: 90, notifications: false, keepElapsedDuringStops: true, tutorialDone: false },
 };
 
 export const useStore = create<State>()(
@@ -168,11 +170,14 @@ export const useStore = create<State>()(
       setRider: (r) => set({ rider: r }),
       setPrefs: (p) => set((s) => ({ prefs: { ...s.prefs, ...p } })),
       wipeAll: () => set({ ...initial }),
+      clearMemory: () => set({ ...initial, hydrated: false }),
     }),
     {
       name: 'ridewise:v1',
       version: 1,
-      storage: createJSONStorage(() => deviceStorage),
+      storage: createJSONStorage(() => vaultStorage),
+      // Nothing loads until a rider unlocks; the sign-in code calls rehydrate().
+      skipHydration: true,
       partialize: ({ hydrated: _h, ...rest }) => rest as unknown as State,
       onRehydrateStorage: () => () => useStore.setState({ hydrated: true }),
     },

@@ -7,6 +7,8 @@ import { newId } from '../lib/schedule';
 import { formatDuration, formatKm, formatTime } from '../lib/time';
 import { googleDirectionsUrl } from '../lib/navlinks';
 import { useStore } from '../store/store';
+import { useAuth } from '../store/auth';
+import { Mascot } from '../components/Mascot';
 import { Badge, Card, Notice, PageTitle } from '../components/ui';
 import { RouteMap } from '../components/RouteMap';
 
@@ -14,6 +16,7 @@ export default function SharedPlan() {
   const { token } = useParams();
   const nav = useNavigate();
   const savePlan = useStore((s) => s.savePlan);
+  const signedIn = useAuth((s) => s.status === 'unlocked');
   const [plan, setPlan] = useState<Shared | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -22,11 +25,15 @@ export default function SharedPlan() {
   }, [token]);
   const schedule = useMemo(() => (plan ? computeSchedule({ ...plan, candidates: [] }) : null), [plan]);
 
-  if (error) return <Notice level="danger" title="Could not open this ride plan">{error}</Notice>;
-  if (!plan || !schedule) return <p role="status">Opening shared plan…</p>;
+  if (error) return <div className="mx-auto max-w-2xl p-4"><Notice level="danger" title="I could not open this ride plan">{error}</Notice></div>;
+  if (!plan || !schedule) return <p role="status" className="p-6">Opening shared plan…</p>;
   const tz = plan.timeZone;
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-2xl space-y-4 px-4 pb-10 pt-4">
+      <div className="flex items-center gap-3 rounded-2xl bg-navy p-3 text-white">
+        <Mascot size={48} />
+        <p className="text-base font-semibold">A friend shared this ride with you. You can look at it without an account.</p>
+      </div>
       <PageTitle title={plan.group.name || plan.name} subtitle={`Shared ride plan · read-only · shared ${plan.sharedAt.slice(0, 10)}`} />
       {plan.isSample && <Badge tone="caution">Sample: demonstration data</Badge>}
       <Card className="text-sm">
@@ -52,11 +59,15 @@ export default function SharedPlan() {
         </ol>
       )}
       <Notice level="info" title="Times are estimates from the organiser's plan.">Agree your regrouping procedure with the organiser before you leave.</Notice>
-      <div className="flex gap-2">
-        <button type="button" className="btn-primary" onClick={() => { const { sharedAt: _s, ...rest } = plan; savePlan({ ...rest, id: newId('plan'), candidates: [], name: `${plan.name} (shared)` }); nav('/schedule'); }}>
-          Save a copy to this phone
-        </button>
-        <Link className="btn-ghost" to="/">Open RideWise</Link>
+      <div className="flex flex-wrap gap-2">
+        {signedIn ? (
+          <button type="button" className="btn-primary" onClick={() => { const { sharedAt: _s, ...rest } = plan; savePlan({ ...rest, id: newId('plan'), candidates: [], name: `${plan.name} (shared)` }); nav('/schedule'); }}>
+            Save a copy to this phone
+          </button>
+        ) : (
+          <Link className="btn-primary" to="/">Make an account to keep a copy</Link>
+        )}
+        {signedIn && <Link className="btn-ghost" to="/">Open RideWise</Link>}
       </div>
     </div>
   );

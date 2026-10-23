@@ -245,27 +245,27 @@ export default function Live() {
       )}
 
       <Card className="space-y-3">
-        <div className="grid grid-cols-2 gap-3 text-center">
+        <div className="grid grid-cols-2 gap-3 text-center [&>div]:rounded-3xl [&>div]:bg-brand-50 [&>div]:p-4">
           <div>
-            <p className="text-xs uppercase text-slate-500">Next stop</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-brand-700">Next stop</p>
             <p className="text-lg font-bold leading-tight text-navy">{next ? next.place.name : 'Destination'}</p>
             <p className="text-sm text-slate-600">
               {!next ? `Est. ${formatTime(schedule.finish.arrivalMs, tz)}` : atNext && next.actualArrival ? `Arrived ${formatTime(Date.parse(next.actualArrival), tz)}` : `Est. ${nextRow?.arrivalMs ? formatTime(nextRow.arrivalMs, tz) : '—'}`}
             </p>
           </div>
           <div>
-            <p className="text-xs uppercase text-slate-500">To next stop</p>
-            <p className="text-3xl font-extrabold text-navy">{formatKm(toNextKm)}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-brand-700">To next stop</p>
+            <p className="font-display text-4xl font-extrabold text-brand-800">{formatKm(toNextKm)}</p>
             <p className="text-sm text-slate-600">~{formatDuration(toNextMin)} at {plan.settings.speedKmh} km/h</p>
           </div>
           <div>
-            <p className="text-xs uppercase text-slate-500">Elapsed</p>
-            <p className="text-2xl font-bold tabular-nums">{formatDuration(elapsedMin)}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-brand-700">Elapsed</p>
+            <p className="font-display text-3xl font-bold tabular-nums text-navy">{formatDuration(elapsedMin)}</p>
             <p className="text-xs text-slate-500">Riding {formatDuration(movingMin)}</p>
           </div>
           <div>
-            <p className="text-xs uppercase text-slate-500">Remaining</p>
-            <p className="text-2xl font-bold">{formatKm(remainingKm)}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-brand-700">Remaining</p>
+            <p className="font-display text-3xl font-bold text-navy">{formatKm(remainingKm)}</p>
             <p className="text-xs text-slate-500">{session.progressSource === 'gps' ? 'From GPS' : 'From last stop reached (manual)'}</p>
           </div>
         </div>
