@@ -1,0 +1,17 @@
+@import '@fontsource/bebas-neue/400.css';
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/600.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --bg:#03080F; --card:#051A31; --text:#F9F6EF; --muted:#9fb0c3; --line:#16324f; --pitch:#0a2a4a; }
+:root[data-mode='sun'] { --bg:#F9F6EF; --card:#ffffff; --text:#051A31; --muted:#4b5d70; --line:#c9d2dc; --pitch:#e6efe9; }
+body { background: var(--bg); color: var(--text); font-family: Barlow, sans-serif; -webkit-tap-highlight-color: transparent; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 20px; border-radius:999px; font-weight:600; background:#C31E24; color:#fff; box-shadow:0 8px 26px rgba(195,30,36,.32); }
+.btn.ghost { background:transparent; color:var(--text); border:1px solid var(--muted); box-shadow:none; }
+.btn:disabled { opacity:.4; }
+.field { min-height:48px; border-radius:14px; padding:0 14px; background:var(--card); border:1px solid var(--line); color:var(--text); width:100%; }
+h1,h2,h3,.display { font-family:'Bebas Neue',Impact,sans-serif; letter-spacing:.02em; }
+.muted { color: var(--muted); }

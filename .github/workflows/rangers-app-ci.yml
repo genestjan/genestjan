@@ -1,0 +1,25 @@
+name: Rangers App CI
+
+on:
+  push:
+    paths: ['rangers-app/app/**', '.github/workflows/rangers-app-ci.yml']
+  pull_request:
+    paths: ['rangers-app/app/**']
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rangers-app/app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: rangers-app/app/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

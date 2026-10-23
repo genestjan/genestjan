@@ -117,8 +117,8 @@ Update this table at the end of every phase.
 |---|---|---|---|
 | Plan and research | Done | 23 Oct 2026 | This folder |
 | Coach interview and decisions | Not started | | |
-| 0. Setup | Not started | | |
-| 1. Match Day Kit | Not started | | |
+| 0. Setup | Built (code in `app/`); domain and crest still to do | 23 Oct 2026 | Placeholder icons |
+| 1. Match Day Kit | Built, needs a field test | 23 Oct 2026 | Board editor still to build; see app/README.md |
 | 2. Accounts, families, privacy | Not started | | |
 | 3. Schedule and reminders | Not started | | |
 | 4. Training | Not started | | |
