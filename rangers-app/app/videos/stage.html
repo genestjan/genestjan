@@ -54,7 +54,7 @@ let hideT;
 window.S = {
   cap(html) { const c = document.getElementById('cap'); c.classList.add('off'); setTimeout(() => { c.innerHTML = html ? "<span>" + html + "</span>" : ""; if (html) c.classList.remove('off'); }, html === null ? 0 : 230); },
   chip(t) { document.getElementById('chip').textContent = t || ''; },
-  ptr(x, y) { const p = document.getElementById('ptr'); p.classList.add('on'); p.style.left = x + 'px'; p.style.top = y + 'px'; clearTimeout(hideT); hideT = setTimeout(() => p.classList.remove('on'), 2200); },
+  ptr(x, y, instant) { const p = document.getElementById('ptr'); p.style.transition = instant ? 'opacity .3s, transform .12s' : ''; p.classList.add('on'); p.style.left = x + 'px'; p.style.top = y + 'px'; clearTimeout(hideT); hideT = setTimeout(() => p.classList.remove('on'), 2200); },
   press(x, y) { const p = document.getElementById('ptr'); p.classList.add('down'); const r = document.createElement('div'); r.className = 'rip'; r.style.left = x + 'px'; r.style.top = y + 'px'; document.body.appendChild(r); setTimeout(() => r.remove(), 800); setTimeout(() => p.classList.remove('down'), 180); },
   load(u) { const old = document.getElementById('app'); const f = document.createElement('iframe'); f.id = 'app'; f.name = 'app'; f.src = u; old.replaceWith(f); },
   hidePtr() { document.getElementById('ptr').classList.remove('on'); },

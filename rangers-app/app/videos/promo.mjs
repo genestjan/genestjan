@@ -21,7 +21,7 @@ const FEATURES = [
   `${B('Attendance')} sa isang tap, may report`,
   `${B('Takdang-gawain')} sa bahay, may litrato`,
   `${B('Pili ng squad')}, kusang ina-announce`,
-  `${B('Tactics board')}, gumagalaw ang mga player`,
+  `${B('Tactics board')}: iguhit o i-play ang galaw`,
   `${B('Road to Palaro')} para sa SPED Rangers`,
   `${B('Student ID at PSA')}, laging handa`,
   `${B('Detalye at emergency contact')} ng bata`,
@@ -54,10 +54,17 @@ await S(`Piliin ang ${B('squad')}. Kusang ina-announce sa mga pamilya.`, async (
   for (const n of ['Ana', 'Ben', 'Carlo', 'Dina']) await r.check(a.getByLabel(`Pick ${n}`), 250);
   await r.tap(a.getByRole('button', { name: 'Save and tell the families' }), 1000);
 }, 7000);
-await S(`${B('Tactics board')}: ipakita ang galaw, at gumagalaw pa sa screen.`, async () => {
-  await r.go('/board'); await r.tap(a.getByRole('button', { name: 'Give-and-go', exact: true }), 900); await r.scroll(0, 900);
-  await r.tap(a.getByRole('button', { name: 'Play', exact: true }), 500); await r.scroll(0, 600); await r.wait(5500);
-}, 10000);
+await S(`${B('Tactics board')}: iguhit ang diskarte gamit ang daliri.`, async () => {
+  await r.go('/board'); await r.tap(a.getByRole('button', { name: 'Full screen' }), 700); await r.tap(a.getByRole('button', { name: 'Draw', exact: true }), 600);
+  const b = await a.getByRole('img', { name: 'Tactics board' }).boundingBox(); const P = (x, y) => ({ x: b.x + x * b.width, y: b.y + y * b.height });
+  await r.trace([P(0.5, 0.66), P(0.58, 0.55), P(0.68, 0.42)]);
+  await r.tap(a.getByRole('button', { name: 'Pass line' }), 400); await r.tap(a.getByRole('button', { name: 'White lines' }), 400);
+  await r.trace([P(0.33, 0.6), P(0.24, 0.47), P(0.27, 0.34)]);
+}, 9000);
+await S(`O i-play ang galaw: ${B('gumagalaw')} ang mga player sa screen.`, async () => {
+  await r.tap(a.getByRole('button', { name: 'Exit full screen' }), 500); await r.tap(a.getByRole('button', { name: 'Step by step' }), 500); await r.tap(a.getByRole('button', { name: 'Give-and-go', exact: true }), 800); await r.scroll(0, 800);
+  await r.tap(a.getByRole('button', { name: 'Full screen' }), 600); await r.tap(a.getByRole('button', { name: 'Play', exact: true }), 500); await r.wait(5500);
+}, 9500);
 await r.chip('SPED Rangers');
 await S(`Handa sa ${B('Road to Palaro')}: edad, papeles at bawat meet.`, async () => { await r.go('/pathway'); await r.wait(600); await r.scrollBy(260, 1400); });
 await S(`${B('Student ID')} at ${B('PSA')}, laging handa sa tournament.`, () => r.go('/documents'));

@@ -6,7 +6,7 @@ Three portrait videos (1080x1920, for Facebook, Messenger and phones) with Tagal
 |---|---|---|
 | `coach.mjs` | Gabay para sa Coach | about 4.5 min |
 | `parent.mjs` | Gabay para sa Magulang at Player | about 3 min |
-| `promo.mjs` | Promo (slow enough to read, ends with a list of every feature) | about 2.5 min |
+| `promo.mjs` | Promo (slow enough to read, ends with a list of every feature) | about 2.8 min |
 
 Re-make them after the app changes (needs the club website checkout for the crest, club photo, anthem and live sign-in page):
 

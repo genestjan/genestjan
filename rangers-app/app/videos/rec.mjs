@@ -106,6 +106,17 @@ export async function stage(ctx, name) {
       try { const { x, y } = await r.point(target); await page.evaluate(([a, c]) => window.S.press(a, c), [x, y]); await wait(150); } catch { /* no visible box: just send the file */ }
       await loc.setInputFiles(file); await wait(after);
     },
+    /** Draws with the finger through the given page points (a line on the tactics board), the pointer following along. */
+    async trace(pts, perSeg = 14) {
+      await page.evaluate(([a, c]) => window.S.ptr(a, c), [pts[0].x, pts[0].y]); await wait(650);
+      await page.evaluate(([a, c]) => window.S.press(a, c), [pts[0].x, pts[0].y]);
+      await page.mouse.move(pts[0].x, pts[0].y); await page.mouse.down(); await wait(100);
+      for (let k = 1; k < pts.length; k++) for (let i = 1; i <= perSeg; i++) {
+        const x = pts[k - 1].x + (pts[k].x - pts[k - 1].x) * i / perSeg, y = pts[k - 1].y + (pts[k].y - pts[k - 1].y) * i / perSeg;
+        await page.mouse.move(x, y); await page.evaluate(([a, c]) => window.S.ptr(a, c, true), [x, y]); await wait(30);
+      }
+      await page.mouse.up(); await wait(500);
+    },
     async scroll(y, ms = 900) { await frame().evaluate((v) => window.scrollTo({ top: v, behavior: 'smooth' }), y); await wait(ms); },
     async scrollBy(y, ms = 900) { await frame().evaluate((v) => window.scrollBy({ top: v, behavior: 'smooth' }), y); await wait(ms); },
     hidePtr: () => page.evaluate(() => window.S.hidePtr()),
