@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Back, Card, Empty, H2, Page } from '../components/ui';
-import { MediaPicker, MediaView } from '../components/MediaView';
+import { MediaPicker, MediaView, YouTube } from '../components/MediaView';
 import { put, useAppState } from '../lib/store';
 import { derivedId } from '../lib/syncMap';
 import { latestByTask, openAssignments, progress } from '../lib/assignments';
@@ -43,7 +43,7 @@ function TaskCard({ a }: { a: Assignment }) {
   );
 }
 
-/** One assignment: watch the coach's video, then send a photo or video for each task to clear the list. */
+/** One assignment: see how it is done, then send a photo for each task to clear the list. */
 export function TaskDetail() {
   const { id } = useParams(); const s = useAppState(); const kids = useMyChildren();
   const a = s.assignments.find((x) => x.id === id && kids.some((k) => k.id === x.playerId));
@@ -51,10 +51,10 @@ export function TaskDetail() {
   const kid = s.players.find((p) => p.id === a.playerId); const by = latestByTask(s.submissions, a.id); const pr = progress(a, s.submissions);
   return (
     <Page title={a.title} back={<Back to="/tasks" />}>
-      {pr.cleared ? <Card className="mb-3 text-lg font-semibold">Well done{kid ? `, ${kid.firstName}` : ''}! You sent something for every task.</Card> : <p className="muted mb-2">{pr.sent} of {pr.total} done. Send a photo or a short video for each task to clear the list.</p>}
+      {pr.cleared ? <Card className="mb-3 text-lg font-semibold">Well done{kid ? `, ${kid.firstName}` : ''}! You sent a photo for every task.</Card> : <p className="muted mb-2">{pr.sent} of {pr.total} done. Send a photo for each task to clear the list.</p>}
       {a.why && <p className="mb-3 text-lg">{a.why}</p>}
       {a.dueOn && <p className="muted mb-3">Due {fmtDate(a.dueOn)}</p>}
-      {a.videoPath && <><H2>Watch first</H2><MediaView path={a.videoPath} kind={a.videoKind ?? 'video'} /></>}
+      {(a.youtubeId || a.photoPath) && <><H2>How to do it</H2><div className="grid gap-3">{a.youtubeId && <YouTube id={a.youtubeId} />}{a.photoPath && <MediaView path={a.photoPath} />}</div></>}
       <H2>Your tasks</H2>
       <div className="grid gap-3">{a.tasks.map((t, i) => <TaskRow key={t.id} a={a} n={i + 1} taskId={t.id} text={t.text} sub={by.get(t.id)} />)}</div>
     </Page>
@@ -63,8 +63,8 @@ export function TaskDetail() {
 
 function TaskRow({ a, n, taskId, text, sub }: { a: Assignment; n: number; taskId: string; text: string; sub?: Submission }) {
   const [open, setOpen] = useState(false);
-  const send = (mediaPath: string, mediaType: 'image' | 'video') => {
-    put('submissions', { id: derivedId(a.id, taskId), assignmentId: a.id, taskId, playerId: a.playerId, teamId: a.teamId, mediaPath, mediaType, at: new Date().toISOString(), status: 'submitted', feedback: '' });
+  const send = (mediaPath: string) => {
+    put('submissions', { id: derivedId(a.id, taskId), assignmentId: a.id, taskId, playerId: a.playerId, teamId: a.teamId, mediaPath, mediaType: 'image', at: new Date().toISOString(), status: 'submitted', feedback: '' });
     setOpen(false);
   };
   const state = !sub ? 'To do' : sub.status === 'approved' ? 'Approved' : sub.status === 'redo' ? 'Try again' : 'Sent';
@@ -72,9 +72,9 @@ function TaskRow({ a, n, taskId, text, sub }: { a: Assignment; n: number; taskId
     <Card className="grid gap-2">
       <div className="flex items-start justify-between gap-3"><div className="text-lg font-semibold">{n}. {text}</div><span className={`shrink-0 rounded-full border px-3 py-1 text-sm ${sub && sub.status !== 'redo' ? 'font-semibold text-red' : ''}`} style={{ borderColor: 'var(--line)' }}>{state}</span></div>
       {sub?.feedback && <p className="rounded-xl p-2" style={{ background: 'var(--line)' }}>Coach: {sub.feedback}</p>}
-      {sub && <MediaView path={sub.mediaPath} kind={sub.mediaType} version={sub.at} />}
+      {sub && <MediaView path={sub.mediaPath} version={sub.at} />}
       {sub?.status === 'approved' ? null : (!sub || open || sub.status === 'redo')
-        ? <MediaPicker label={sub ? 'Send a new photo or video' : 'Add a photo or video'} pathFor={(p) => proofPath(a.playerId, derivedId(a.id, taskId), p.ext)} onSaved={send} />
+        ? <MediaPicker label={sub ? 'Send a new photo' : 'Add a photo'} pathFor={() => proofPath(a.playerId, derivedId(a.id, taskId))} onSaved={send} />
         : <button className="btn ghost" onClick={() => setOpen(true)}>Replace it</button>}
     </Card>
   );

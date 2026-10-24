@@ -28,10 +28,10 @@ export interface TrainingSession { id: string; teamId: string; eventId?: string;
 export interface Assessment { id: string; playerId: string; teamId: string; term: string; ratings: Record<string, number>; strength: string; working: string; familyComment: string; coachNote: string; publishedAt?: string; selfRatings?: Record<string, number>; fromPub?: boolean }
 /** One assignment for one child. A group of children sent the same assignment share a groupId. */
 export interface AssignTask { id: string; text: string }
-export interface Assignment { id: string; groupId: string; playerId: string; teamId: string; title: string; why: string; tasks: AssignTask[]; videoPath?: string; videoKind?: 'image' | 'video'; templateId?: string; dueOn?: string; at: string; by: string }
+export interface Assignment { id: string; groupId: string; playerId: string; teamId: string; title: string; why: string; tasks: AssignTask[]; photoPath?: string; youtubeId?: string; templateId?: string; dueOn?: string; at: string; by: string }
 export type SubmissionStatus = 'submitted' | 'approved' | 'redo';
-/** A child's proof (photo or video) for one task. */
-export interface Submission { id: string; assignmentId: string; taskId: string; playerId: string; teamId: string; mediaPath: string; mediaType: 'image' | 'video'; at: string; status: SubmissionStatus; feedback: string; reviewedAt?: string; removed?: boolean }
+/** A child's proof (a photo) for one task. */
+export interface Submission { id: string; assignmentId: string; taskId: string; playerId: string; teamId: string; mediaPath: string; mediaType: 'image'; at: string; status: SubmissionStatus; feedback: string; reviewedAt?: string }
 export interface Goal { id: string; playerId: string; text: string; status: 'active' | 'done'; at: string }
 export interface Recognition { id: string; playerId: string; valueKey: string; note: string; at: string }
 export interface BadgeAward { id: string; playerId: string; badgeKey: string; at: string }

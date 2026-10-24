@@ -8,8 +8,7 @@ Never paste a secret (service_role key, database password, SMTP password, VAPID 
 1. Go to supabase.com, sign in with the club Google account, **New project**: name `rangers`, region **Southeast Asia (Singapore)**, Free plan. Save the database password in Bitwarden.
 2. **Database > Extensions**: turn on `pg_cron` first (the SQL below schedules reminders only if it is on).
 3. **SQL Editor > New query**: paste the whole of `supabase/setup.sql`, press **Run**. It ends with a checklist table: every row should say `true` except "Club admin set up" (that becomes true after Part 4). Run `select * from public.rangers_health();` any time to see it again.
-   - Already ran an older `setup.sql`? Run `supabase/migrations/0003_assignments.sql` (if you have not yet) and then `supabase/migrations/0004_fixups.sql`, each in its own new query. Both are safe to run again. 0004 ends with the checklist table.
-   - (0003 alone:) the same way (new query, paste, Run). It adds assignments and a private `media` storage bucket for photos and videos (40 MB limit). Safe to run once.
+   - Already ran an older `setup.sql`? Run `supabase/update.sql` the same way (new query, paste all, Run). It adds assignments, private photo storage and the fix-ups, and ends with the checklist table. Safe to run again.
 4. **Project Settings > API**: copy the **Project URL** and the **anon public** key and send them to me (or put them in `.env.production`, see `.env.example`).
 
 ## 2. Sign-in settings (about 10 minutes, you)
@@ -32,7 +31,7 @@ The website deploys from the `main` branch of `ayakent/RangersFc` with no build 
 
 Logins switch on when the build includes your Supabase Project URL and anon key: send them to me and I produce a new upload (or run `VITE_SUPABASE_URL=... VITE_SUPABASE_ANON_KEY=... scripts/publish-to-site.sh <site>`). Until then the published app runs in on-device mode: everything works on each phone, with no logins or syncing.
 
-Photos and videos use Supabase Storage (1 GB free). Photos are shrunk on the phone to about 1280 px first. The online upload and playback path is covered by database tests but has not been run against a live Supabase project, so test one photo and one video early (Part 4, step 5 onwards).
+Children's proofs are **photos only**, shrunk on the phone to about 350 KB, in Supabase Storage (1 GB free, so a few thousand photos; the bucket refuses anything that is not a photo or is over 2 MB). Children cannot upload videos. Coaches share how-to videos as **Unlisted YouTube links** (free, no storage used) and can attach a photo, such as a drawing of the drill. The photo upload has been tested against a local stand-in, not yet against the live project, so send one test photo early.
 
 ## 4. First sign-in (you, 5 minutes)
 1. Open https://rangersfc.net/app/ and sign in.

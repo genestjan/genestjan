@@ -23,14 +23,14 @@ const COACH: Step[] = [
   { title: 'Your Today screen', body: 'This is your home. It shows the next event, who is going, anything that needs attention, and shortcuts to start a match or plan training.' },
   { title: 'Squad and safety', body: 'Add your players in Squad. Open a child to see their details and to send their parent a private invite link. Head knocks block a child from lineups until a head coach clears them.' },
   { title: 'Match day', body: 'Pick the players, and the app plans fair playing time. It works without signal, and the clock keeps running when the screen locks.' },
-  { title: 'Assign tasks', body: 'Open Assign from Today. Pick a ready-made task list or write your own, add a video to show how, and choose the players. They send back photos or videos to clear their list, and you approve them.' },
+  { title: 'Assign tasks', body: 'Open Assign from Today. Pick a ready-made task list or write your own, add a YouTube link or a photo to show how, and choose the players. They send back a photo for each task to clear their list, and you approve them.' },
   { title: 'Inbox', body: 'Post announcements to a team or the whole club, and message a child\'s parent directly. Parents are notified. You never message a child.' },
   { title: 'More', body: 'Settings, privacy, backup and help live in More. You can replay this tour any time from Help.' },
 ];
 const PARENT: Step[] = [
   { title: 'Your Home screen', body: 'See the next training or match, tell the coach if your child is going, and read the latest club news.' },
   { title: 'Finish your child\'s details', body: 'Tap the reminder on Home to add your child\'s birthday, address, emergency contacts, allergies, health conditions and medication. Coaches use it in an emergency. Only the coaches and your family can see it.' },
-  { title: 'Tasks', body: 'Your coach can send tasks to do at home. Open Tasks, watch the video if there is one, then send a photo or short video for each task. When every task has one, the list is cleared.' },
+  { title: 'Tasks', body: 'Your coach can send tasks to do at home. Open Tasks, watch the video if there is one, then send a photo for each task. When every task has a photo, the list is cleared.' },
   { title: 'Inbox', body: 'Message the coach and read team news. You will see messages about your own child only.' },
   { title: 'Progress', body: 'When the coach shares a review, you will see strengths, what your child is working on, and their goal. Nobody is ranked against other children.' },
   { title: 'Add to your home screen', body: 'On Android, open the Chrome menu and choose Add to Home screen. On iPhone, open this page in Safari, tap Share, then Add to Home Screen. Alerts on iPhone only work after that.' },

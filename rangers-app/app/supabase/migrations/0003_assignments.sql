@@ -1,4 +1,4 @@
--- Assignments: coaches send tasks, families send back a photo or video as proof.
+-- Assignments: coaches send tasks, families send back a photo as proof. (Photos only, to stay inside the free storage.)
 -- Parents may add and re-send their own child's proofs, but never approve them.
 
 create or replace function public.on_record_insert() returns trigger language plpgsql security definer set search_path = '' as $$
@@ -35,14 +35,14 @@ begin
   return new;
 end $$;
 
-drop policy rec_parent_ins on public.records;
+drop policy if exists rec_parent_ins on public.records;
 create policy rec_parent_ins on public.records for insert to authenticated with check (
   visibility = 'family' and kind in ('availability','message','charge_ref','seen','submission') and public.is_guardian_of(player_id)
   and author = auth.uid()
   and (kind <> 'message' or coalesce(data->>'from', '') = 'parent')
   and (kind <> 'submission' or (coalesce(data->>'status', '') = 'submitted' and coalesce(data->>'feedback', '') = ''))
   and team_id = (select pl.team_id from public.players pl where pl.id = player_id));
-drop policy rec_parent_upd on public.records;
+drop policy if exists rec_parent_upd on public.records;
 create policy rec_parent_upd on public.records for update to authenticated using (
   visibility = 'family' and kind in ('availability','charge_ref','submission') and public.is_guardian_of(player_id) and author = auth.uid()
   and (kind <> 'submission' or coalesce(data->>'status', '') in ('submitted','redo')))
@@ -50,13 +50,18 @@ create policy rec_parent_upd on public.records for update to authenticated using
   and (kind <> 'submission' or (coalesce(data->>'status', '') = 'submitted' and coalesce(data->>'feedback', '') = ''))
   and team_id = (select pl.team_id from public.players pl where pl.id = player_id));
 
--- Private storage bucket for photos and videos (only where Supabase Storage exists).
+-- Private storage bucket for photos, 2 MB each at most (only where Supabase Storage exists).
 -- p/<child id>/<file>: a child's proofs, readable by that child's parents and coaches.
--- t/<team id>/<file>: a coach's instruction videos, readable by the team's coaches and parents.
+-- t/<team id>/<file>: a coach's how-to photos, readable by the team's coaches and parents.
+-- Notes from setup steps that could not finish (shown by the health checklist in 0004). Not readable through the app.
+create table if not exists public.setup_log (at timestamptz not null default now(), note text not null);
+alter table public.setup_log enable row level security;
+revoke all on public.setup_log from anon, authenticated;
+
 do $$ begin
   if to_regclass('storage.objects') is not null then
     insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-      values ('media', 'media', false, 41943040, array['image/jpeg','image/png','image/webp','video/mp4','video/webm','video/quicktime'])
+      values ('media', 'media', false, 2097152, array['image/jpeg','image/png','image/webp'])
       on conflict (id) do update set file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types, public = false;
     drop policy if exists media_read on storage.objects;
     drop policy if exists media_write on storage.objects;
@@ -75,4 +80,7 @@ do $$ begin
       (split_part(name, '/', 1) = 'p' and split_part(name, '/', 2) ~ '^[0-9a-f-]{36}$' and public.coach_of_player(split_part(name, '/', 2)::uuid))
       or (split_part(name, '/', 1) = 't' and split_part(name, '/', 2) ~ '^[0-9a-f-]{36}$' and public.is_coach_of(split_part(name, '/', 2)::uuid))));
   end if;
+exception when others then
+  -- Keep the rest of this file: record why storage could not be set up, so the checklist can say so.
+  insert into public.setup_log (note) values ('Storage: ' || sqlerrm);
 end $$;

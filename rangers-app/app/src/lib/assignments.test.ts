@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { groups, latestByTask, openAssignments, progress } from './assignments';
-import { checkMedia, fitImage, proofPath, teamVideoPath, videosToRemove, MAX_VIDEO_BYTES, MAX_COACH_VIDEO_BYTES } from './mediaRules';
+import { checkMedia, fitImage, proofPath, teamPhotoPath, youtubeId } from './mediaRules';
 import { ASSIGNMENT_TEMPLATES, templatesFor } from '../content/assignments';
 import { missingDetails } from '../components/Emergency';
 import type { Assignment, Submission } from './model';
@@ -34,16 +34,10 @@ describe('assignment progress', () => {
 });
 
 describe('media rules', () => {
-  it('accepts photos and short videos', () => {
-    expect(checkMedia({ type: 'image/jpeg', size: 5e6 })).toMatchObject({ ok: true, kind: 'image' });
-    expect(checkMedia({ type: 'video/mp4', size: 10e6 })).toMatchObject({ ok: true, kind: 'video', ext: 'mp4' });
-    expect(checkMedia({ type: 'video/quicktime', size: 10e6 })).toMatchObject({ ok: true, ext: 'mov' });
-  });
-  it('refuses big videos and other files with a helpful reason', () => {
-    const big = checkMedia({ type: 'video/mp4', size: MAX_VIDEO_BYTES + 1 }); expect(big.ok).toBe(false); expect(!big.ok && big.reason).toMatch(/limit is 20 MB/);
-    expect(checkMedia({ type: 'video/mp4', size: MAX_VIDEO_BYTES + 1 }, MAX_COACH_VIDEO_BYTES).ok).toBe(true);
-    expect(checkMedia({ type: 'video/mp4', size: MAX_COACH_VIDEO_BYTES + 1 }, MAX_COACH_VIDEO_BYTES).ok).toBe(false);
-    const odd = checkMedia({ type: 'video/3gpp', size: 10 }); expect(!odd.ok && odd.reason).toMatch(/normal camera app/);
+  it('accepts photos, refuses videos and other files with a helpful reason', () => {
+    expect(checkMedia({ type: 'image/jpeg', size: 5e6 }).ok).toBe(true);
+    expect(checkMedia({ type: 'image/png', size: 5e6 }).ok).toBe(true);
+    const v = checkMedia({ type: 'video/mp4', size: 1e6 }); expect(v.ok).toBe(false); expect(!v.ok && v.reason).toMatch(/Videos cannot be sent/);
     expect(checkMedia({ type: 'application/pdf', size: 10 }).ok).toBe(false);
     expect(checkMedia({ type: '', size: 10 }).ok).toBe(false);
   });
@@ -51,15 +45,14 @@ describe('media rules', () => {
     expect(fitImage(4000, 3000)).toEqual({ w: 1280, h: 960 });
     expect(fitImage(800, 600)).toEqual({ w: 800, h: 600 });
   });
-  it('removes only approved server videos, 30 days after approval', () => {
-    const now = Date.parse('2026-12-01T00:00:00Z'); const old = '2026-10-01T00:00:00Z', recent = '2026-11-20T00:00:00Z';
-    const s = (o: object) => ({ status: 'approved', mediaType: 'video', mediaPath: 'p/x/y.mp4', at: old, ...o });
-    expect(videosToRemove([s({})], now)).toHaveLength(1);
-    expect(videosToRemove([s({ reviewedAt: recent })], now)).toHaveLength(0);
-    expect(videosToRemove([s({ status: 'submitted' }), s({ mediaType: 'image' }), s({ mediaPath: '' }), s({ mediaPath: 'local:abc' })], now)).toHaveLength(0);
-  });
   it('builds the folder layout the storage rules expect', () => {
-    expect(proofPath('P', 'f', 'jpg')).toBe('p/P/f.jpg'); expect(teamVideoPath('T', 'f', 'mp4')).toBe('t/T/f.mp4');
+    expect(proofPath('P', 'f')).toBe('p/P/f.jpg'); expect(teamPhotoPath('T', 'f')).toBe('t/T/f.jpg');
+  });
+  it('reads YouTube links in every usual form and nothing else', () => {
+    for (const u of ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://youtu.be/dQw4w9WgXcQ?si=abc', 'https://youtube.com/shorts/dQw4w9WgXcQ', 'https://m.youtube.com/watch?v=dQw4w9WgXcQ&t=10', ' https://www.youtube.com/embed/dQw4w9WgXcQ '])
+      expect(youtubeId(u)).toBe('dQw4w9WgXcQ');
+    for (const u of ['https://vimeo.com/123', 'https://evil.example/watch?v=dQw4w9WgXcQ', 'not a link', 'https://youtube.com/watch?v=short', 'https://youtube.com.evil.example/watch?v=dQw4w9WgXcQ'])
+      expect(youtubeId(u)).toBe('');
   });
 });
 
@@ -71,6 +64,7 @@ describe('content and details', () => {
   });
   it('no ready-made task asks a young child to head the ball or do hard fitness', () => {
     for (const t of ASSIGNMENT_TEMPLATES) expect(t.tasks.join(' ')).not.toMatch(/\bhead(ing|er)?\b|sprint|max effort|until you drop/i);
+    for (const t of ASSIGNMENT_TEMPLATES) expect(t.tasks.join(' ')).not.toMatch(/\bclip\b|video/i);
   });
   it('lists what a family still needs to enter', () => {
     const p = { id: 'p', firstName: 'Ana', teamId: 't', number: 1, gkWilling: false, photoConsent: false } as never;

@@ -40,6 +40,7 @@ export function Login({ joining }: { joining?: boolean }) {
       <Card className="grid gap-3">
         {googleButtonEnabled && <div ref={gRef} className="flex min-h-[44px] justify-center" />}
         {(!googleButtonEnabled || gState === 'failed') && <button className="btn h-14" disabled={busy} onClick={() => run(signInGoogle)}>Continue with Google</button>}
+        {googleButtonEnabled && gState === 'ready' && <button className="muted text-center text-sm underline" disabled={busy} onClick={() => run(signInGoogle)}>Google button not working? Sign in the other way</button>}
         {EMAIL_CODES && (<>
         <div className="muted text-center">or use your email</div>
         {!sent ? (<>
@@ -119,7 +120,7 @@ export function PrivacyText() {
   return (<>
     <h2 className="text-2xl">How we look after your child's information</h2>
     <p>The Rangers App is run by volunteers of Rangers Football Club (with FC New Mabu and Gila Academy) to organise training and matches. It is free and has no ads.</p>
-    <p><b>What we keep:</b> your name and email; your child's name, birth date, shirt number and team; attendance, playing time and football progress; your child's address, phone number and the health details you choose to give (emergency contacts, medication, allergies, inhaler, injuries at the club, height for growth spurts); photos and videos your child sends as proof for tasks from the coach; a photo of your child on team screens only if you say yes.</p>
+    <p><b>What we keep:</b> your name and email; your child's name, birth date, shirt number and team; attendance, playing time and football progress; your child's address, phone number and the health details you choose to give (emergency contacts, medication, allergies, inhaler, injuries at the club, height for growth spurts); photos your child sends as proof for tasks from the coach; a photo of your child on team screens only if you say yes.</p>
     <p><b>Who sees it:</b> your child's coaches and the club admins. You see only your own child. Other parents never see your child's reviews, health information or contributions. Kids' screens show first names and shirt numbers only.</p>
     <p><b>How long:</b> while your child is with the club, then deleted 12 months after they leave. We never sell or share it.</p>
     <p><b>Your rights:</b> change photo and video permission any time, download, correct or ask us to delete your child's information (More, Privacy). Contact Coach James, +63 993 291 0764.</p>

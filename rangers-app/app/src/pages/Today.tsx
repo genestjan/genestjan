@@ -48,7 +48,7 @@ export default function Today() {
       </div>
       <H2>Needs your attention</H2>
       <ul className="grid gap-2">
-        {toReview > 0 && <li><Link to="/assign" className="card block p-3">{toReview} task photo(s) or video(s) to review</Link></li>}
+        {toReview > 0 && <li><Link to="/assign" className="card block p-3">{toReview} task photo(s) to review</Link></li>}
         {unread > 0 && <li><Link to="/inbox" className="card block p-3">{unread} unread message(s) from parents</Link></li>}
         {nudge.length > 0 && <li><Link to="/recognise" className="card block p-3">{nudge.length} child(ren) not recognised in 6 weeks: {nudge.slice(0, 3).map((id) => s.players.find((p) => p.id === id)?.firstName).join(', ')}{nudge.length > 3 ? '...' : ''}</Link></li>}
         {spurts.length > 0 && <li className="card p-3">Growth spurt: {spurts.map((p) => p.firstName).join(', ')}. Ease off jumping and sprinting for a few weeks.</li>}

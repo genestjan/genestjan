@@ -52,6 +52,19 @@ try {
   ok((await body(admin)).includes('Unable to exchange external code'), 'a failed sign-in shows its reason on the sign-in page');
   ok(!(await admin.url()).includes('error='), 'and the error is cleaned from the address');
 
+  // Google's own button: a stand-in for Google's script checks it loads under the security policy, draws, and hands the token to Supabase
+  { const c = await browser.newContext({ viewport: { width: 390, height: 844 } }); await c.addInitScript(() => { try { localStorage.setItem('rangers-welcome', '1'); } catch { /* ignore */ } });
+    await c.route('https://accounts.google.com/gsi/client', (r) => r.fulfill({ contentType: 'text/javascript', body: `window.google = { accounts: { id: {
+      initialize(o) { window.__gsi = o; },
+      renderButton(el) { const b = document.createElement('button'); b.textContent = 'Fake Google button'; b.onclick = () => window.__gsi.callback({ credential: 'not-a-real-token' }); el.appendChild(b); } } } };` }));
+    const g = await c.newPage(); watch(g, 'gsi'); await g.goto(APP);
+    await waitFor(async () => (await g.getByRole('button', { name: 'Fake Google button' }).count()) === 1, 'Google\'s own button loads under the security policy');
+    ok(await g.getByRole('button', { name: /Sign in the other way/ }).count() === 1, 'a way round is offered under Google\'s button');
+    ok(/^[0-9a-f]{64}$/.test(await g.evaluate(() => window.__gsi.nonce)), 'Google is given a hashed one-time code (nonce)');
+    await g.getByRole('button', { name: 'Fake Google button' }).click();
+    await waitFor(async () => (await g.getByRole('alert').count()) > 0, 'a refused Google token shows an error instead of nothing');
+    await c.close(); }
+
   // Google's own button cannot load here (blocked), so the normal Google button must take its place
   await admin.goto(APP); await waitFor(async () => (await admin.getByRole('button', { name: 'Continue with Google' }).count()) === 1, 'falls back to the normal Google button when Google\'s script is blocked');
 

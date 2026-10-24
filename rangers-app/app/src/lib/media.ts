@@ -1,36 +1,38 @@
 import { useEffect, useState } from 'react';
 import { cloudEnabled, sb } from './cloud';
 import { db } from './store';
-import { checkMedia, fitImage, MAX_VIDEO_BYTES } from './mediaRules';
+import { checkMedia, fitImage, JPEG_STEPS, MAX_IMAGE_EDGE, MAX_UPLOAD_BYTES, TARGET_IMAGE_BYTES } from './mediaRules';
 
 export const BUCKET = 'media';
 const LOCAL = 'local:';
 
-export interface Prepared { blob: Blob; kind: 'image' | 'video'; ext: string }
-/** Checks a chosen file; photos are shrunk on the device before they are sent (saves a child's mobile data). */
-export async function prepare(file: File, maxVideo = MAX_VIDEO_BYTES): Promise<Prepared> {
-  const c = checkMedia(file, maxVideo);
+export interface Prepared { blob: Blob; ext: 'jpg' }
+const HEIC = 'This phone saved the photo in a format that cannot be sent. Take a screenshot of the photo and send that, or set the camera to "Most compatible".';
+/** Checks a chosen photo and shrinks it on the phone (saves the family's mobile data and the club's storage). */
+export async function prepare(file: File): Promise<Prepared> {
+  const c = checkMedia(file);
   if (!c.ok) throw new Error(c.reason);
-  if (c.kind === 'video') return { blob: file, kind: 'video', ext: c.ext };
-  try {
-    const bmp = await createImageBitmap(file);
-    const { w, h } = fitImage(bmp.width, bmp.height);
-    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  let bmp: ImageBitmap;
+  try { bmp = await createImageBitmap(file); } catch { throw new Error(/heic|heif/i.test(file.type) ? HEIC : 'This photo could not be opened. Take a new photo with the camera.'); }
+  const cv = document.createElement('canvas'); let edge = MAX_IMAGE_EDGE; let last: Blob | null = null;
+  for (let round = 0; round < 3; round++, edge = Math.round(edge * 0.75)) {
+    const { w, h } = fitImage(bmp.width, bmp.height, edge); cv.width = w; cv.height = h;
     cv.getContext('2d')!.drawImage(bmp, 0, 0, w, h);
-    const blob = await new Promise<Blob | null>((r) => cv.toBlob(r, 'image/jpeg', 0.8));
-    if (blob) return { blob, kind: 'image', ext: 'jpg' };
-  } catch { /* some browsers cannot read HEIC photos: handled below */ }
-  if (/heic|heif/i.test(file.type)) throw new Error('This phone saved the photo as HEIC, which cannot be sent. Take a screenshot of the photo and send that, or set the camera to "Most compatible".');
-  if (file.size > 10 * 1024 * 1024) throw new Error('That photo is too large and could not be shrunk. Take a new photo with the camera.');
-  return { blob: file, kind: 'image', ext: 'jpg' };
+    for (const q of JPEG_STEPS) {
+      last = await new Promise<Blob | null>((r) => cv.toBlob(r, 'image/jpeg', q));
+      if (last && last.size <= TARGET_IMAGE_BYTES) return { blob: last, ext: 'jpg' };
+    }
+  }
+  if (last && last.size <= MAX_UPLOAD_BYTES) return { blob: last, ext: 'jpg' };
+  throw new Error('This photo could not be made small enough. Take a new photo with the camera.');
 }
 
 /** Saves to Supabase Storage when accounts are on, otherwise on this phone. Returns the path to keep on the record. */
 export async function saveMedia(p: Prepared, path: string): Promise<string> {
   if (!cloudEnabled) { const id = crypto.randomUUID(); await db.media.put({ id, blob: p.blob }); return LOCAL + id; }
-  if (!navigator.onLine) throw new Error('You need an internet connection to send a photo or video. Try again when you have signal.');
+  if (!navigator.onLine) throw new Error('You need an internet connection to send a photo. Try again when you have signal.');
   const c = await sb();
-  const { error } = await c.storage.from(BUCKET).upload(path, p.blob, { contentType: p.blob.type || (p.kind === 'video' ? 'video/mp4' : 'image/jpeg'), upsert: true });
+  const { error } = await c.storage.from(BUCKET).upload(path, p.blob, { contentType: 'image/jpeg', upsert: true });
   if (error) throw new Error(`Could not upload: ${error.message}`);
   return path;
 }
@@ -50,7 +52,7 @@ export async function mediaUrl(path: string): Promise<string> {
   return data.signedUrl;
 }
 
-/** Resolves a stored path to something an <img> or <video> can show. */
+/** Resolves a stored path to something an <img> can show. */
 export function useMediaUrl(path: string | undefined, version = '') {
   const [url, setUrl] = useState(''); const [err, setErr] = useState(false);
   useEffect(() => {

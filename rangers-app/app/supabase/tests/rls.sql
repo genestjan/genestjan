@@ -228,19 +228,20 @@ select t.ok(t.state($q$update public.records set data = '{"status":"submitted","
 
 -- Media bucket
 reset role;
-select t.ok((select file_size_limit from storage.buckets where id='media') = 41943040 and not (select public from storage.buckets where id='media'), 'media bucket is private with a 40 MB limit');
+select t.ok((select file_size_limit from storage.buckets where id='media') = 2097152 and not (select public from storage.buckets where id='media'), 'photo storage is private with a 2 MB limit');
+select t.ok((select allowed_mime_types from storage.buckets where id='media') = array['image/jpeg','image/png','image/webp'], 'photo storage accepts photos only, no videos');
 set role authenticated;
 select t.login('00000000-0000-0000-0000-0000000000b1');
 select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','p/20000000-0000-0000-0000-000000000001/a.jpg')$q$) = '00000', 'parent can upload a proof for their own child');
 select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','p/20000000-0000-0000-0000-000000000002/a.jpg')$q$) = '42501', 'parent cannot upload into another child''s folder');
-select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000001/v.mp4')$q$) = '42501', 'parent cannot upload a coach video');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000001/v.jpg')$q$) = '42501', 'parent cannot upload a coach photo');
 select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','p/not-a-uuid/a.jpg')$q$) = '42501', 'a malformed path is refused');
 select t.login('00000000-0000-0000-0000-0000000000c1');
-select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000001/v.mp4')$q$) = '00000', 'coach can upload an instruction video for their team');
-select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000002/v.mp4')$q$) = '42501', 'coach cannot upload for another team');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000001/v.jpg')$q$) = '00000', 'coach can upload a how-to photo for their team');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000002/v.jpg')$q$) = '42501', 'coach cannot upload for another team');
 select t.ok(t.count($q$select count(*) from storage.objects where name like 'p/20000000-0000-0000-0000-000000000001/%'$q$) = 1, 'coach can see their child''s proof file');
 select t.login('00000000-0000-0000-0000-0000000000b1');
-select t.ok(t.count($q$select count(*) from storage.objects where name like 't/10000000-0000-0000-0000-000000000001/%'$q$) = 1, 'parent can watch their team''s instruction video');
+select t.ok(t.count($q$select count(*) from storage.objects where name like 't/10000000-0000-0000-0000-000000000001/%'$q$) = 1, 'parent can see their team''s how-to photo');
 select t.login('00000000-0000-0000-0000-0000000000b2');
 select t.ok(t.count($q$select count(*) from storage.objects where name like 'p/20000000-0000-0000-0000-000000000001/%'$q$) = 0, 'another family cannot see the proof file');
 select t.login('00000000-0000-0000-0000-0000000000c2');

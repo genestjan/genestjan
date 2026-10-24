@@ -1,37 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Back, Card, Empty, H2, Page } from '../components/ui';
-import { MediaPicker, MediaView } from '../components/MediaView';
+import { MediaPicker, MediaView, YouTube } from '../components/MediaView';
 import { activeTeam, del, put, teamPlayers, uid, useAppState } from '../lib/store';
 import { ASSIGNMENT_TEMPLATES, templatesFor } from '../content/assignments';
 import { groups, latestByTask, progress } from '../lib/assignments';
-import { MAX_COACH_VIDEO_BYTES, teamVideoPath, videosToRemove } from '../lib/mediaRules';
+import { teamPhotoPath, youtubeId } from '../lib/mediaRules';
 import { removeMedia } from '../lib/media';
-import { cloudEnabled, useCloud } from '../lib/cloud';
 import { BAND_AGE } from '../lib/sessionBuilder';
 import { fmtDate, today } from '../lib/util';
 import type { Assignment, Submission } from '../lib/model';
 
 /** Coach: all assignments sent, newest first. */
-let cleanedThisSession = false;
-/** Removes approved proof videos older than 30 days (coaches only; the storage rules allow nobody else). Photos are kept. */
-function useVideoCleanup() {
-  const s = useAppState(); const c = useCloud();
-  useEffect(() => {
-    if (cleanedThisSession || !cloudEnabled || c.status !== 'ready' || (c.role !== 'coach' && c.role !== 'admin')) return;
-    cleanedThisSession = true;
-    const old = videosToRemove(s.submissions, Date.now()).slice(0, 50);
-    if (old.length) void removeMedia(old.map((x) => x.mediaPath)).then(() => old.forEach((x) => put('submissions', { ...x, mediaPath: '', removed: true }))).catch(() => { cleanedThisSession = false; });
-  }, [c.status, c.role, s.submissions]);
-}
-
 export function AssignList() {
-  const s = useAppState(); const team = activeTeam(s); useVideoCleanup();
+  const s = useAppState(); const team = activeTeam(s);
   const list = groups(s.assignments.filter((a) => a.teamId === team.id));
   return (
     <Page title="Assign" back={<Back to="/" />}>
       <Link to="/assign/new" className="btn mb-3 w-full">New assignment</Link>
-      {list.length === 0 && <Empty>No assignments yet. Pick a ready-made one or write your own, choose the players, and they get a task list to clear with photos or videos.</Empty>}
+      {list.length === 0 && <Empty>No assignments yet. Pick a ready-made one or write your own, choose the players, and they get a task list to clear with photos.</Empty>}
       <div className="grid gap-3">
         {list.map((g) => {
           const ps = g.items.map((a) => progress(a, s.submissions));
@@ -48,12 +35,12 @@ export function AssignList() {
   );
 }
 
-/** Coach: build an assignment from a ready-made one or from scratch, with an optional video, and send it to chosen players. */
+/** Coach: build an assignment from a ready-made one or from scratch, with an optional photo or YouTube video, and send it to chosen players. */
 export function AssignNew() {
   const s = useAppState(); const nav = useNavigate(); const team = activeTeam(s); const kids = teamPlayers(s);
   const [title, setTitle] = useState(''); const [why, setWhy] = useState(''); const [tasks, setTasks] = useState<string[]>(['']);
   const [templateId, setTemplateId] = useState<string | undefined>(); const [due, setDue] = useState('');
-  const [video, setVideo] = useState<{ path: string; kind: 'image' | 'video' } | null>(null);
+  const [photo, setPhoto] = useState(''); const [yt, setYt] = useState(''); const ytId = youtubeId(yt);
   const [chosen, setChosen] = useState<string[]>([]); const [all, setAll] = useState(false);
   const age = BAND_AGE[team.ageBand]; const templates = all ? ASSIGNMENT_TEMPLATES : templatesFor(age);
   const clean = tasks.map((t) => t.trim()).filter(Boolean);
@@ -62,7 +49,7 @@ export function AssignNew() {
   const send = () => {
     const groupId = uid(); const at = new Date().toISOString();
     for (const playerId of chosen) {
-      const a: Assignment = { id: uid(), groupId, playerId, teamId: team.id, title: title.trim(), why: why.trim(), tasks: clean.map((text, i) => ({ id: `t${i + 1}`, text })), videoPath: video?.path, videoKind: video?.kind, templateId, dueOn: due || undefined, at, by: s.me.name };
+      const a: Assignment = { id: uid(), groupId, playerId, teamId: team.id, title: title.trim(), why: why.trim(), tasks: clean.map((text, i) => ({ id: `t${i + 1}`, text })), photoPath: photo || undefined, youtubeId: ytId || undefined, templateId, dueOn: due || undefined, at, by: s.me.name };
       put('assignments', a);
     }
     nav(`/assign/${groupId}`, { replace: true });
@@ -86,11 +73,15 @@ export function AssignNew() {
         {tasks.length < 8 && <button className="btn ghost" onClick={() => setTasks([...tasks, ''])}>Add a task</button>}
         <label className="grid gap-1 text-sm font-semibold">Due date (optional)<input type="date" className="field" min={today()} value={due} onChange={(e) => setDue(e.target.value)} /></label>
       </Card>
-      <H2>3. Add a video to show them how (optional)</H2>
+      <H2>3. Show them how (optional)</H2>
       <Card className="grid gap-3">
-        {video ? (<><MediaView path={video.path} kind={video.kind} /><button className="btn ghost" onClick={() => { void removeMedia([video.path]).catch(() => undefined); setVideo(null); }}>Remove the video</button></>)
-          : <MediaPicker label="Upload a video or photo" pathFor={(p) => teamVideoPath(team.id, uid(), p.ext)} onSaved={(path, kind) => setVideo({ path, kind })} maxVideoBytes={MAX_COACH_VIDEO_BYTES} />}
-        <p className="muted text-sm">Up to 40 MB (about 30 seconds on most phones). The players on this team can watch it with their assignment. Players send photos, or clips of up to 20 MB (about 15 seconds). Approved videos are removed after 30 days to save space; photos are kept.</p>
+        <label className="grid gap-1 text-sm font-semibold">YouTube link to a how-to video
+          <input className="field" inputMode="url" placeholder="https://youtu.be/..." value={yt} onChange={(e) => setYt(e.target.value)} /></label>
+        {yt.trim() && !ytId && <p className="text-sm text-red" role="alert">That is not a YouTube video link. Copy it from YouTube's Share button.</p>}
+        {ytId && <YouTube id={ytId} />}
+        <p className="muted text-sm">Upload the video to YouTube with the club account and choose <b>Unlisted</b>, so only people with the link can watch. It costs nothing and uses none of the club's storage.</p>
+        {photo ? (<><MediaView path={photo} /><button className="btn ghost" onClick={() => { void removeMedia([photo]).catch(() => undefined); setPhoto(''); }}>Remove the photo</button></>)
+          : <MediaPicker label="Add a photo (for example a drawing of the drill)" pathFor={() => teamPhotoPath(team.id, uid())} onSaved={setPhoto} />}
       </Card>
       <H2>4. Choose the players</H2>
       <Card className="grid gap-2">
@@ -105,16 +96,16 @@ export function AssignNew() {
   );
 }
 
-/** Coach: how each player is getting on, with their photos and videos to approve or send back. */
+/** Coach: how each player is getting on, with their photos to approve or send back. */
 export function AssignDetail() {
   const { groupId } = useParams(); const s = useAppState(); const nav = useNavigate();
   const items = s.assignments.filter((a) => a.groupId === groupId);
   if (items.length === 0) return <Page title="Assignment" back={<Back to="/assign" />}><Empty>This assignment is no longer there.</Empty></Page>;
   const a0 = items[0];
   const remove = () => {
-    if (!confirm('Delete this assignment for every player, with their photos and videos?')) return;
+    if (!confirm('Delete this assignment for every player, with their photos?')) return;
     const subs = s.submissions.filter((x) => items.some((a) => a.id === x.assignmentId));
-    const files = [...new Set([...items.map((a) => a.videoPath ?? ''), ...subs.map((x) => x.mediaPath)].filter(Boolean))];
+    const files = [...new Set([...items.map((a) => a.photoPath ?? ''), ...subs.map((x) => x.mediaPath)].filter(Boolean))];
     void removeMedia(files).catch(() => undefined);   // best effort: the records go either way
     items.forEach((a) => del('assignments', a.id)); subs.forEach((x) => del('submissions', x.id)); nav('/assign', { replace: true });
   };
@@ -122,7 +113,8 @@ export function AssignDetail() {
     <Page title={a0.title} back={<Back to="/assign" />}>
       {a0.why && <p className="mb-2">{a0.why}</p>}
       {a0.dueOn && <p className="muted mb-2">Due {fmtDate(a0.dueOn)}</p>}
-      {a0.videoPath && <div className="mb-3"><MediaView path={a0.videoPath} kind={a0.videoKind ?? 'video'} /></div>}
+      {a0.youtubeId && <div className="mb-3"><YouTube id={a0.youtubeId} /></div>}
+      {a0.photoPath && <div className="mb-3"><MediaView path={a0.photoPath} /></div>}
       {items.map((a) => <PlayerReview key={a.id} a={a} />)}
       <button className="btn ghost mt-4 w-full" onClick={remove}>Delete this assignment</button>
     </Page>
@@ -147,7 +139,7 @@ function TaskReview({ text, sub }: { text: string; sub?: Submission }) {
       <div className="font-semibold">{text}</div>
       {!sub && <div className="muted">Not sent yet</div>}
       {sub && (<>
-        <MediaView path={sub.mediaPath} kind={sub.mediaType} version={sub.at} />
+        <MediaView path={sub.mediaPath} version={sub.at} />
         <div className="muted text-sm">{sub.status === 'approved' ? 'Approved' : sub.status === 'redo' ? 'Sent back for another try' : 'Waiting for you'}</div>
         <input className="field" placeholder="A short comment for the player (optional)" aria-label="Comment for the player" value={fb} onChange={(e) => setFb(e.target.value)} />
         <div className="flex gap-2"><button className="btn flex-1" disabled={sub.status === 'approved'} onClick={() => set('approved')}>Approve</button><button className="btn ghost flex-1" disabled={sub.status === 'redo'} onClick={() => set('redo')}>Try again</button></div>

@@ -74,19 +74,25 @@ try {
   const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
   const photo = { name: 'proof.png', mimeType: 'image/png', buffer: PNG };
   await p.goto(B + '/assign/new'); await p.getByRole('button', { name: 'Ball mastery at home' }).click();
-  await p.getByLabel('Upload a video or photo').setInputFiles({ name: 'how.mp4', mimeType: 'video/mp4', buffer: Buffer.alloc(2048, 1) }); await p.waitForTimeout(400);
-  ok((await text()).includes('Remove the video'), 'coach attached a how-to video');
+  await p.route('**/www.youtube-nocookie.com/**', (r) => r.fulfill({ contentType: 'text/html', body: '<p>video</p>' }));
+  await p.getByLabel('YouTube link to a how-to video').fill('https://vimeo.com/123'); ok((await text()).includes('That is not a YouTube video link'), 'a non-YouTube link is pointed out');
+  await p.getByLabel('YouTube link to a how-to video').fill('https://youtu.be/dQw4w9WgXcQ');
+  ok(await p.locator('iframe[src^="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"]').count() === 1, 'coach added a YouTube how-to video (privacy-friendly player)');
+  await p.getByLabel(/^Add a photo \(for example/).setInputFiles(photo); await p.waitForTimeout(400);
+  ok((await text()).includes('Remove the photo'), 'coach attached a how-to photo');
   ok(await p.getByRole('button', { name: /^Send to 0 players/ }).isDisabled(), 'cannot send to nobody');
   await p.getByLabel(/^Ana/).check(); await p.getByLabel(/^Ben/).check(); await p.getByRole('button', { name: 'Send to 2 players' }).click(); await p.waitForURL(/#\/assign\/[0-9a-f-]{36}/);
   ok((await text()).includes('Ball mastery at home') && (await text()).includes('Ben') && (await text()).includes('0 of 3 sent'), 'assignment sent to two players');
   await p.goto(B + '/player/' + ANA); await p.getByRole('button', { name: /Preview as this child/ }).click(); await p.waitForTimeout(300);
   ok((await text()).includes('1 task from your coach') && (await text()).includes('Please finish Ana'), 'parent home shows the task and the details reminder');
   await p.getByRole('link', { name: /Tasks/ }).first().click(); ok((await text()).includes('Ball mastery at home'), 'parent sees the assignment');
-  await p.getByRole('link', { name: /Ball mastery at home/ }).click(); ok((await text()).includes('0 of 3 done') && (await text()).includes('Watch first'), 'task list shows the coach video and 0 of 3');
+  await p.getByRole('link', { name: /Ball mastery at home/ }).click(); ok((await text()).includes('0 of 3 done') && (await text()).includes('How to do it') && await p.locator('iframe[src*="youtube-nocookie.com/embed/dQw4w9WgXcQ"]').count() === 1, 'task list shows the how-to video and 0 of 3');
+  await p.getByLabel('Add a photo').first().setInputFiles({ name: 'clip.mp4', mimeType: 'video/mp4', buffer: Buffer.alloc(4096, 1) }); await p.waitForTimeout(300);
+  ok((await text()).includes('Videos cannot be sent') && (await text()).includes('0 of 3 done'), 'a video is refused with a clear message');
   for (let i = 1; i <= 3; i++) {
-    await p.getByLabel('Add a photo or video').first().setInputFiles(photo);
+    await p.getByLabel('Add a photo', { exact: true }).first().setInputFiles(photo);
     // wait until the screen shows the task as sent (one picker fewer) before choosing the next file, as a person would
-    for (let t = 0; t < 60 && await p.getByLabel('Add a photo or video').count() > 3 - i; t++) await p.waitForTimeout(250);
+    for (let t = 0; t < 60 && await p.getByLabel('Add a photo', { exact: true }).count() > 3 - i; t++) await p.waitForTimeout(250);
     await p.waitForTimeout(150);
   }
   ok((await text()).includes('Well done') && (await text()).includes('every task'), 'sending a proof for every task clears the list'); await shot('tasks');
@@ -96,14 +102,14 @@ try {
   await p.getByLabel(/^Medication/).fill('inhaler before exercise'); await p.getByLabel(/^Anything else/).fill('Speaks Cebuano at home');
   await p.goto(B + '/'); ok(!(await text()).includes('Please finish Ana'), 'details reminder goes away once filled in');
   await p.goto(B + '/more'); await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
-  await p.goto(B + '/'); ok((await text()).includes('3 task photo(s) or video(s) to review'), 'coach dashboard shows proofs to review');
+  await p.goto(B + '/'); ok((await text()).includes('3 task photo(s) to review'), 'coach dashboard shows proofs to review');
   await p.goto(B + '/assign'); await p.getByRole('link', { name: /Ball mastery at home/ }).click(); await p.waitForTimeout(300);
   ok((await text()).includes('List cleared'), 'coach sees the cleared list');
   await p.getByRole('button', { name: 'Approve' }).first().click(); await p.getByRole('button', { name: 'Try again' }).nth(1).click(); await p.waitForTimeout(300);
   ok((await text()).includes('Approved') && (await text()).includes('Sent back for another try'), 'coach approves one proof and sends one back');
   await p.goto(B + '/player/' + ANA); ok(await p.getByLabel('Home address').inputValue() === 'Purok 1, Mabuhay, General Santos' && await p.getByLabel(/^Medication/).inputValue() === 'inhaler before exercise', 'coach sees the details the family entered');
   await p.getByRole('button', { name: /Preview as this child/ }).click(); await p.goto(B + '/tasks'); await p.getByRole('link', { name: /Ball mastery at home/ }).click();
-  ok((await text()).includes('Try again') && (await text()).includes('Send a new photo or video'), 'child can resend a task that was sent back');
+  ok((await text()).includes('Try again') && (await text()).includes('Send a new photo'), 'child can resend a task that was sent back');
   await p.goto(B + '/more'); await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
 
   // a brand new phone: welcome screen, then the tour, once only
