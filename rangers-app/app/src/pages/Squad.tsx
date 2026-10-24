@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, H2, Page, Tone } from '../components/ui';
 import { DEMO_PLAYERS, exportBackup, importBackup, put, teamPlayers, uid, update, useAppState, activeTeam } from '../lib/store';
 import { download } from '../lib/util';
+import { cloudEnabled } from '../lib/cloud';
 import { growthVelocity } from '../lib/growth';
 
 export default function Squad() {
@@ -24,7 +25,7 @@ export default function Squad() {
         <label className="mb-1 block font-semibold" htmlFor="paste">Add players (one per line, like "7 Ana")</label>
         <textarea id="paste" className="field py-3" rows={3} value={paste} onChange={(e) => setPaste(e.target.value)} />
         <div className="mt-3 flex flex-wrap gap-2"><button className="btn" disabled={!paste.trim()} onClick={add}>Add</button>
-          <button className="btn ghost" onClick={() => update((x) => ({ ...x, players: [...x.players, ...DEMO_PLAYERS.filter((d) => !x.players.some((p) => p.id === d.id)).map((d) => ({ ...d, teamId: team.id }))] }))}>Load demo team</button></div>
+          {!cloudEnabled && <button className="btn ghost" onClick={() => update((x) => ({ ...x, players: [...x.players, ...DEMO_PLAYERS.filter((d) => !x.players.some((p) => p.id === d.id)).map((d) => ({ ...d, teamId: team.id }))] }))}>Load demo team</button>}</div>
       </Card>
       <ul className="grid gap-2">
         {kids.map((p) => { const g = growthVelocity(s.growth.filter((x) => x.playerId === p.id)); return (
@@ -38,7 +39,7 @@ export default function Squad() {
         <Link className="btn ghost" to="/recognise">Recognise a child</Link>
         <Link className="btn ghost" to="/review">Term reviews</Link>
         <button className="btn ghost" onClick={() => download(`rangers-backup-${new Date().toISOString().slice(0, 10)}.json`, exportBackup())}>Back up to file</button>
-        <label className="btn ghost cursor-pointer">Restore backup<input type="file" accept="application/json" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f && confirm('Replace everything on this device?')) importBackup(await f.text()); }} /></label>
+        <label className="btn ghost cursor-pointer">Restore backup<input type="file" accept="application/json" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f && confirm('Replace everything on this device?')) { try { importBackup(await f.text()); alert('Backup restored.'); } catch (err) { alert((err as Error).message); } } }} /></label>
         {s.blocked.length > 0 && <Tone tone="bad">Clear head-knock blocks from each child's Health section (head coach only).</Tone>}
       </div>
     </Page>

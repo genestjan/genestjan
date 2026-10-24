@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { put, useAppState } from '../lib/store';
 import { onField, clockSeconds } from '../lib/matchClock';
-import { placeLineup, planFor } from '../lib/lineup';
+import { placeLineup, usePlan } from '../lib/lineup';
 import { PRESETS } from '../lib/presets';
 import { SLIDES, SlideView, type SlideData } from '../components/Slides';
 import { cloudEnabled, sb } from '../lib/cloud';
@@ -22,10 +22,10 @@ export default function Present() {
     return () => { window.removeEventListener('keydown', key); void lock?.release(); };
   }, []);
 
+  const plan = usePlan(m, s.players, s.blocked);
   const data = useMemo<SlideData | null>(() => {
-    if (!m) return null;
+    if (!m || !plan) return null;
     const squad = s.players.filter((p) => m.availableIds.includes(p.id) && !s.blocked.includes(p.id));
-    const plan = planFor({ ...m, availableIds: squad.map((p) => p.id) }, s.players);
     const live = onField(m.log); const sec = clockSeconds(m.log, now);
     const wi = Math.floor(sec / 60 / m.windowMinutes);
     const win = plan.windows[Math.min(wi, plan.windows.length - 1)]; const nextWin = plan.windows[Math.min(wi + 1, plan.windows.length - 1)];
@@ -40,7 +40,7 @@ export default function Present() {
       halftimeGood: m.halftimeGood, halftimeChange: m.halftimeChange, celebrate: m.celebrate,
       comingOn: squad.filter((p) => nextWin.roles[p.id] !== 'BENCH' && !onPlayers.includes(p)).map(kid), goingOff: onPlayers.filter((p) => nextWin.roles[p.id] === 'BENCH').map(kid), clockSec: sec,
     };
-  }, [m, s.players, s.blocked, s.strategies, s.teams, now]);
+  }, [m, plan, s.players, s.blocked, s.strategies, s.teams, now]);
 
   // TV link: kid-facing data only (first names, numbers, slide text), sent over a short-lived broadcast channel.
   const link = async () => {

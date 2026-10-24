@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Today from './pages/Today';
 import Squad from './pages/Squad';
 import PlayerProfile from './pages/Player';
@@ -18,7 +18,7 @@ import Support from './pages/Support';
 import BoardEditor from './pages/BoardEditor';
 import More, { Help, Motivation, Privacy, Settings, Tips } from './pages/More';
 import { ParentHome, ProgressPage } from './pages/Parent';
-import { Gate, Join, Login } from './pages/Auth';
+import { Gate, Join, Login, pendingInvite } from './pages/Auth';
 import { TabBar } from './components/ui';
 import { loadState, useAppState } from './lib/store';
 import { cloudEnabled, init as initCloud, useCloud } from './lib/cloud';
@@ -48,6 +48,7 @@ function Shell() {
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/progress/:id" element={<ProgressRoute />} />
         <Route path="/tv" element={<Tv />} />
+        <Route path="/join/:token" element={<Join />} />
         {staff && (<>
           <Route path="/squad" element={<Squad />} />
           <Route path="/player/:id" element={<PlayerProfile />} />
@@ -76,11 +77,13 @@ function Shell() {
 
 function Gatekeeper() {
   const c = useCloud(); const loc = useLocation();
-  if (loc.pathname === '/join') return <Join />;
+  if (loc.pathname.startsWith('/join')) return <Routes><Route path="/join/:token" element={<Join />} /><Route path="*" element={<Join />} /></Routes>;
   if (loc.pathname === '/tv') return <Tv />;
   if (!cloudEnabled) return <Shell />;
   if (c.status === 'loading') return <div className="p-8 text-center muted">Loading...</div>;
   if (c.status === 'signed-out') return <Login />;
+  // Back from Google sign-in with an invite still waiting: finish joining first.
+  if (pendingInvite() && (c.status === 'ready' || c.status === 'no-role')) return <Join />;
   if (c.status !== 'ready') return <Gate />;
   return <Shell />;
 }
@@ -96,9 +99,9 @@ export default function App() {
   }, []);
   if (!ready) return null;
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+    <HashRouter>
       {!online && <div className="bg-red px-4 py-1 text-center text-sm text-white">Offline: everything still works and is saved on this device.</div>}
       <Gatekeeper />
-    </BrowserRouter>
+    </HashRouter>
   );
 }

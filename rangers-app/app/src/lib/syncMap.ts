@@ -1,6 +1,6 @@
 import type { AppState, CollKey } from './store';
 
-export type Vis = 'coach' | 'family' | 'team' | 'club';
+export type Vis = 'coach' | 'family' | 'team' | 'club' | 'staff';
 export interface RowOut { id: string; kind: string; team_id: string | null; player_id: string | null; visibility: Vis; data: Record<string, unknown> }
 export interface RowIn extends RowOut { updated_at: string; deleted_at: string | null }
 
@@ -27,9 +27,9 @@ export const CONFIG: Cfg[] = [
   { key: 'sessions', kind: 'session', vis: () => 'coach', team: (i) => i.teamId, player: () => null },
   { key: 'matches', kind: 'match', vis: () => 'coach', team: (i) => i.teamId, player: () => null },
   fam('goals', 'goal'), fam('recognitions', 'recognition'), fam('badges', 'badge'), fam('growth', 'growth'), fam('injuries', 'injury'), fam('wellness', 'wellness'),
-  { key: 'strategies', kind: 'strategy', vis: () => 'club', team: () => null, player: () => null },
+  { key: 'strategies', kind: 'strategy', vis: () => 'staff', team: () => null, player: () => null },
   { key: 'funds', kind: 'fund', vis: () => 'club', team: () => null, player: () => null },
-  { key: 'equipment', kind: 'equipment', vis: () => 'club', team: () => null, player: () => null },
+  { key: 'equipment', kind: 'equipment', vis: () => 'staff', team: () => null, player: () => null },
   { key: 'stories', kind: 'story', vis: () => 'club', team: () => null, player: () => null },
   fam('bootRequests', 'boot'), fam('minutes', 'minutes'), fam('charges', 'charge'), fam('chargeRefs', 'charge_ref'), fam('seen', 'seen'),
 ];
@@ -47,11 +47,12 @@ export function toRows(s: AppState): RowOut[] {
     out.push({ id: item.id, kind: c.kind, team_id: team, player_id: player, visibility: c.vis(item), data: item as unknown as Record<string, unknown> });
   }
   for (const a of s.assessments) {
-    if (!isUuid(a.id) || !isUuid(a.playerId) || !isUuid(a.teamId)) continue;
+    if (a.fromPub || !isUuid(a.id) || !isUuid(a.playerId) || !isUuid(a.teamId)) continue;
     out.push({ id: a.id, kind: 'assessment', team_id: a.teamId, player_id: a.playerId, visibility: 'coach', data: a as unknown as Record<string, unknown> });
     if (a.publishedAt) out.push({ id: derivedId(a.id, 'pub'), kind: 'assessment_pub', team_id: a.teamId, player_id: a.playerId, visibility: 'family', data: { ...a, coachNote: '' } as unknown as Record<string, unknown> });
   }
-  if (s.settings) out.push({ id: SETTINGS_ID, kind: 'settings', team_id: null, player_id: null, visibility: 'club', data: s.settings as unknown as Record<string, unknown> });
+  // The head-coach PIN is a per-phone extra for local-only mode: it is never sent to the server.
+  if (s.settings) { const { headCoachPin: _pin, ...shared } = s.settings; void _pin; out.push({ id: SETTINGS_ID, kind: 'settings', team_id: null, player_id: null, visibility: 'club', data: shared as unknown as Record<string, unknown> }); }
   return out;
 }
 
@@ -63,13 +64,14 @@ export function applyRows(s: AppState, rows: RowIn[]): AppState {
   const cols = new Map<CollKey, { id: string }[]>();
   const col = (k: CollKey) => { if (!cols.has(k)) cols.set(k, [...(next[k] as unknown as { id: string }[])]); return cols.get(k)!; };
   for (const r of rows) {
-    if (r.kind === 'settings') { if (!r.deleted_at) next.settings = { ...next.settings, ...(r.data as object) } as AppState['settings']; continue; }
+    if (r.kind === 'settings') { if (!r.deleted_at) next.settings = { ...next.settings, ...(r.data as object), headCoachPin: next.settings.headCoachPin } as AppState['settings']; continue; }
     if (r.kind === 'assessment_pub') {
-      const id = (r.data as { id: string }).id; const list = col('assessments') as { id: string; publishedAt?: string }[];
-      const has = list.findIndex((x) => x.id === id);
-      if (r.deleted_at) continue;
-      if (has < 0) list.push(r.data as never);          // parents only ever get this copy (no coach note)
-      else if (!list[has].publishedAt || (r.data as { coachNote: string }).coachNote === '') list[has] = { ...list[has], publishedAt: (r.data as { publishedAt?: string }).publishedAt } as never;
+      // Parents only ever receive this family copy (no coach note). Coaches keep their own full copy.
+      const d = r.data as { id: string }; const list = col('assessments') as { id: string; fromPub?: boolean }[];
+      const i = list.findIndex((x) => x.id === d.id);
+      if (r.deleted_at) { if (i >= 0 && list[i].fromPub) list.splice(i, 1); continue; }   // "take back" reaches parents
+      if (i < 0) list.push({ ...d, fromPub: true });
+      else if (list[i].fromPub) list[i] = { ...d, fromPub: true };
       continue;
     }
     const c = BY_KIND.get(r.kind) ?? (r.kind === 'assessment' ? { key: 'assessments' as CollKey } : undefined);

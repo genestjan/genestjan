@@ -34,4 +34,3 @@ export function BoardView({ doc, playing = true }: { doc: BoardDoc; playing?: bo
   );
 }
 
-export function useBoardKey(initial: string) { return useState(initial); }

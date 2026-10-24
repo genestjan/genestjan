@@ -5,11 +5,12 @@ import { FORMATS, type FormatId } from '../lib/types';
 import { planFor } from '../lib/lineup';
 import { KEY_PHRASES, PRESETS } from '../lib/presets';
 import { PROGRAMMES } from '../lib/model';
+import { statusFor } from './Schedule';
 
 export default function MatchSetup() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { matches, blocked, strategies, availability, teams } = useAppState();
+  const st = useAppState(); const { matches, blocked, strategies, teams, events } = st;
   const all = useAppState().players;
   const m = matches.find((x) => x.id === id);
   if (!m) return <Page title="Match"><Link to="/match" className="btn">Matches</Link></Page>;
@@ -39,7 +40,7 @@ export default function MatchSetup() {
       </div>
 
       <h2 className="mb-2 text-3xl">Who is here ({avail.length})</h2>
-      {m.eventId && <button className="btn ghost mb-3" onClick={() => set({ availableIds: availability.filter((a) => a.eventId === m.eventId && a.status === 'going' && players.some((p) => p.id === a.playerId)).map((a) => a.playerId) })}>Use the parents' Going replies</button>}
+      {m.eventId && <button className="btn ghost mb-3" onClick={() => { const ev = events.find((e) => e.id === m.eventId); if (ev) set({ availableIds: players.filter((p) => statusFor(st, ev, p.id) === 'going').map((p) => p.id) }); }}>Use the parents' Going replies</button>}
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {players.map((p) => {
           const out = blocked.includes(p.id);
@@ -89,7 +90,8 @@ export default function MatchSetup() {
         <label className="text-sm">Focus value today<select className="field" value={m.focusValue} onChange={(e) => set({ focusValue: e.target.value })}>{PROGRAMMES[teams.find((t) => t.id === m.teamId)?.programme ?? 'rangers'].values.map((v) => <option key={v}>{v}</option>)}</select></label>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 flex gap-2 p-3" style={{ background: 'var(--bg)', paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+      <div className="h-24" aria-hidden />
+      <div className="fixed inset-x-0 z-30 flex gap-2 p-3" style={{ background: 'var(--bg)', bottom: 'calc(56px + env(safe-area-inset-bottom))' }}>
         <Link to={`/match/${m.id}/present`} className="btn ghost flex-1">Show the kids</Link>
         <button className="btn flex-1" disabled={!enough} onClick={() => nav(`/match/${m.id}/live`)}>Go to match</button>
       </div>

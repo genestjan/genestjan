@@ -108,7 +108,7 @@ Full-screen presentation for kids. Swipe, tap the edges, or use a keyboard or TV
 **Before the match**
 - Choose who is available (Phase 1: tick on the device; Phase 3: from parents' replies).
 - Set the format, number of periods, period length and how subs work (rolling subs every N minutes, or only at breaks; set per competition).
-- **Rotation plan**: the app proposes who starts and who goes on at each sub window so planned minutes are as equal as possible, keeps the keeper fixed within a period, avoids benching anyone twice in a row, rotates positions for U12 and below, excludes injured or concussion-blocked players, and gives priority to children owed minutes from recent matches (season carry-over, adjustable: off, gentle, strong). The coach can lock any cell (this player starts, this player in goal for period 2) and re-run.
+- **Rotation plan**: the app proposes who starts and who goes on at each sub window so planned minutes are as equal as possible (within one sub window for typical squads), keeps the keeper fixed within a period, tries not to bench anyone twice in a row, excludes injured or concussion-blocked players, and gives priority to children owed minutes from recent matches (season carry-over, adjustable: off, gentle, strong). The coach can lock any cell (this player starts, this player in goal for period 2) and re-run.
 - Plan view: a grid (players by windows) with planned minutes per child and the spread (most minus least).
 
 **During the match**

@@ -72,7 +72,8 @@ export function Thread() {
           <div key={m.id} className={`max-w-[85%] rounded-2xl p-3 ${mine ? 'ml-auto bg-red text-white' : 'card'}`}><div className="text-xs opacity-80">{m.byName} · {fmtDateTime(m.at)}</div><div className="whitespace-pre-wrap">{m.body}</div></div>); })}
         <div ref={end} />
       </div>
-      <div className="fixed inset-x-0 bottom-14 flex gap-2 p-3" style={{ background: 'var(--bg)', paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}>
+      <div className="h-20" aria-hidden />
+      <div className="fixed inset-x-0 z-30 flex gap-2 p-3" style={{ background: 'var(--bg)', bottom: 'calc(56px + env(safe-area-inset-bottom))' }}>
         <textarea className="field flex-1 py-3" rows={1} aria-label="Message" placeholder="Write a message" value={text} onChange={(e) => setText(e.target.value)} />
         <button className="btn" disabled={!text.trim()} onClick={send}>Send</button>
       </div>

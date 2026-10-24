@@ -23,11 +23,11 @@ select t.ok(public.enqueue_event_reminders() = 1, 'one reminder for the event 24
 select t.ok(public.enqueue_event_reminders() = 0, 'reminders are not duplicated');
 select t.ok((select count(*) from public.notification_queue where title like 'Tomorrow:%') = 1, 'far-away event gets no reminder');
 select name, case when ok then 'PASS' else 'FAIL' end from t.results order by ok, name;
-select count(*) filter (where not ok) as failures, count(*) as total from t.results \gset
+select count(*) filter (where not ok) > 0 as failed, count(*) filter (where not ok) as failures, count(*) as total from t.results \gset
 rollback;
-\if :failures
+\if :failed
   \echo NOTIFY FAILED :failures of :total
-  \quit 3
+  do $$ begin raise exception 'database tests failed'; end $$;
 \else
   \echo ALL :total NOTIFICATION TESTS PASSED
 \endif

@@ -5,7 +5,9 @@ import { activeTeam, put, uid, update, useAppState, exportBackup } from '../lib/
 import { AGE_BANDS, PROGRAMMES, type Programme } from '../lib/model';
 import { FORMATS, type FormatId } from '../lib/types';
 import { isStaff, useMyChildren, useRole } from '../lib/role';
-import { approveMember, assignStaff, cloudEnabled, createCoachInvite, enablePush, inviteLink, listMembers, signOut, syncNow, useCloud } from '../lib/cloud';
+import { approveMember, assignStaff, cloudEnabled, createCoachInvite, enablePush, inviteLink, listMembers, setConsent, signOut, syncNow, useCloud, type Member } from '../lib/cloud';
+import { NOTICE_VERSION, PrivacyText } from './Auth';
+import { EmergencyEditor } from '../components/Emergency';
 import { download, fmtDateTime, share } from '../lib/util';
 import { TIPS_PARENTS } from '../content/safety';
 
@@ -43,7 +45,7 @@ export function Help() {
 export function Settings() {
   const s = useAppState(); const cloud = useCloud(); const role = useRole(); const team = activeTeam(s);
   const [tn, setTn] = useState(''); const [prog, setProg] = useState<Programme>('rangers'); const [band, setBand] = useState<(typeof AGE_BANDS)[number]>('U10'); const [fmt, setFmt] = useState<FormatId>('8v8');
-  const [token, setToken] = useState(''); const [msg, setMsg] = useState(''); const [members, setMembers] = useState<{ user_id: string; role: string; status: string }[]>([]);
+  const [token, setToken] = useState(''); const [msg, setMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
   useEffect(() => { if (cloud.status === 'ready' && role === 'admin') listMembers().then(setMembers).catch(() => {}); }, [cloud.status, role, token]);
   const st = s.settings; const set = (p: Partial<typeof st>) => update((x) => ({ ...x, settings: { ...x.settings, ...p } }));
   return (
@@ -67,9 +69,10 @@ export function Settings() {
         {role === 'admin' && (<><H2>Coaches</H2><Card className="grid gap-2">
           <button className="btn" onClick={async () => { try { setToken(inviteLink(await createCoachInvite())); } catch (e) { setMsg((e as Error).message); } }}>Create a coach invite link</button>
           {token && <><input className="field" readOnly value={token} onFocus={(e) => e.target.select()} aria-label="Coach invite link" /><button className="btn ghost" onClick={() => share(`Join the Rangers coaching app: ${token}`)}>Send it</button></>}
-          {members.filter((m) => m.role !== 'parent').map((m) => <div key={m.user_id} className="flex items-center gap-2 text-sm"><span className="flex-1 truncate">{m.role} ({m.status}) {m.user_id.slice(0, 8)}</span>
+          {members.filter((m) => m.role !== 'parent').map((m) => <div key={m.user_id} className="flex flex-wrap items-center gap-2 text-sm"><span className="flex-1 truncate"><b>{m.name}</b> · {m.role}{m.status === 'pending' ? ' (waiting)' : ''}</span>
             {m.status === 'pending' && <><button className="btn min-h-[44px]" onClick={async () => { await approveMember(m.user_id, true); setMembers(await listMembers()); }}>Approve</button><button className="btn ghost min-h-[44px]" onClick={async () => { await approveMember(m.user_id, false); setMembers(await listMembers()); }}>Decline</button></>}
-            {m.status === 'active' && m.role === 'coach' && <button className="btn ghost min-h-[44px]" onClick={async () => { await assignStaff(m.user_id, team.id, false); setMsg(`Added to ${team.name}`); }}>Add to {team.name}</button>}</div>)}
+            {m.status === 'active' && m.role === 'coach' && <><button className="btn ghost min-h-[44px]" onClick={async () => { await assignStaff(m.user_id, team.id, false); setMsg(`${m.name} added to ${team.name}`); }}>Add to {team.name}</button><button className="btn ghost min-h-[44px]" onClick={async () => { await assignStaff(m.user_id, team.id, true); setMsg(`${m.name} is head coach of ${team.name}`); }}>Head coach of {team.name}</button></>}</div>)}
+          <p className="muted text-sm">Only head coaches (and you) can clear a child after a head injury. Coaches see only the teams you add them to.</p>
         </Card></>)}</>)}
       <H2>Your data</H2>
       <Card className="grid gap-2"><button className="btn ghost" onClick={() => download(`rangers-backup-${new Date().toISOString().slice(0, 10)}.json`, exportBackup())}>Back up everything to a file</button>
@@ -78,19 +81,24 @@ export function Settings() {
   );
 }
 
-const NOTICE_VERSION = '2026-10-v1';
 export function Privacy() {
-  const s = useAppState(); const kids = useMyChildren();
+  const s = useAppState(); const kids = useMyChildren(); const [err, setErr] = useState('');
+  const setPhoto = async (id: string, v: boolean) => {
+    setErr('');
+    if (cloudEnabled) { try { await setConsent(id, 'photo', v, NOTICE_VERSION); await syncNow(); } catch (e) { setErr((e as Error).message); } }
+    else update((x) => ({ ...x, players: x.players.map((p) => (p.id === id ? { ...p, photoConsent: v } : p)) }));
+  };
   return (
     <Page title="Privacy" back={<Back to="/more" />}>
-      <Card className="mb-3 grid gap-2"><h2 className="text-2xl">How we look after your child's information</h2>
-        <p>The club's coaches and administrators can see your child's details to plan training, keep playing time fair and keep them safe. You see only your own child. Other parents never see your child's reviews, health information or contributions. Kids' screens show first names and shirt numbers only.</p>
-        <p>We do not sell or share it. It is deleted 12 months after your child leaves, and you can ask us to correct or delete it at any time. Notice version {NOTICE_VERSION}. Contact: Coach James, +63 993 291 0764.</p></Card>
+      <Card className="mb-3 grid gap-2"><PrivacyText /><p className="muted text-sm">Notice version {NOTICE_VERSION}.</p></Card>
       {kids.map((k) => (
         <Card key={k.id} className="mb-3 grid gap-3"><h3 className="text-2xl">{k.firstName}</h3>
-          <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={k.photoConsent} onChange={(e) => update((x) => ({ ...x, players: x.players.map((p) => (p.id === k.id ? { ...p, photoConsent: e.target.checked } : p)) }))} />Show {k.firstName}'s photo on team screens</label>
-          <button className="btn ghost" onClick={() => download(`${k.firstName}-data.json`, JSON.stringify({ child: k, reviews: s.assessments.filter((a) => a.playerId === k.id), goals: s.goals.filter((g) => g.playerId === k.id), badges: s.badges.filter((b) => b.playerId === k.id), growth: s.growth.filter((g) => g.playerId === k.id), injuries: s.injuries.filter((i) => i.playerId === k.id), messages: s.messages.filter((m) => m.playerId === k.id) }, null, 2))}>Download everything about {k.firstName}</button>
+          <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={k.photoConsent} onChange={(e) => void setPhoto(k.id, e.target.checked)} />Show {k.firstName}'s photo on team screens</label>
+          <h4 className="text-xl">Emergency contacts</h4>
+          <EmergencyEditor p={k} />
+          <button className="btn ghost" onClick={() => download(`${k.firstName}-data.json`, JSON.stringify({ child: k, reviews: s.assessments.filter((a) => a.playerId === k.id), goals: s.goals.filter((g) => g.playerId === k.id), badges: s.badges.filter((b) => b.playerId === k.id), growth: s.growth.filter((g) => g.playerId === k.id), injuries: s.injuries.filter((i) => i.playerId === k.id), minutes: s.minutes.filter((m) => m.playerId === k.id), messages: s.messages.filter((m) => m.playerId === k.id) }, null, 2))}>Download everything about {k.firstName}</button>
           <p className="muted text-sm">To correct or delete {k.firstName}'s information, message the coach from the Inbox.</p></Card>))}
+      {err && <p role="alert" className="text-red">{err}</p>}
     </Page>
   );
 }

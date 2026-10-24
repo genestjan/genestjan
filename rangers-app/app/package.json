@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "typecheck": "tsc -b",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "npm run build && node e2e/run.mjs",
+    "test:db": "bash supabase/run-tests.sh"
   },
   "dependencies": {
     "@fontsource/barlow": "5.1.0",

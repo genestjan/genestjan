@@ -10,9 +10,10 @@ Free coach and parent web app for Rangers FC, FC New Mabu and Gila Academy. Inst
 ```
 npm install
 npm run dev          # local-only mode works with no setup (use More > Preview the parent app)
-npm test             # 47 logic tests
+npm test             # 52 logic tests
 npm run build
-PGHOST=localhost PGUSER=postgres bash supabase/run-tests.sh   # 52 database tests (access rules, invites, notifications)
+npm run test:e2e     # browser run of coach and parent flows
+PGHOST=localhost PGUSER=postgres npm run test:db   # 81 database tests (access rules, invites, notifications)
 ```
 Going live with real logins and sync: **SETUP.md**. Plan and rules: `../README.md`, `../CLAUDE.md`, `../docs/`.
 
@@ -23,13 +24,12 @@ Going live with real logins and sync: **SETUP.md**. Plan and rules: `../README.m
 - Pure logic with tests lives in `src/lib/` (rotation, fair share, heat index, growth, development summary, fees, session builder, weather parsing, sync mapping).
 
 ## What is verified and what is not
-Verified here: all logic tests, all database access tests on PostgreSQL 16 (including a deliberate policy break that the tests caught), a full browser run of coach and parent flows at phone size with no errors, TV-size screenshots.
+Verified here: 52 logic tests; 81 database tests on PostgreSQL 16 (deliberately broken rules make them fail, so they are not passing by accident); `npm run test:e2e` runs the coach and parent flows in Chromium (events, replies, announcements, messages both ways, emergency contacts, review publish without the private note, training, head-knock block, live match, tactics board, TV-size board) with no browser errors.
 
 **Not yet verified (needs your accounts, see SETUP.md):** sign-in with Google and email codes, sync against a real Supabase project, realtime message updates, push notifications (including iPhone), the TV link over Supabase Realtime, the `send-push` function, the GitHub Pages deploy and the custom domain. They are written to the design but have not run against the live services. Plan one evening on a staging project with two coach phones and two parent phones before real families join.
 
 ## Known gaps
 - App icons are placeholders: replace `public/icons/icon-192.png` and `icon-512.png` with the crest.
-- 8v8 minutes plan: gap is 5 min or less for 9 to 13 players; 14 or 15 players gives 15 min because each keeper plays a full period.
 - Heat forecast uses General Santos city coordinates unless an event sets its own.
 - Filipino and Cebuano translations, player 13+ logins, PNG/GIF export and season rollover are not built.
 - Photos are not uploaded (initials only); the consent switch is stored for when they are.

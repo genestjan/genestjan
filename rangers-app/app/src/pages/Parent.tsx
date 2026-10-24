@@ -64,7 +64,7 @@ export function ProgressPage({ playerId }: { playerId?: string }) {
       <Card className="grid gap-2"><div className="flex flex-wrap gap-2">{badges.map((b) => <span key={b.id} className="rounded-full border px-3 py-1" style={{ borderColor: 'var(--line)' }}>{b.badgeKey}</span>)}{badges.length === 0 && <span className="muted">Badges appear when {k.firstName} learns a new move.</span>}</div>
         {recs.length > 0 && <p className="text-sm">Recognised for: {[...new Set(recs.map((r) => r.valueKey))].join(', ')}</p>}</Card>
       <H2>Attendance and playing time</H2>
-      <Card className="grid gap-1"><p>Came to {came} of {att.length} recorded sessions.</p>{mins.slice(0, 5).map((m) => <p key={m.id} className="text-sm">{m.date}, {m.name}: {m.minutes} min</p>)}{mins.length === 0 && <p className="muted text-sm">Match minutes show here after each game.</p>}</Card>
+      <Card className="grid gap-1"><p>{att.length ? `Came to ${came} of ${att.length} recorded sessions.` : 'Attendance shows here once the coach starts recording it.'}</p>{mins.slice(0, 5).map((m) => <p key={m.id} className="text-sm">{m.date}, {m.name}: {m.minutes} min</p>)}{mins.length === 0 && <p className="muted text-sm">Match minutes show here after each game.</p>}</Card>
       {g.status === 'spurt' && <><H2>Growth</H2><Card>{k.firstName} is in a growth spurt. Clumsiness is normal and temporary. Coaches are easing off jumping and sprinting. Tell the coach about any knee or heel pain.</Card></>}
     </Page>
   );

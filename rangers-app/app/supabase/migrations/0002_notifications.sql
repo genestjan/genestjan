@@ -18,7 +18,9 @@ begin
     end loop;
   elsif new.kind = 'message' then
     ttl := 'New message'; body := left(coalesce(new.data->>'body', ''), 120);
-    if coalesce(new.data->>'from', '') = 'coach' then
+    -- Decide by who actually wrote it, never by what the message says about itself.
+    if exists (select 1 from public.team_staff st where st.team_id = new.team_id and st.user_id = new.author)
+       or exists (select 1 from public.memberships m where m.user_id = new.author and m.role = 'admin') then
       for u in select user_id from public.player_guardians where player_id = new.player_id loop
         insert into public.notification_queue (user_id, title, body, url, dedupe_key) values (u, 'Message from your coach', body, '/inbox', 'msg:' || new.id || ':' || u) on conflict do nothing; end loop;
     else
@@ -36,6 +38,7 @@ declare r record; u uuid; n int := 0; c int;
 begin
   for r in select id, team_id, data from public.records
     where kind = 'event' and deleted_at is null and coalesce((data->>'cancelled')::boolean, false) = false
+      and data->>'startsAt' ~ '^\d{4}-\d{2}-\d{2}[T ]'
       and (data->>'startsAt')::timestamptz between now() + interval '20 hours' and now() + interval '28 hours' loop
     for u in select public.team_guardians(r.team_id) loop
       insert into public.notification_queue (user_id, title, body, url, dedupe_key)
@@ -58,5 +61,6 @@ end $$;
 do $$ begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
     perform cron.schedule('rangers-reminders', '0 * * * *', 'select public.enqueue_event_reminders()');
+    perform cron.schedule('rangers-retention', '30 19 * * *', 'select public.purge_old_data()');
   end if;
 end $$;

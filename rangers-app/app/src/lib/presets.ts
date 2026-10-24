@@ -36,7 +36,6 @@ export const PRESETS: BoardDoc[] = [
 ];
 
 export const KEY_PHRASES = ['Win it back fast', 'Spread wide', 'Talk to each other', 'Play with your heart', 'Pass then move', 'Help your friend', 'Be brave on the ball', 'Stay goal-side'];
-export const VALUES = ['Play With Your Heart', 'Teamwork', 'Sportsmanship', 'Perseverance', 'Respect', 'Integrity', 'Discipline', 'Community'];
 
 /** Formation slots on a vertical pitch: x 0..1 across, y 0..1 from our goal (0) to theirs (1). First slot is GK when the format has one. */
 export const FORMATIONS: Record<string, { code: string; x: number; y: number }[]> = {

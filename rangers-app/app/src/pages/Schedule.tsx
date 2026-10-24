@@ -8,13 +8,19 @@ import { eventShareText, fmtDate, fmtDateTime, fmtTime, localInput, share } from
 import { isStaff, useMyChildren, useRole } from '../lib/role';
 import { newMatch } from './Home';
 import { YAM1 } from '../lib/weather';
+import { appUrl } from '../lib/cloud';
+import { derivedId } from '../lib/syncMap';
 
+/** Each person (a parent, or "coach") keeps one reply per child per event; the newest reply from anyone counts.
+ *  Two parents of the same child can both answer without overwriting each other's row. */
 export function setAvailability(s: AppState, eventId: string, playerId: string, status: Availability['status'], by: string) {
-  const old = s.availability.find((a) => a.eventId === eventId && a.playerId === playerId);
-  put('availability', { id: old?.id ?? uid(), eventId, playerId, status, by, at: new Date().toISOString() });
+  const who = by === 'parent' ? (s.me.userId ?? 'parent') : by;
+  put('availability', { id: derivedId(`${eventId}:${playerId}`, 'av:' + who), eventId, playerId, status, by, at: new Date().toISOString() });
 }
+export const latestReply = (s: AppState, eventId: string, playerId: string) =>
+  s.availability.filter((a) => a.eventId === eventId && a.playerId === playerId).sort((a, b) => b.at.localeCompare(a.at))[0];
 export const statusFor = (s: AppState, e: ClubEvent, playerId: string): Availability['status'] | 'none' =>
-  s.availability.find((a) => a.eventId === e.id && a.playerId === playerId)?.status ?? (e.goingByDefault && e.type === 'training' ? 'going' : 'none');
+  latestReply(s, e.id, playerId)?.status ?? (e.goingByDefault && e.type === 'training' ? 'going' : 'none');
 
 function Rsvp({ e, childId, by }: { e: ClubEvent; childId: string; by: string }) {
   const s = useAppState(); const st = statusFor(s, e, childId); const kid = s.players.find((p) => p.id === childId);
@@ -41,7 +47,7 @@ export default function Schedule() {
             <Link to={`/event/${e.id}`} className="block"><div className="flex items-baseline justify-between gap-2"><span className="text-xl font-semibold">{e.title}{e.cancelled && ' (cancelled)'}</span><span className="muted text-sm capitalize">{e.type}</span></div>
               <div className="muted">{fmtDateTime(e.startsAt)} · {e.venue || 'Venue to confirm'}</div></Link>
             {!staff && !e.cancelled && !past && <div className="mt-3 grid gap-2">{kids.filter((k) => k.teamId === e.teamId).map((k) => <Rsvp key={k.id} e={e} childId={k.id} by="parent" />)}</div>}
-            {staff && !past && <div className="muted mt-1 text-sm">{s.availability.filter((a) => a.eventId === e.id && a.status === 'going').length} going</div>}
+            {staff && !past && <div className="muted mt-1 text-sm">{teamPlayers(s, e.teamId).filter((p) => statusFor(s, e, p.id) === 'going').length} going</div>}
           </li>
         ))}
       </ul>
@@ -91,8 +97,8 @@ export function EventDetail() {
   if (!e) return <Page title="Event" back={<Back to="/schedule" />}><Empty>This event is not here any more.</Empty></Page>;
   const team = s.teams.find((t) => t.id === e.teamId); const players = teamPlayers(s, e.teamId);
   const present = (pid: string) => s.attendance.find((a) => a.eventId === e.id && a.playerId === pid)?.present;
-  const setPresent = (pid: string, v: boolean) => { const old = s.attendance.find((a) => a.eventId === e.id && a.playerId === pid); put('attendance', { id: old?.id ?? uid(), eventId: e.id, playerId: pid, present: v }); };
-  const link = location.origin + (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '') + '/schedule';
+  const setPresent = (pid: string, v: boolean) => put('attendance', { id: derivedId(`${e.id}:${pid}`, 'att'), eventId: e.id, playerId: pid, present: v });
+  const link = appUrl('/schedule');
   const doShare = async () => { const r = await share(eventShareText(e, team?.name ?? 'Rangers', link)); setMsg(r === 'copied' ? 'Copied. Paste it in your group chat.' : r === 'shared' ? 'Shared.' : ''); };
   const startMatch = () => { const going = players.filter((p) => statusFor(s, e, p.id) === 'going' && !s.blocked.includes(p.id)).map((p) => p.id); const m = newMatch(going.length ? going : players.filter((p) => !s.blocked.includes(p.id)).map((p) => p.id), e.teamId, team?.defaultFormat); m.eventId = e.id; m.name = e.opponent ? `${e.title} vs ${e.opponent}` : e.title; put('matches', m); nav(`/match/${m.id}`); };
   return (

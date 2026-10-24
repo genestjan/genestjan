@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import Dexie, { type Table } from 'dexie';
+import { z } from 'zod';
 import type { FormatId } from './types';
 import type { Locks } from './rotation';
 import type * as M from './model';
@@ -29,6 +30,7 @@ export interface AppState {
   funds: M.FundCampaign[]; equipment: M.EquipmentItem[]; bootRequests: M.BootRequest[]; charges: M.Charge[]; chargeRefs: ChargeRef[];
   seen: { id: string; playerId: string; ref: string; by: string }[]; minutes: M.MinutesLog[]; strategies: M.CustomStrategy[]; stories: { id: string; text: string }[];
   settings: M.ClubSettings; blocked: string[];
+  myStaff: { teamId: string; head: boolean }[];   // cloud only: teams this login coaches
 }
 export interface ChargeRef { id: string; chargeId: string; playerId: string; reference: string; at: string }
 export type CollKey = { [K in keyof AppState]-?: AppState[K] extends { id: string }[] ? K : never }[keyof AppState];
@@ -39,7 +41,7 @@ const emptyState = (): AppState => ({
   v: 2, mode: 'club', me: { name: 'Coach' }, activeTeamId: defaultTeam.id, teams: [defaultTeam], players: [], matches: [], events: [], availability: [], attendance: [],
   announcements: [], messages: [], sessions: [], assessments: [], goals: [], recognitions: [], badges: [], growth: [], injuries: [], wellness: [], funds: [],
   equipment: [], bootRequests: [], charges: [], chargeRefs: [], seen: [], minutes: [], strategies: [], stories: [],
-  settings: { gcashNumber: '', contributionsOn: false, heatAction: true, concussionMinDays: 21, goingDefaultTraining: true, headCoachPin: '' }, blocked: [],
+  settings: { gcashNumber: '', contributionsOn: false, heatAction: true, concussionMinDays: 21, goingDefaultTraining: true, headCoachPin: '' }, blocked: [], myStaff: [],
 });
 
 export const blockedIds = (s: Pick<AppState, 'injuries'>) => [...new Set(s.injuries.filter((i) => i.head && !i.clearedOn).map((i) => i.playerId))];
@@ -114,6 +116,18 @@ export const DEMO_PLAYERS: M.Player[] = ['Ana','Ben','Carlo','Dina','Eli','Fe','
   .map((n, i) => ({ id: `20000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`, teamId: defaultTeam.id, firstName: n, number: i + 1, gkWilling: i < 3, photoConsent: false }));
 
 export function exportBackup(): string { return JSON.stringify(state, null, 2); }
-export function importBackup(json: string) { update(() => migrate(JSON.parse(json))); }
+/** Restores a backup file after checking it really is one (a wrong or damaged file is refused, nothing is changed). */
+export function importBackup(json: string) {
+  let raw: unknown;
+  try { raw = JSON.parse(json); } catch { throw new Error('That file is not a Rangers backup (it is not readable).'); }
+  const r = BackupShape.safeParse(raw);
+  if (!r.success) throw new Error('That file is not a Rangers backup, so nothing was changed.');
+  update(() => migrate(r.data));
+}
+const idList = z.array(z.object({ id: z.string() }).passthrough());
+const BackupShape = z.object({
+  players: z.array(z.object({ id: z.string(), firstName: z.string() }).passthrough()),
+  matches: idList.optional(), teams: idList.optional(), events: idList.optional(), messages: idList.optional(),
+}).passthrough();
 export const activeTeam = (s: AppState) => s.teams.find((t) => t.id === s.activeTeamId) ?? s.teams[0];
 export const teamPlayers = (s: AppState, teamId = s.activeTeamId) => s.players.filter((p) => p.teamId === teamId && !p.left);

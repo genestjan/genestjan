@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useRole } from '../lib/role';
+import { EmergencyEditor } from '../components/Emergency';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Back, Card, Chip, Empty, H2, Page, Tone } from '../components/ui';
 import { del, put, uid, update, useAppState } from '../lib/store';
-import { PROGRAMMES, type Emergency, type Injury, type Player } from '../lib/model';
+import { PROGRAMMES, type Injury, type Player } from '../lib/model';
 import { RUBRIC, SKILL_BADGES } from '../content/rubric';
 
 import { growthVelocity } from '../lib/growth';
@@ -19,8 +21,6 @@ export default function PlayerProfile() {
   if (!p) return <Page title="Player" back={<Back to="/squad" />}><Empty>Player not found.</Empty></Page>;
   const team = s.teams.find((t) => t.id === p.teamId) ?? s.teams[0];
   const set = (patch: Partial<Player>) => put('players', { ...p, ...patch });
-  const em: Emergency = p.emergency ?? { contacts: [{ name: '', phone: '' }], allergies: '', inhaler: false, note: '' };
-  const setEm = (patch: Partial<Emergency>) => set({ emergency: { ...em, ...patch } });
   const skills = RUBRIC[team.ageBand];
   const mine = s.assessments.filter((a) => a.playerId === p.id).sort((a, b) => a.term.localeCompare(b.term));
   const sum = mine.length ? summarise(skills, mine[mine.length - 1], mine[mine.length - 2]) : null;
@@ -29,6 +29,8 @@ export default function PlayerProfile() {
   const injuries = s.injuries.filter((i) => i.playerId === p.id).sort((a, b) => b.date.localeCompare(a.date));
   const [h, setH] = useState(''); const [goal, setGoal] = useState('');
   const pin = s.settings.headCoachPin;
+  const role = useRole();
+  const canClear = !cloudEnabled || role === 'admin' || s.myStaff.some((x) => x.teamId === p.teamId && x.head);
   const clear = (i: Injury) => {
     const entered = pin ? prompt('Head coach PIN') : '';
     if (pin && entered !== pin) return alert('That PIN is not right.');
@@ -94,15 +96,10 @@ export default function PlayerProfile() {
       <H2>Health and safety</H2>
       <Card className="grid gap-3">
         <h3 className="text-2xl">Emergency information</h3>
-        {em.contacts.map((c, i) => <div key={i} className="grid grid-cols-2 gap-2"><input className="field" placeholder="Contact name" aria-label="Contact name" value={c.name} onChange={(e) => setEm({ contacts: em.contacts.map((x, k) => (k === i ? { ...x, name: e.target.value } : x)) })} /><input className="field" inputMode="tel" placeholder="Phone" aria-label="Phone" value={c.phone} onChange={(e) => setEm({ contacts: em.contacts.map((x, k) => (k === i ? { ...x, phone: e.target.value } : x)) })} /></div>)}
-        {em.contacts.length < 2 && <button className="btn ghost" onClick={() => setEm({ contacts: [...em.contacts, { name: '', phone: '' }] })}>Add a second contact</button>}
-        <input className="field" placeholder="Allergies (or none)" aria-label="Allergies" value={em.allergies} onChange={(e) => setEm({ allergies: e.target.value })} />
-        <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={em.inhaler} onChange={(e) => setEm({ inhaler: e.target.checked })} />Uses an inhaler (asthma)</label>
-        <input className="field" placeholder="One condition a coach should know (optional)" aria-label="Condition" value={em.note} onChange={(e) => setEm({ note: e.target.value })} />
-        <p className="muted text-sm">Keep this to what a coach needs in an emergency. No diagnoses or reports.</p>
+        <EmergencyEditor p={p} />
         <h3 className="mt-2 text-2xl">Injuries</h3>
         {injuries.length === 0 && <p className="muted">None recorded.</p>}
-        {injuries.map((i) => <div key={i.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--line)' }}><b>{i.date}: {i.kind}</b> ({i.bodyPart}){i.head && <span className="text-red"> head injury</span>}<div className="text-sm">{i.notes}</div>{i.head && (i.clearedOn ? <div className="text-sm">Cleared {i.clearedOn}: {i.clearedNote}</div> : <button className="btn ghost mt-2 min-h-[44px] text-sm" onClick={() => clear(i)}>Head coach: record medical clearance</button>)}</div>)}
+        {injuries.map((i) => <div key={i.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--line)' }}><b>{i.date}: {i.kind}</b> ({i.bodyPart}){i.head && <span className="text-red"> head injury</span>}<div className="text-sm">{i.notes}</div>{i.head && (i.clearedOn ? <div className="text-sm">Cleared {i.clearedOn}: {i.clearedNote}</div> : canClear ? <button className="btn ghost mt-2 min-h-[44px] text-sm" onClick={() => clear(i)}>Head coach: record medical clearance</button> : <p className="muted mt-2 text-sm">Only a head coach can record medical clearance.</p>)}</div>)}
         <Link className="btn ghost" to={`/safety?player=${p.id}`}>Record an injury or suspected head knock</Link>
         <p className="muted text-xs">{CONCUSSION.note}</p>
       </Card>

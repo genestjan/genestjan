@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Page } from '../components/ui';
-import { claimAdmin, redeemInvite, sendCode, signInGoogle, signOut, useCloud, verifyCode } from '../lib/cloud';
+import { claimAdmin, redeemInvite, sendCode, setConsent, signInGoogle, signOut, syncNow, useCloud, verifyCode } from '../lib/cloud';
+import { useAppState } from '../lib/store';
 
 export function Login({ joining }: { joining?: boolean }) {
   const [email, setEmail] = useState(''); const [code, setCode] = useState(''); const [sent, setSent] = useState(false); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
@@ -27,22 +28,68 @@ export function Login({ joining }: { joining?: boolean }) {
   );
 }
 
-/** Opened from a family or coach invite link: /join#token */
+const INVITE_KEY = 'rangers-invite';
+/** An invite opened before signing in is kept here through the Google redirect. */
+export const pendingInvite = () => { try { return sessionStorage.getItem(INVITE_KEY) ?? ''; } catch { return ''; } };
+
+/** Opened from a family or coach invite link: #/join/<token> */
 export function Join() {
-  const nav = useNavigate(); const c = useCloud();
-  const [msg, setMsg] = useState(''); const [err, setErr] = useState('');
-  const token = () => location.hash.slice(1) || sessionStorage.getItem('rangers-invite') || '';
-  useEffect(() => { const t = location.hash.slice(1); if (t) { sessionStorage.setItem('rangers-invite', t); history.replaceState(null, '', location.pathname); } }, []);
+  const nav = useNavigate(); const c = useCloud(); const { token: fromUrl } = useParams();
+  const [msg, setMsg] = useState(''); const [err, setErr] = useState(''); const [child, setChild] = useState('');
+  useEffect(() => { if (fromUrl) { try { sessionStorage.setItem(INVITE_KEY, fromUrl); } catch { /* private mode */ } } }, [fromUrl]);
   useEffect(() => {
-    const t = token();
-    if (c.status === 'signed-out' || c.status === 'loading') return;
+    const t = fromUrl || pendingInvite();
+    if (c.status === 'signed-out' || c.status === 'loading' || c.status === 'off') return;
     if (!t) { setErr('This link has no invite in it. Ask your coach to send it again.'); return; }
-    redeemInvite(t).then((name) => { sessionStorage.removeItem('rangers-invite'); setMsg(name === 'coach' ? 'You are in. An admin will approve you shortly.' : `${name} is now linked to your account.`); setTimeout(() => nav('/', { replace: true }), 1800); })
-      .catch((e: Error) => setErr(e.message));
+    redeemInvite(t).then((name) => {
+      try { sessionStorage.removeItem(INVITE_KEY); } catch { /* ignore */ }
+      if (!name) { setErr('This invite link has already been used or has expired. Ask your coach for a new one.'); return; }
+      if (name === 'coach') { setMsg('You are in. The club admin will approve your coach account shortly.'); setTimeout(() => nav('/', { replace: true }), 2500); return; }
+      setChild(name);
+    }).catch((e: Error) => setErr(e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [c.status]);
+  if (c.status === 'off') return <Page title="Join"><Card><p>Online accounts are not switched on for this app yet. Ask your coach.</p></Card></Page>;
   if (c.status === 'signed-out') return <Login joining />;
+  if (child) return <ConsentStep childName={child} onDone={() => nav('/', { replace: true })} />;
   return <Page title="Joining"><Card>{msg ? <p className="text-xl">{msg}</p> : err ? <p role="alert" className="text-red">{err}</p> : <p>Checking your invite...</p>}</Card></Page>;
+}
+
+export const NOTICE_VERSION = '2026-10-v1';
+/** Shown once after a parent links a child: the privacy notice and the consent choices, stored with the notice version. */
+function ConsentStep({ childName, onDone }: { childName: string; onDone: () => void }) {
+  const s = useAppState(); const kid = s.players.find((p) => p.firstName === childName) ?? s.players[0];
+  const [data, setData] = useState(false); const [photo, setPhoto] = useState(false); const [video, setVideo] = useState(false); const [busy, setBusy] = useState(false); const [err, setErr] = useState('');
+  const save = async () => {
+    if (!kid) { onDone(); return; }
+    setBusy(true); setErr('');
+    try { await setConsent(kid.id, 'data', true, NOTICE_VERSION); await setConsent(kid.id, 'photo', photo, NOTICE_VERSION); await setConsent(kid.id, 'video', video, NOTICE_VERSION); await syncNow(); onDone(); }
+    catch (e) { setErr((e as Error).message); setBusy(false); }
+  };
+  return (
+    <Page title={`Welcome, ${childName}'s family`}>
+      <Card className="mb-3 grid gap-2"><PrivacyText /></Card>
+      <Card className="grid gap-3">
+        <label className="flex items-start gap-3"><input type="checkbox" className="mt-1 h-6 w-6" checked={data} onChange={(e) => setData(e.target.checked)} /><span><b>I agree</b> to the club using {childName}'s information as described above. (Needed to use the app.)</span></label>
+        <label className="flex items-start gap-3"><input type="checkbox" className="mt-1 h-6 w-6" checked={photo} onChange={(e) => setPhoto(e.target.checked)} /><span>Show {childName}'s photo on team screens. (Optional, you can change this later.)</span></label>
+        <label className="flex items-start gap-3"><input type="checkbox" className="mt-1 h-6 w-6" checked={video} onChange={(e) => setVideo(e.target.checked)} /><span>Coaches may use video of {childName} in the club's drill library. (Optional.)</span></label>
+        <button className="btn h-14" disabled={!data || busy} onClick={save}>Continue</button>
+        {err && <p role="alert" className="text-red">{err}</p>}
+      </Card>
+    </Page>
+  );
+}
+
+export function PrivacyText() {
+  return (<>
+    <h2 className="text-2xl">How we look after your child's information</h2>
+    <p>The Rangers App is run by volunteers of Rangers Football Club (with FC New Mabu and Gila Academy) to organise training and matches. It is free and has no ads.</p>
+    <p><b>What we keep:</b> your name and email; your child's name, birth date, shirt number and team; attendance, playing time and football progress; safety information (emergency contacts, allergies, inhaler, injuries at the club, height for growth spurts); a photo only if you say yes.</p>
+    <p><b>Who sees it:</b> your child's coaches and the club admins. You see only your own child. Other parents never see your child's reviews, health information or contributions. Kids' screens show first names and shirt numbers only.</p>
+    <p><b>How long:</b> while your child is with the club, then deleted 12 months after they leave. We never sell or share it.</p>
+    <p><b>Your rights:</b> change photo and video permission any time, download, correct or ask us to delete your child's information (More, Privacy). Contact Coach James, +63 993 291 0764.</p>
+    <details><summary className="underline">Basahin sa Filipino</summary><p className="mt-2">Ang Rangers App ay pinapatakbo ng mga volunteer ng Rangers Football Club para ayusin ang training at mga laro. Libre ito at walang ads. Ang mga coach at admin lang ng club ang makakakita ng impormasyon ng inyong anak; kayo lang ang makakakita ng sa inyong anak. Buburahin ito 12 buwan pagkatapos umalis ang bata. Puwede ninyong baguhin ang pahintulot sa litrato, i-download, itama o ipabura ang impormasyon anumang oras.</p></details>
+  </>);
 }
 
 export function Gate() {

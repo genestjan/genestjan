@@ -7,7 +7,7 @@ export type Role = 'admin' | 'coach' | 'parent';
 export interface Team { id: string; name: string; programme: Programme; ageBand: AgeBand; defaultFormat: FormatId }
 export interface Emergency { contacts: { name: string; phone: string }[]; allergies: string; inhaler: boolean; note: string }
 export interface Player extends BasePlayer {
-  teamId: string; lastName?: string; birthDate?: string; photoConsent: boolean; videoConsent?: boolean; emergency?: Emergency; left?: boolean;
+  teamId: string; lastName?: string; birthDate?: string; photoConsent: boolean; videoConsent?: boolean; emergency?: Emergency; left?: boolean; leftAt?: string;
 }
 export type EventType = 'training' | 'match' | 'tournament' | 'festival' | 'meeting' | 'other';
 export interface ClubEvent {
@@ -21,7 +21,7 @@ export interface Announcement { id: string; scope: 'team' | 'club'; teamId?: str
 export interface Message { id: string; threadId: string; playerId: string; teamId: string; from: 'coach' | 'parent'; byName: string; body: string; at: string; readBy: string[] }
 export interface SessionBlock { slot: string; drillId: string; minutes: number }
 export interface TrainingSession { id: string; teamId: string; eventId?: string; date: string; band: AgeBand; minutes: number; theme: string; blocks: SessionBlock[]; reflection?: { energy: 'low' | 'ok' | 'high'; fun: 'yes' | 'partly' | 'no'; note: string } }
-export interface Assessment { id: string; playerId: string; teamId: string; term: string; ratings: Record<string, number>; strength: string; working: string; familyComment: string; coachNote: string; publishedAt?: string; selfRatings?: Record<string, number> }
+export interface Assessment { id: string; playerId: string; teamId: string; term: string; ratings: Record<string, number>; strength: string; working: string; familyComment: string; coachNote: string; publishedAt?: string; selfRatings?: Record<string, number>; fromPub?: boolean }
 export interface Goal { id: string; playerId: string; text: string; status: 'active' | 'done'; at: string }
 export interface Recognition { id: string; playerId: string; valueKey: string; note: string; at: string }
 export interface BadgeAward { id: string; playerId: string; badgeKey: string; at: string }

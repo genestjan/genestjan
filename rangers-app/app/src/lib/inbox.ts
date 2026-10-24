@@ -1,11 +1,13 @@
-import { put, uid, type AppState } from './store';
+import { put, type AppState } from './store';
+import { derivedId } from './syncMap';
 import type { Announcement, Message } from './model';
 
 /** Read marks are `seen` records so a parent never needs to edit a coach's message (and vice versa). */
 export const seenKey = (ref: string, who: string) => `${who}:${ref}`;
 export const isSeen = (s: AppState, ref: string, who: string) => s.seen.some((x) => x.ref === ref && x.by === who);
 export function markSeen(s: AppState, ref: string, playerId: string, who: string) {
-  if (!isSeen(s, ref, who)) put('seen', { id: uid(), playerId, ref, by: who });
+  // One id per (thing, reader): marking twice, or on two phones, never creates duplicates.
+  if (!isSeen(s, ref, who)) put('seen', { id: derivedId(ref, 'seen:' + who), playerId, ref, by: who });
 }
 export const unreadMessages = (s: AppState, who: 'coach' | string, from: 'coach' | 'parent') => s.messages.filter((m) => m.from === from && !isSeen(s, m.id, who));
 export function unreadCount(s: AppState, role: 'parent' | 'staff', me: string) {

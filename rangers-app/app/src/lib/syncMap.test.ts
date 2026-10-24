@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyRows, derivedId, isUuid, rowJson, toRows, type RowIn } from './syncMap';
+import { applyRows, derivedId, isUuid, rowJson, SETTINGS_ID, toRows, type RowIn } from './syncMap';
 import { migrate } from './store';
 
 const T = '10000000-0000-4000-8000-000000000001', P = '20000000-0000-4000-8000-000000000001', E = '30000000-0000-4000-8000-000000000001';
@@ -40,6 +40,27 @@ describe('sync mapping', () => {
     const pubData = { id: E, playerId: P, teamId: T, term: 'T1', ratings: {}, strength: 'x', working: 'y', familyComment: 'Nice', coachNote: '', publishedAt: '2026-02-01' };
     s = applyRows(s, [{ id: derivedId(E, 'pub'), kind: 'assessment_pub', team_id: T, player_id: P, visibility: 'family', data: pubData, updated_at: '', deleted_at: null }]);
     expect(s.assessments[0].coachNote).toBe('');
+    // the coach takes it back: the family copy disappears from the parent's phone
+    s = applyRows(s, [{ id: derivedId(E, 'pub'), kind: 'assessment_pub', team_id: T, player_id: P, visibility: 'family', data: pubData, updated_at: '', deleted_at: '2026-02-02' }]);
+    expect(s.assessments).toHaveLength(0);
+  });
+  it('a coach\'s own full review is never replaced by the family copy, and family copies are never pushed', () => {
+    let s = base();
+    s.assessments = [{ id: E, playerId: P, teamId: T, term: 'T1', ratings: {}, strength: '', working: '', familyComment: 'Nice', coachNote: 'SECRET', publishedAt: '2026-02-01' }];
+    s = applyRows(s, [{ id: derivedId(E, 'pub'), kind: 'assessment_pub', team_id: T, player_id: P, visibility: 'family', data: { ...s.assessments[0], coachNote: '' }, updated_at: '', deleted_at: null }]);
+    expect(s.assessments[0].coachNote).toBe('SECRET');
+    const parent = applyRows(base(), [{ id: derivedId(E, 'pub'), kind: 'assessment_pub', team_id: T, player_id: P, visibility: 'family', data: { ...s.assessments[0], coachNote: '' }, updated_at: '', deleted_at: null }]);
+    expect(toRows(parent).some((r) => r.kind.startsWith('assessment'))).toBe(false);
+  });
+  it('the head-coach PIN never leaves the phone', () => {
+    const s = base(); s.settings.headCoachPin = '4321';
+    expect(JSON.stringify(toRows(s).find((r) => r.kind === 'settings'))).not.toContain('4321');
+    const pulled = applyRows(s, [{ id: SETTINGS_ID, kind: 'settings', team_id: null, player_id: null, visibility: 'club', data: { gcashNumber: '0917' }, updated_at: '', deleted_at: null }]);
+    expect(pulled.settings.headCoachPin).toBe('4321'); expect(pulled.settings.gcashNumber).toBe('0917');
+  });
+  it('saved moves and equipment are staff-only', () => {
+    const s = base(); s.strategies = [{ id: E, name: 'x', whyKids: '', coachNote: 'secret', doc: {} as never }];
+    expect(toRows(s).find((r) => r.kind === 'strategy')!.visibility).toBe('staff');
   });
   it('no echo: rows pulled then re-serialised are identical', () => {
     let s = base(); const data = { id: E, playerId: P, text: 'x', status: 'active', at: '' };

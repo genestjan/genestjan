@@ -6,6 +6,7 @@ import { fmtDateTime } from '../lib/util';
 import { needRecognition } from '../lib/development';
 import { growthVelocity } from '../lib/growth';
 import { newMatch } from './Home';
+import { statusFor } from './Schedule';
 import { PROGRAMMES } from '../lib/model';
 import { unreadMessages } from '../lib/inbox';
 
@@ -14,12 +15,12 @@ export default function Today() {
   const team = activeTeam(s); const kids = teamPlayers(s);
   const upcoming = s.events.filter((e) => e.teamId === team.id && !e.cancelled && Date.parse(e.endsAt) > Date.now()).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const next = upcoming[0];
-  const av = (st: string) => (next ? s.availability.filter((a) => a.eventId === next.id && a.status === st && kids.some((k) => k.id === a.playerId)).length : 0);
+  const av = (st: string) => (next ? kids.filter((k) => statusFor(s, next, k.id) === st).length : 0);
   const going = av('going'), no = av('no'), maybe = av('maybe'); const noReply = Math.max(0, kids.length - going - no - maybe);
   const nudge = needRecognition(kids.map((k) => k.id), s.recognitions, Date.now());
   const spurts = kids.filter((k) => growthVelocity(s.growth.filter((g) => g.playerId === k.id)).status === 'spurt');
   const unread = unreadMessages(s, 'coach', 'parent').filter((m) => m.teamId === team.id).length;
-  const startMatch = () => { const m = newMatch(kids.filter((k) => !s.blocked.includes(k.id)).map((k) => k.id), team.id, team.defaultFormat); if (next?.type !== 'training' && next) { m.eventId = next.id; m.name = next.title; if (next.opponent) m.name = `${next.title} vs ${next.opponent}`; const ids = s.availability.filter((a) => a.eventId === next.id && a.status === 'going').map((a) => a.playerId); if (ids.length) m.availableIds = ids.filter((i) => !s.blocked.includes(i)); } put('matches', m); nav(`/match/${m.id}`); };
+  const startMatch = () => { const m = newMatch(kids.filter((k) => !s.blocked.includes(k.id)).map((k) => k.id), team.id, team.defaultFormat); if (next?.type !== 'training' && next) { m.eventId = next.id; m.name = next.title; if (next.opponent) m.name = `${next.title} vs ${next.opponent}`; const ids = kids.filter((k) => statusFor(s, next, k.id) === 'going').map((k) => k.id); if (ids.length) m.availableIds = ids.filter((i) => !s.blocked.includes(i)); } put('matches', m); nav(`/match/${m.id}`); };
   return (
     <Page title={PROGRAMMES[team.programme].short}>
       {s.teams.length > 1 && <div className="mb-3 flex flex-wrap gap-2">{s.teams.map((t) => <button key={t.id} className={`btn px-4 ${t.id === team.id ? '' : 'ghost'}`} onClick={() => update((x) => ({ ...x, activeTeamId: t.id }))}>{t.name}</button>)}</div>}

@@ -6,7 +6,8 @@ export function summarise(skills: Skill[], current: Assessment, previous?: Asses
   const rated = skills.filter((s) => (current.ratings[s.id] ?? 0) > 0);
   const gain = (s: Skill) => (current.ratings[s.id] ?? 0) - (previous?.ratings[s.id] ?? 0);
   const byLevel = [...rated].sort((a, b) => (current.ratings[b.id] - current.ratings[a.id]) || (gain(b) - gain(a)));
-  const strengths = byLevel.slice(0, 2);
+  // With only a few skills rated, keep one as a strength so there is always something to work on too.
+  const strengths = byLevel.slice(0, rated.length >= 4 ? 2 : 1);
   const working = [...rated].sort((a, b) => (current.ratings[a.id] - current.ratings[b.id]))
     .filter((s) => !strengths.includes(s)).slice(0, 2);
   let fastest: Skill | undefined;

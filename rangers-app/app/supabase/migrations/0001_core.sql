@@ -84,12 +84,13 @@ create table public.invite_attempts (user_id uuid not null, at timestamptz not n
 --             family = coaches of the team + guardians of player_id
 --             team   = coaches + guardians of any player in the team
 --             club   = every active member
+--             staff  = every active coach and admin (saved moves, equipment)
 create table public.records (
   id uuid primary key,
   kind text not null,
-  team_id uuid references public.teams,
-  player_id uuid references public.players,
-  visibility text not null check (visibility in ('coach','family','team','club')),
+  team_id uuid references public.teams on delete cascade,
+  player_id uuid references public.players on delete cascade,
+  visibility text not null check (visibility in ('coach','family','team','club','staff')),
   data jsonb not null default '{}',
   author uuid not null default auth.uid(),
   created_at timestamptz not null default now(),
@@ -139,9 +140,38 @@ create function public.guardian_in_team(t uuid) returns boolean language sql sta
   select t is not null and exists (select 1 from public.player_guardians g join public.players p on p.id = g.player_id where p.team_id = t and g.user_id = auth.uid()) $$;
 create function public.coach_of_player(p uuid) returns boolean language sql stable security definer set search_path = '' as $$
   select exists (select 1 from public.players x where x.id = p and public.is_coach_of(x.team_id)) $$;
+create function public.is_head_coach_of(t uuid) returns boolean language sql stable security definer set search_path = '' as $$
+  select public.is_admin() or exists (
+    select 1 from public.team_staff s join public.memberships m on m.user_id = s.user_id
+    where s.team_id = t and s.user_id = auth.uid() and s.head and m.status = 'active') $$;
 create function public.touch() returns trigger language plpgsql as $$ begin new.updated_at = now(); return new; end $$;
 
 create trigger t_records before update on public.records for each row execute function public.touch();
+
+-- A suspected head injury blocks a child from lineups until a head coach or admin records clearance.
+-- Clearing it, deleting it or un-marking it as a head injury is refused for everyone else.
+create function public.guard_head_injury() returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  if old.kind = 'injury' and coalesce((old.data->>'head')::boolean, false) and old.data->>'clearedOn' is null and old.deleted_at is null
+     and (new.data->>'clearedOn' is not null or new.deleted_at is not null or not coalesce((new.data->>'head')::boolean, false))
+     and not public.is_head_coach_of(old.team_id) then
+    raise exception 'only a head coach or the club admin can clear a head injury' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+create trigger t_head_injury before update on public.records for each row execute function public.guard_head_injury();
+
+create function public.audit() returns trigger language plpgsql security definer set search_path = '' as $$
+declare r jsonb := to_jsonb(case when tg_op = 'DELETE' then old else new end);
+begin
+  if tg_table_name <> 'records' or r->>'kind' in ('injury','assessment','charge','charge_ref','settings') then
+    insert into public.audit_log (tbl, row_id, action) values (tg_table_name, coalesce(r->>'id', r->>'player_id', r->>'user_id'), tg_op);
+  end if;
+  return null;
+end $$;
+create trigger t_audit_records after insert or update or delete on public.records for each row execute function public.audit();
+create trigger t_audit_private after insert or update or delete on public.player_private for each row execute function public.audit();
+create trigger t_audit_members after insert or update or delete on public.memberships for each row execute function public.audit();
 create trigger t_players before update on public.players for each row execute function public.touch();
 create trigger t_teams before update on public.teams for each row execute function public.touch();
 create trigger t_priv before update on public.player_private for each row execute function public.touch();
@@ -200,17 +230,24 @@ create policy rec_read on public.records for select to authenticated using (
     when 'club'   then public.is_active_member()
     when 'team'   then public.is_coach_of(team_id) or public.guardian_in_team(team_id)
     when 'family' then public.is_coach_of(team_id) or public.is_guardian_of(player_id)
+    when 'staff'  then public.is_any_coach()
     else public.is_coach_of(team_id)
   end);
+-- Coaches write within their teams; club-wide and staff rows by any coach; club settings (GCash number etc.) by admins only.
 create policy rec_coach_write on public.records for insert to authenticated with check (
-  case when visibility = 'club' then public.is_any_coach() else public.is_coach_of(team_id) end);
+  author = auth.uid()
+  and (kind <> 'settings' or public.is_admin())
+  and case when visibility in ('club','staff') then public.is_any_coach() else public.is_coach_of(team_id) end);
 create policy rec_coach_upd on public.records for update to authenticated using (
-  case when visibility = 'club' then public.is_any_coach() else public.is_coach_of(team_id) end)
-  with check (case when visibility = 'club' then public.is_any_coach() else public.is_coach_of(team_id) end);
+  (kind <> 'settings' or public.is_admin())
+  and case when visibility in ('club','staff') then public.is_any_coach() else public.is_coach_of(team_id) end)
+  with check ((kind <> 'settings' or public.is_admin())
+  and case when visibility in ('club','staff') then public.is_any_coach() else public.is_coach_of(team_id) end);
 -- Parents may only add and edit their own replies, messages and payment references for their own child.
 create policy rec_parent_ins on public.records for insert to authenticated with check (
   visibility = 'family' and kind in ('availability','message','charge_ref','seen') and public.is_guardian_of(player_id)
   and author = auth.uid()
+  and (kind <> 'message' or coalesce(data->>'from', '') = 'parent')
   and team_id = (select pl.team_id from public.players pl where pl.id = player_id));
 create policy rec_parent_upd on public.records for update to authenticated using (
   visibility = 'family' and kind in ('availability','charge_ref') and public.is_guardian_of(player_id) and author = auth.uid())
@@ -224,10 +261,18 @@ create policy audit_read on public.audit_log for select to authenticated using (
 create function public.token_hash(t text) returns text language sql immutable as $$ select encode(sha256(convert_to(t,'utf8')),'hex') $$;
 
 -- The first person to call this when no admin exists becomes the club admin.
+-- Name shown to the admin when approving coaches (from Google, else the email address).
+create function public.ensure_profile() returns void language sql security definer set search_path = '' as $$
+  insert into public.profiles (id, display_name)
+  select u.id, coalesce(u.raw_user_meta_data->>'full_name', u.email, '') from auth.users u where u.id = auth.uid()
+  on conflict (id) do nothing $$;
+
 create function public.claim_admin() returns void language plpgsql security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'sign in first'; end if;
+  perform pg_advisory_xact_lock(4242);  -- two people tapping at once cannot both become admin
   if exists (select 1 from public.memberships where role = 'admin') then raise exception 'an admin already exists'; end if;
+  perform public.ensure_profile();
   insert into public.memberships (user_id, role, status) values (auth.uid(), 'admin', 'active')
     on conflict (user_id) do update set role = 'admin', status = 'active';
 end $$;
@@ -274,15 +319,18 @@ begin
     raise exception 'too many tries, wait an hour'; end if;
   insert into public.invite_attempts (user_id) values (auth.uid());
   select * into inv from public.invites where token_hash = public.token_hash(t) for update;
-  if not found or inv.used_at is not null or inv.expires_at < now() then raise exception 'this invite link is not valid any more'; end if;
+  -- Return null (not an error) so the attempt above is kept and the rate limit really counts failures.
+  if not found or inv.used_at is not null or inv.expires_at < now() then return null; end if;
+  perform public.ensure_profile();
   if inv.kind = 'family' then
     insert into public.memberships (user_id, role, status) values (auth.uid(), 'parent', 'active')
       on conflict (user_id) do nothing;
     insert into public.player_guardians (player_id, user_id) values (inv.player_id, auth.uid()) on conflict do nothing;
     select first_name into nm from public.players where id = inv.player_id;
   else
+    -- A parent who is also becoming a coach is upgraded (pending admin approval); coaches and admins keep their role.
     insert into public.memberships (user_id, role, status) values (auth.uid(), 'coach', 'pending')
-      on conflict (user_id) do nothing;
+      on conflict (user_id) do update set role = 'coach', status = 'pending' where public.memberships.role = 'parent';
     nm := 'coach';
   end if;
   update public.invites set used_at = now(), used_by = auth.uid() where id = inv.id;
@@ -294,6 +342,21 @@ create function public.my_role() returns text language sql stable security defin
 
 create function public.ping() returns int language sql stable as $$ select 1 $$;
 
+-- Parents record consent for their own child. Photo consent also updates the flag coaches see.
+create function public.set_consent(p uuid, k text, granted boolean, version text) returns void language plpgsql security definer set search_path = '' as $$
+begin
+  if not public.is_guardian_of(p) then raise exception 'not your child' using errcode = '42501'; end if;
+  insert into public.consents (player_id, user_id, kind, granted, notice_version) values (p, auth.uid(), k, granted, version);
+  if k = 'photo' then update public.players set photo_consent = granted where id = p; end if;
+end $$;
+
+-- Retention: children who left more than a year ago (and everything about them) and old notifications.
+create function public.purge_old_data() returns void language sql security definer set search_path = '' as $$
+  delete from public.players where left_at < now() - interval '12 months';
+  delete from public.notification_queue where coalesce(sent_at, send_at) < now() - interval '30 days';
+  delete from public.invite_attempts where at < now() - interval '1 day';
+$$;
+
 -- Parent self-service: remove my own link to a child and download-able data come via normal reads.
 create function public.leave_child(p uuid) returns void language sql security definer set search_path = '' as $$
   delete from public.player_guardians where player_id = p and user_id = auth.uid() $$;
@@ -301,3 +364,5 @@ create function public.leave_child(p uuid) returns void language sql security de
 revoke all on all tables in schema public from anon;
 revoke execute on all functions in schema public from anon, public;
 grant execute on all functions in schema public to authenticated;
+revoke execute on function public.purge_old_data() from authenticated;
+grant execute on function public.ping() to anon;   -- weekly keep-alive uses the public key

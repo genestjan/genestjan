@@ -18,6 +18,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npx playwright-core install --with-deps chromium
+      - run: node e2e/run.mjs
 
   database-tests:
     runs-on: ubuntu-latest
@@ -31,4 +33,4 @@ jobs:
     env: { PGHOST: localhost, PGPORT: 5432, PGUSER: postgres, PGPASSWORD: postgres }
     steps:
       - uses: actions/checkout@v4
-      - run: bash rangers-app/app/supabase/run-tests.sh
+      - run: sudo apt-get install -y -qq postgresql-client && bash rangers-app/app/supabase/run-tests.sh

@@ -24,6 +24,7 @@ describe('development', () => {
     expect(r.fastest?.id).toBe('touch');
   });
   it('ignores unseen skills', () => expect(summarise(sk, { ...cur, ratings: { touch: 3 } }).working).toEqual([]));
+  it('with two skills rated, one is a strength and one is working on', () => { const r = summarise(sk, { ...cur, ratings: { touch: 3, pass: 2 } }); expect(r.strengths.map((x) => x.id)).toEqual(['touch']); expect(r.working.map((x) => x.id)).toEqual(['pass']); });
   it('recognition coverage', () => {
     const now = Date.parse('2026-10-23');
     expect(needRecognition(['a', 'b'], [{ id: 'r', playerId: 'a', valueKey: 'x', note: '', at: '2026-10-20' }], now)).toEqual(['b']);

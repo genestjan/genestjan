@@ -1,10 +1,15 @@
-// Shows push messages and opens the app when tapped. Imported by the generated service worker.
+// Shows push messages and opens the right screen when tapped. Imported by the generated service worker.
 self.addEventListener('push', (e) => {
   let d = { title: 'Rangers FC', body: '', url: '/' };
   try { d = { ...d, ...e.data.json() }; } catch { /* plain text */ }
-  e.waitUntil(self.registration.showNotification(d.title, { body: d.body, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png', data: { url: d.url } }));
+  const icon = new URL('icons/icon-192.png', self.registration.scope).href;
+  e.waitUntil(self.registration.showNotification(d.title, { body: d.body, icon, badge: icon, data: { url: d.url } }));
 });
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  e.waitUntil(self.clients.matchAll({ type: 'window' }).then((cs) => { const c = cs[0]; return c ? c.focus().then(() => c.navigate(e.notification.data.url)) : self.clients.openWindow(e.notification.data.url); }));
+  const target = self.registration.scope + '#' + (e.notification.data && e.notification.data.url ? e.notification.data.url : '/');
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => {
+    const c = cs.find((x) => x.url.startsWith(self.registration.scope));
+    return c ? c.navigate(target).then((w) => (w || c).focus()) : self.clients.openWindow(target);
+  }));
 });

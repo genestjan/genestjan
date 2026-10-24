@@ -4,7 +4,8 @@ import { Page } from '../components/ui';
 import { getState, put, useAppState, type Match, type MatchEvent, uid } from '../lib/store';
 import { clockSeconds, isEnded, isRunning, onField, playedFor, windowIndexAt } from '../lib/matchClock';
 import { formatClock, owedSeconds } from '../lib/fairShare';
-import { planFor } from '../lib/lineup';
+import { usePlan } from '../lib/lineup';
+import { derivedId } from '../lib/syncMap';
 import { FORMATS } from '../lib/types';
 
 export default function Live() {
@@ -16,13 +17,19 @@ export default function Live() {
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(t); }, []);
   const lastWin = useRef(-1);
   const squad = useMemo(() => (m ? players.filter((p) => m.availableIds.includes(p.id) && !blocked.includes(p.id)) : []), [m, players, blocked]);
-  const plan = useMemo(() => (m ? planFor({ ...m, availableIds: squad.map((p) => p.id) }, players) : null), [m, squad, players]);
+  const plan = usePlan(m, players, blocked);
 
   const log = m?.log ?? [];
   const sec = clockSeconds(log, now);
   const running = isRunning(log), ended = isEnded(log), started = log.some((e) => e.type === 'start');
   const wi = m ? windowIndexAt(m, sec) : 0;
 
+  // At full time, record each child's minutes once (families see these on their progress page).
+  useEffect(() => {
+    if (!m || !isEnded(m.log) || getState().minutes.some((x) => x.matchId === m.id)) return;
+    const endT = m.log.find((e) => e.type === 'end')!.t;
+    for (const p of squad) put('minutes', { id: derivedId(`${m.id}:${p.id}`, 'min'), playerId: p.id, matchId: m.id, name: m.name, date: new Date(endT).toISOString().slice(0, 10), minutes: Math.round(playedFor(m.log, p.id, endT) / 60) });
+  }, [m, squad]);
   useEffect(() => { // buzz when a new sub window begins
     if (running && wi !== lastWin.current) { if (lastWin.current >= 0) navigator.vibrate?.([300, 120, 300]); lastWin.current = wi; }
   }, [wi, running]);
@@ -78,10 +85,6 @@ export default function Live() {
     );
   };
 
-  if (ended && !getState().minutes.some((x) => x.matchId === m.id)) {
-    const endT = log.find((e) => e.type === 'end')!.t;
-    for (const p of squad) put('minutes', { id: uid(), playerId: p.id, matchId: m.id, name: m.name, date: new Date(endT).toISOString().slice(0, 10), minutes: Math.round(playedFor(log, p.id, endT) / 60) });
-  }
   if (ended) {
     const rows = squad.map((p) => ({ id: p.id, name: p.firstName, min: Math.round(playedFor(log, p.id, now) / 60) }));
     const csv = ['Player,Minutes', ...rows.map((r) => `${r.name},${r.min}`)].join('\n');
