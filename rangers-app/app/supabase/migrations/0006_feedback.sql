@@ -88,4 +88,7 @@ create or replace function public.purge_old_data() returns void language sql sec
 $$;
 revoke execute on function public.purge_old_data() from public, anon, authenticated;
 
+-- Tell the API about the new functions straight away (Supabase usually does this by itself).
+notify pgrst, 'reload schema';
+
 select * from public.rangers_health();

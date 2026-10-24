@@ -98,12 +98,12 @@ export function Help() {
 export function Settings() {
   const s = useAppState(); const cloud = useCloud(); const role = useRole(); const team = activeTeam(s);
   const [tn, setTn] = useState(''); const [prog, setProg] = useState<Programme>('rangers'); const [band, setBand] = useState<(typeof AGE_BANDS)[number]>('U10'); const [fmt, setFmt] = useState<FormatId>('8v8');
-  const [token, setToken] = useState(''); const [adminLink, setAdminLink] = useState(''); const [msg, setMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
+  const [token, setToken] = useState(''); const [adminLink, setAdminLink] = useState(''); const [msg, setMsg] = useState(''); const [adminMsg, setAdminMsg] = useState(''); const [pushMsg, setPushMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
   const admins = members.filter((m) => m.role === 'admin'); const teamName = (id: string) => s.teams.find((t) => t.id === id)?.name ?? 'another team';
   useEffect(() => { if (cloud.status === 'ready' && role === 'admin') listMembers().then(setMembers).catch(() => {}); }, [cloud.status, role, token]);
   const st = s.settings; const set = (p: Partial<typeof st>) => update((x) => ({ ...x, settings: { ...x.settings, ...p } }));
   /** Runs an admin action, then refreshes the list and says what happened (or what went wrong). */
-  const act = async (f: () => Promise<void>, done: string) => { setMsg('Saving...'); try { await f(); setMembers(await listMembers()); setMsg(done); } catch (e) { setMsg(`Not saved: ${(e as Error).message}`); } };
+  const act = async (f: () => Promise<void>, done: string, say: (m: string) => void = setMsg) => { say('Saving...'); try { await f(); setMembers(await listMembers()); say(done); } catch (e) { say(`Not saved: ${(e as Error).message}`); } };
   return (
     <Page title="Settings" back={<Back to="/more" />}>
       <H2>You</H2><Card><label className="grid gap-1 text-sm font-semibold">Name shown on your messages<input className="field" value={s.me.name} onChange={(e) => update((x) => ({ ...x, me: { ...x.me, name: e.target.value } }))} /></label></Card>
@@ -125,18 +125,19 @@ export function Settings() {
         <label className="grid gap-1 text-sm font-semibold">GCash number families pay to<input className="field" inputMode="tel" value={st.gcashNumber} onChange={(e) => set({ gcashNumber: e.target.value })} /></label><p className="muted text-sm">Reference numbers are checked for format only. A coach confirms each payment by hand. Waivers are private.</p></Card>
 
       {cloudEnabled && cloud.status === 'ready' && (<>
-        <H2>Reminders on this phone</H2><Card className="grid gap-2"><button className="btn" onClick={async () => setMsg(await enablePush())}>Turn on reminders</button>{msg && <p role="status">{msg}</p>}<p className="muted text-sm">On iPhone, add the app to the Home Screen first.</p></Card>
+        <H2>Reminders on this phone</H2><Card className="grid gap-2"><button className="btn" onClick={async () => setPushMsg(await enablePush())}>Turn on reminders</button>{pushMsg && <p role="status">{pushMsg}</p>}<p className="muted text-sm">On iPhone, add the app to the Home Screen first.</p></Card>
         {role === 'admin' && (<><H2>Club admins</H2><Card className="grid gap-2" data-tour="admins">
           <p className="text-sm">Admins run the whole club in the app: teams, coaches, settings and every child's information. Only invite someone you trust.</p>
-          <button className="btn" onClick={async () => { try { setAdminLink(inviteLink(await createAdminInvite())); } catch (e) { setMsg((e as Error).message); } }}>Create an admin invite link</button>
+          <button className="btn" onClick={async () => { setAdminMsg(''); try { setAdminLink(inviteLink(await createAdminInvite())); } catch (e) { setAdminMsg((e as Error).message); } }}>Create an admin invite link</button>
           {adminLink && <><input className="field" readOnly value={adminLink} onFocus={(e) => e.target.select()} aria-label="Admin invite link" />
             <button className="btn ghost" onClick={() => share(`You are invited to be an admin of the Rangers app. Open this link in Chrome and sign in with Google. It works once, for 3 days: ${adminLink}`)}>Send it</button>
             <p className="muted text-sm">Send it to one person, privately (not in a group chat). It works once, for 3 days. They become an admin as soon as they open it and sign in.</p></>}
           {admins.map((m) => <div key={m.user_id} className="flex flex-wrap items-center gap-2 text-sm"><span className="flex-1 truncate"><b>{m.name}</b>{m.user_id === cloud.userId ? ' (you)' : ''} · admin</span>
             {m.user_id === cloud.userId
-              ? admins.length > 1 && <button className="btn ghost min-h-[44px]" onClick={() => { if (confirm('Step down as admin? You stay in the app as a coach.')) void act(() => removeAdmin(m.user_id), 'You stepped down. You are now a coach.'); }}>Step down as admin</button>
-              : <button className="btn ghost min-h-[44px]" onClick={() => { if (confirm(`Take admin rights away from ${m.name}? They stay in the app as a coach.`)) void act(() => removeAdmin(m.user_id), `${m.name} is now a coach.`); }}>Remove admin</button>}
+              ? admins.length > 1 && <button className="btn ghost min-h-[44px]" onClick={() => { if (confirm('Step down as admin? You stay in the app as a coach.')) void act(() => removeAdmin(m.user_id), 'You stepped down. You are now a coach.', setAdminMsg); }}>Step down as admin</button>
+              : <button className="btn ghost min-h-[44px]" onClick={() => { if (confirm(`Take admin rights away from ${m.name}? They stay in the app as a coach.`)) void act(() => removeAdmin(m.user_id), `${m.name} is now a coach.`, setAdminMsg); }}>Remove admin</button>}
           </div>)}
+          {adminMsg && <p role="status" className="font-semibold">{adminMsg}</p>}
           {admins.length === 1 && <p className="muted text-sm">Handing the club over? Invite the new admin first. Once they are in, you can step down. The club always keeps at least one admin.</p>}
         </Card>
         <H2>Coaches</H2><Card className="grid gap-2">
