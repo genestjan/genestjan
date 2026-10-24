@@ -64,6 +64,7 @@ Fill in the **Answer** column after talking to Coach James and the coaches. Leav
 | D31 | Values used for recognition | Each programme's own values (Rangers 8, MABU, GILA) | |
 | D32 | Mistake reset signal | Tap the badge, "Play with your heart", next play | |
 | D33 | FC New Mabu and Gila colours | (ask Coach Jabez and Coach Ralph) | |
+| D37 | Tactics board | Free draw (finger pen: Run, Pass or Line, four colours) beside Step by step (moves that play). Players are small human figures: red shirts for us, white for opponents, yellow for keepers. Upright pitch that fits the phone, and a Big (full screen) button. | Jan, Oct 2026 |
 
 ## Data
 

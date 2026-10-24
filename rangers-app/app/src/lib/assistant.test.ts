@@ -32,6 +32,7 @@ describe('Help chat', () => {
     expect(top('paano?', 'parent')).toBe('tour');
     expect(top('attendance')).toBe('attendance');   // no "how": the live fact comes first
     expect(top('squad')).toBe('squad');
+    expect(top('paano mag draw ng diskarte sa tactics board')).toBe('tactics');
   });
   it('keeps coach-only answers away from families', () => {
     expect(match('how do I add players', 'parent').some((m) => m.entry.id === 'add-players')).toBe(false);

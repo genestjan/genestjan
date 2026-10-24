@@ -148,8 +148,30 @@ try {
   await p.getByRole('button', { name: 'Go to match' }).click(); await p.getByRole('button', { name: 'Kick off' }).click(); await p.waitForTimeout(800);
   ok((await text()).includes('On the pitch (8)'), 'match kicks off with 8 on the pitch'); await shot('live');
   for (const r of ['/', '/schedule', '/inbox', '/train', '/squad', '/more', '/match', '/board', '/safety', '/recognise', '/review', '/motivation', '/support', '/settings', '/help', '/drills', '/drills/D04', '/tv']) { await p.goto(B + r); await p.waitForTimeout(150); }
-  await p.goto(B + '/board'); await p.getByRole('button', { name: 'Give-and-go' }).click(); await p.getByRole('button', { name: '+ Step' }).click(); await p.getByRole('button', { name: 'Save to my library' }).click();
-  ok((await text()).includes('(mine)'), 'board move saved to the library'); await shot('board');
+  // tactics board: free drawing with a finger, undo, erase, drag a player, ready set-ups, full screen, a move played step by step
+  await p.goto(B + '/board'); const pitch = p.getByRole('img', { name: 'Tactics board' });
+  const lines = () => pitch.locator('path[stroke-linejoin="round"]').count();
+  const at = async (fx, fy) => { const b = await pitch.boundingBox(); return [b.x + fx * b.width, b.y + fy * b.height]; };
+  const stroke = async (a, z) => { await p.mouse.move(...(await at(...a))); await p.mouse.down(); const [x, y] = await at(...z); await p.mouse.move(x, y, { steps: 10 }); await p.mouse.up(); await p.waitForTimeout(100); };
+  ok(await pitch.locator('ellipse').count() === 3, 'board opens with players drawn as figures (2 v 1)');
+  await p.getByRole('button', { name: 'Draw', exact: true }).click(); await stroke([0.5, 0.65], [0.7, 0.35]);
+  await p.getByRole('button', { name: 'Pass line' }).click(); await p.getByRole('button', { name: 'White lines' }).click(); await stroke([0.3, 0.6], [0.2, 0.3]);
+  ok(await lines() === 2 && await pitch.locator('path[stroke-dasharray]').count() === 1, 'coach draws a run and a dashed pass with a finger');
+  await p.getByRole('button', { name: 'Undo' }).click(); ok(await lines() === 1, 'undo takes the last line away');
+  await p.getByRole('button', { name: 'Erase', exact: true }).click(); await p.mouse.click(...(await at(0.6, 0.5))); ok(await lines() === 0, 'tapping a line with Erase removes it');
+  await p.getByRole('button', { name: 'Move', exact: true }).click();
+  const fig = pitch.locator('g[transform^="translate"]').first(); const figAt = await fig.getAttribute('transform');
+  const [fx, fy] = figAt.match(/[\d.]+/g).map(Number); const b0 = await pitch.boundingBox();
+  const from = [b0.x + fx / 100 * b0.width, b0.y + fy / 160 * b0.height];
+  await p.mouse.move(...from); await p.mouse.down(); await p.mouse.move(from[0] + 60, from[1] - 80, { steps: 8 }); await p.mouse.up();
+  ok(await fig.getAttribute('transform') !== figAt, 'a player can be dragged to a new spot');
+  await p.getByRole('button', { name: /^Full teams/ }).click(); ok(await pitch.locator('ellipse').count() === 16, 'full teams set up in one tap (8 v 8)');
+  await p.getByRole('button', { name: 'Full screen' }).click(); ok(await p.getByRole('button', { name: 'Exit full screen' }).isVisible(), 'board goes full screen'); await p.getByRole('button', { name: 'Exit full screen' }).click();
+  await p.getByRole('button', { name: 'Step by step' }).click(); await p.getByRole('button', { name: 'Give-and-go' }).click();
+  await p.getByRole('button', { name: 'Play', exact: true }).click(); await p.waitForTimeout(400); ok(await p.getByRole('button', { name: 'Stop' }).isVisible(), 'a ready-made move plays'); await p.getByRole('button', { name: 'Stop' }).click();
+  await p.getByRole('button', { name: 'Add step' }).click(); ok(await p.getByRole('button', { name: 'Step 4' }).isVisible(), 'a step is added');
+  await p.getByRole('button', { name: 'Save to my library' }).click();
+  ok((await text()).includes('Give-and-go (mine)') && (await text()).includes('Step by step, 4 steps'), 'board move saved to the library'); await shot('board');
   await p.reload(); await p.goto(B + '/squad'); ok((await text()).includes('Nico'), 'data persists after reload');
 
   // typing in the event form keeps focus (the box used to lose focus after each letter)

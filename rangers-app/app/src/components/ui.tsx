@@ -39,10 +39,10 @@ export function Tone({ tone, children }: { tone: 'ok' | 'warn' | 'bad'; children
   return <div className="rounded-2xl p-3 font-semibold" style={{ background: c + '22', border: `1px solid ${c}` }}>{children}</div>;
 }
 
-export function Pitch({ format, children, className = 'w-full', svgRef, ...rest }: { format: 'v' | 'h'; children?: ReactNode; className?: string; svgRef?: React.Ref<SVGSVGElement> } & React.SVGProps<SVGSVGElement>) {
+export function Pitch({ format, children, className = 'w-full', svgRef, style, ...rest }: { format: 'v' | 'h'; children?: ReactNode; className?: string; svgRef?: React.Ref<SVGSVGElement> } & React.SVGProps<SVGSVGElement>) {
   const w = format === 'v' ? 100 : 160, h = format === 'v' ? 160 : 100;
   return (
-    <svg ref={svgRef} viewBox={`0 0 ${w} ${h}`} className={`${className} rounded-card`} style={{ background: 'var(--pitch)', touchAction: 'none' }} role="img" {...rest}>
+    <svg ref={svgRef} viewBox={`0 0 ${w} ${h}`} className={`${className} rounded-card`} style={{ background: 'var(--pitch)', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', ...style }} role="img" {...rest}>
       <g fill="none" stroke="var(--text)" strokeOpacity=".45" strokeWidth=".6">
         <rect x="2" y="2" width={w - 4} height={h - 4} rx="2" />
         {format === 'v' ? (<><line x1="2" y1={h / 2} x2={w - 2} y2={h / 2} /><circle cx={w / 2} cy={h / 2} r="12" /><rect x="28" y="2" width="44" height="18" /><rect x="28" y={h - 20} width="44" height="18" /></>)

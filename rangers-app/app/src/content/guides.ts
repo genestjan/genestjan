@@ -38,6 +38,11 @@ export const GUIDES: Guide[] = [
     { route: '/assign/new', target: 'assign-show-how', title: 'Show them how', text: 'Paste a YouTube link (upload it as Unlisted) or add a photo of the drill.' },
     { route: '/assign/new', target: 'assign-players', title: 'Choose the players', text: 'Tick who gets it, then Send. Each child sends a photo for every task, and you approve them in Assign.' },
   ] },
+  { id: 'tactics', for: 'coach', title: 'Draw on the tactics board', steps: [
+    { route: '/board', target: 'board-mode', title: 'Two kinds of board', text: 'Free draw is a picture you draw on. Step by step is a move that plays, so the children see who runs where.' },
+    { route: '/board', target: 'board-tools', title: 'Pick a tool', text: 'Move drags players and the ball. Draw is your finger as a pen. Erase removes what you tap. Big fills the screen to show the children.' },
+    { route: '/board', target: 'board-pitch', title: 'Draw your plan', text: 'Choose Run, Pass or Line and a colour, then draw on the pitch. Start with sets up 2 v 1 or full teams in one tap.' },
+  ] },
   { id: 'recognise', for: 'coach', title: 'Recognise a child', steps: [
     { route: '/recognise', target: 'rec-who', title: '1. Who?', text: 'Tap one or more children. A star means nobody has recognised them for 6 weeks.' },
     { route: '/recognise', target: 'rec-value', title: '2. What did they show?', text: 'Pick the club value. The small text says what it looks like on the pitch.' },
