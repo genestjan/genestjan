@@ -13,6 +13,7 @@ export interface CloudState { status: CloudStatus; role: 'admin' | 'coach' | 'pa
 let cs: CloudState = { status: cloudEnabled ? 'loading' : 'off', role: null, email: '', userId: '', error: '', syncing: false, lastSync: 0, offline: false };
 const subs = new Set<() => void>();
 const set = (p: Partial<CloudState>) => { cs = { ...cs, ...p }; subs.forEach((f) => f()); };
+export const getCloud = () => cs;
 export const useCloud = () => useSyncExternalStore((cb) => { subs.add(cb); return () => subs.delete(cb); }, () => cs);
 
 let client: SupabaseClient | null = null;

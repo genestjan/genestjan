@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 DB=rangers_live
-if [ "${1:-}" = "stop" ]; then docker rm -f rs-gotrue rs-postgrest rs-mailpit >/dev/null 2>&1 || true; [ -f /tmp/rs-gateway.pid ] && kill "$(cat /tmp/rs-gateway.pid)" 2>/dev/null; rm -f /tmp/rs-gateway.pid; exit 0; fi
+if [ "${1:-}" = "stop" ]; then docker rm -f rs-gotrue rs-postgrest rs-mailpit >/dev/null 2>&1 || true; { [ -f /tmp/rs-gateway.pid ] && kill "$(cat /tmp/rs-gateway.pid)" 2>/dev/null; } || true; rm -f /tmp/rs-gateway.pid; exit 0; fi
 bash "$0" stop
 dropdb --if-exists "$DB"; createdb "$DB"
 psql -q -v ON_ERROR_STOP=1 -d "$DB" <<'SQL'

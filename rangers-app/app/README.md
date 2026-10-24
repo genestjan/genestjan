@@ -24,12 +24,14 @@ Going live with real logins and sync: **SETUP.md**. Plan and rules: `../README.m
 - Pure logic with tests lives in `src/lib/` (rotation, fair share, heat index, growth, development summary, fees, session builder, weather parsing, sync mapping).
 
 ## What is verified and what is not
-Verified here: 52 logic tests; 81 database tests on PostgreSQL 16 (deliberately broken rules make them fail, so they are not passing by accident); `npm run test:e2e` runs the coach and parent flows in Chromium (events, replies, announcements, messages both ways, emergency contacts, review publish without the private note, training, head-knock block, live match, tactics board, TV-size board) with no browser errors.
+- `npm test`: 52 logic tests (minutes planner for 4v4 to 11v11, fair share, heat index, growth, reviews, contributions, sync mapping).
+- `npm run test:db`: 81 database tests on PostgreSQL 16. Deliberately broken rules make them fail, so they are not passing by accident.
+- `npm run test:e2e`: coach and parent flows in Chromium on one device (also with `APP_BASE=/app/`).
+- `node e2e/cloud.mjs` with `supabase/local-stack/start.sh` running: **online mode end to end** against the real Supabase auth server (GoTrue) and PostgREST, with three separate browsers (club admin, parent, coach) signing in with emailed codes. Covers admin setup, family invite, privacy consent, announcements, two-way messages, replies, review publish and take-back (the private note never reaches the parent's phone), coach invite, approval and head coach, the head-injury block reaching another coach's phone and clearance by the head coach only, sign-out wiping the phone, and direct API attacks with a parent's login (all refused).
 
-**Not yet verified (needs your accounts, see SETUP.md):** sign-in with Google and email codes, sync against a real Supabase project, realtime message updates, push notifications (including iPhone), the TV link over Supabase Realtime, the `send-push` function, the GitHub Pages deploy and the custom domain. They are written to the design but have not run against the live services. Plan one evening on a staging project with two coach phones and two parent phones before real families join.
+**Not yet tested:** Google sign-in (needs your Google Cloud client), live updates over Supabase Realtime (the app also refreshes on open and every minute, which is tested), push notifications and the `send-push` function, and the TV link (uses Realtime). Check these on the real project.
 
 ## Known gaps
-- App icons are placeholders: replace `public/icons/icon-192.png` and `icon-512.png` with the crest.
 - Heat forecast uses General Santos city coordinates unless an event sets its own.
 - Filipino and Cebuano translations, player 13+ logins, PNG/GIF export and season rollover are not built.
 - Photos are not uploaded (initials only); the consent switch is stored for when they are.

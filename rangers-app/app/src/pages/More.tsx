@@ -48,6 +48,8 @@ export function Settings() {
   const [token, setToken] = useState(''); const [msg, setMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
   useEffect(() => { if (cloud.status === 'ready' && role === 'admin') listMembers().then(setMembers).catch(() => {}); }, [cloud.status, role, token]);
   const st = s.settings; const set = (p: Partial<typeof st>) => update((x) => ({ ...x, settings: { ...x.settings, ...p } }));
+  /** Runs an admin action, then refreshes the list and says what happened (or what went wrong). */
+  const act = async (f: () => Promise<void>, done: string) => { setMsg('Saving...'); try { await f(); setMembers(await listMembers()); setMsg(done); } catch (e) { setMsg(`Not saved: ${(e as Error).message}`); } };
   return (
     <Page title="Settings" back={<Back to="/more" />}>
       <H2>You</H2><Card><label className="grid gap-1 text-sm font-semibold">Name shown on your messages<input className="field" value={s.me.name} onChange={(e) => update((x) => ({ ...x, me: { ...x.me, name: e.target.value } }))} /></label></Card>
@@ -70,8 +72,9 @@ export function Settings() {
           <button className="btn" onClick={async () => { try { setToken(inviteLink(await createCoachInvite())); } catch (e) { setMsg((e as Error).message); } }}>Create a coach invite link</button>
           {token && <><input className="field" readOnly value={token} onFocus={(e) => e.target.select()} aria-label="Coach invite link" /><button className="btn ghost" onClick={() => share(`Join the Rangers coaching app: ${token}`)}>Send it</button></>}
           {members.filter((m) => m.role !== 'parent').map((m) => <div key={m.user_id} className="flex flex-wrap items-center gap-2 text-sm"><span className="flex-1 truncate"><b>{m.name}</b> · {m.role}{m.status === 'pending' ? ' (waiting)' : ''}</span>
-            {m.status === 'pending' && <><button className="btn min-h-[44px]" onClick={async () => { await approveMember(m.user_id, true); setMembers(await listMembers()); }}>Approve</button><button className="btn ghost min-h-[44px]" onClick={async () => { await approveMember(m.user_id, false); setMembers(await listMembers()); }}>Decline</button></>}
-            {m.status === 'active' && m.role === 'coach' && <><button className="btn ghost min-h-[44px]" onClick={async () => { await assignStaff(m.user_id, team.id, false); setMsg(`${m.name} added to ${team.name}`); }}>Add to {team.name}</button><button className="btn ghost min-h-[44px]" onClick={async () => { await assignStaff(m.user_id, team.id, true); setMsg(`${m.name} is head coach of ${team.name}`); }}>Head coach of {team.name}</button></>}</div>)}
+            {m.status === 'pending' && <><button className="btn min-h-[44px]" onClick={() => act(() => approveMember(m.user_id, true), `${m.name} approved. Now add them to a team.`)}>Approve</button><button className="btn ghost min-h-[44px]" onClick={() => act(() => approveMember(m.user_id, false), `${m.name} declined.`)}>Decline</button></>}
+            {m.status === 'active' && m.role === 'coach' && <><button className="btn ghost min-h-[44px]" onClick={() => act(() => assignStaff(m.user_id, team.id, false), `${m.name} added to ${team.name}.`)}>Add to {team.name}</button><button className="btn ghost min-h-[44px]" onClick={() => act(() => assignStaff(m.user_id, team.id, true), `${m.name} is now head coach of ${team.name}.`)}>Head coach of {team.name}</button></>}</div>)}
+          {msg && <p role="status" className="font-semibold">{msg}</p>}
           <p className="muted text-sm">Only head coaches (and you) can clear a child after a head injury. Coaches see only the teams you add them to.</p>
         </Card></>)}</>)}
       <H2>Your data</H2>

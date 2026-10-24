@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Page } from '../components/ui';
-import { claimAdmin, redeemInvite, sendCode, setConsent, signInGoogle, signOut, syncNow, useCloud, verifyCode } from '../lib/cloud';
+import { claimAdmin, getCloud, redeemInvite, sendCode, setConsent, signInGoogle, signOut, syncNow, useCloud, verifyCode } from '../lib/cloud';
 import { useAppState } from '../lib/store';
 
 export function Login({ joining }: { joining?: boolean }) {
@@ -43,7 +43,12 @@ export function Join() {
     if (!t) { setErr('This link has no invite in it. Ask your coach to send it again.'); return; }
     redeemInvite(t).then((name) => {
       try { sessionStorage.removeItem(INVITE_KEY); } catch { /* ignore */ }
-      if (!name) { setErr('This invite link has already been used or has expired. Ask your coach for a new one.'); return; }
+      // Leave the invite address straight away, so reloading or reopening it never tries to use it again.
+      history.replaceState(null, '', location.pathname + '#/');
+      if (!name) {
+        if (getCloud().status === 'ready' || getCloud().status === 'pending') { setMsg('You have already joined. Opening the app...'); setTimeout(() => nav('/', { replace: true }), 1200); return; }
+        setErr('This invite link has already been used or has expired. Ask your coach for a new one.'); return;
+      }
       if (name === 'coach') { setMsg('You are in. The club admin will approve your coach account shortly.'); setTimeout(() => nav('/', { replace: true }), 2500); return; }
       setChild(name);
     }).catch((e: Error) => setErr(e.message));
