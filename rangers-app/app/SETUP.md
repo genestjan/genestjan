@@ -17,8 +17,14 @@ Never paste a secret (service_role key, database password, SMTP password, VAPID 
    - **Email code**: Supabase's built-in sender only reaches your own team's addresses and a couple of emails an hour, so parents would not get codes. Before relying on email: create a free Resend account, add domain `rangersfc.net` (it shows SPF and DKIM records; add them at Onamae.com DNS), then **Authentication > SMTP Settings**: host `smtp.resend.com`, port 465, user `resend`, password = your Resend API key, sender `no-reply@rangersfc.net`, name `Rangers FC`. Then **Authentication > Email Templates > Magic Link**: make the body show the code, for example `Your Rangers FC sign-in code is {{ .Token }}`.
 3. **Authentication > Rate Limits**: leave the defaults.
 
-## 3. Publish with logins switched on (me, once I have the URL and key)
-`scripts/publish-to-site.sh ../path/to/RangersFc` builds the app with the Supabase values and copies it into the website's `app/` folder; pushing the website repo publishes it (the site deploys from the `main` branch, no build step).
+## 3. Publish
+The website deploys from the `main` branch of `ayakent/RangersFc` with no build step, so publishing is adding the built `app/` folder there.
+
+**Option A, you (no access needed, 5 minutes on a computer):** unzip `rangers-app-upload.zip` (it contains one folder, `app`). On github.com, signed in as ayakent, open `RangersFc`, **Add file > Upload files**, drag the whole `app` folder in, choose **Commit directly to the main branch**, **Commit changes**. After a minute or two it is live at https://rangersfc.net/app/. To update later, delete the old `app` folder in the same way and upload the new one.
+
+**Option B, me:** give the genestjan account write access to `RangersFc` (Settings > Collaborators) and install the Claude GitHub App on it. Then `scripts/publish-to-site.sh` builds and copies it, and I push.
+
+Logins switch on when the build includes your Supabase Project URL and anon key: send them to me and I produce a new upload (or run `VITE_SUPABASE_URL=... VITE_SUPABASE_ANON_KEY=... scripts/publish-to-site.sh <site>`). Until then the published app runs in on-device mode: everything works on each phone, with no logins or syncing.
 
 ## 4. First sign-in (you, 5 minutes)
 1. Open https://rangersfc.net/app/ and sign in.
