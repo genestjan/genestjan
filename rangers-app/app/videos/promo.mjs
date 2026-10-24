@@ -21,6 +21,7 @@ const FEATURES = [
   `${B('Attendance')} sa isang tap, may report`,
   `${B('Takdang-gawain')} sa bahay, may litrato`,
   `${B('Pili ng squad')}, kusang ina-announce`,
+  `${B('Tactics board')}, gumagalaw ang mga player`,
   `${B('Road to Palaro')} para sa SPED Rangers`,
   `${B('Student ID at PSA')}, laging handa`,
   `${B('Detalye at emergency contact')} ng bata`,
@@ -53,6 +54,10 @@ await S(`Piliin ang ${B('squad')}. Kusang ina-announce sa mga pamilya.`, async (
   for (const n of ['Ana', 'Ben', 'Carlo', 'Dina']) await r.check(a.getByLabel(`Pick ${n}`), 250);
   await r.tap(a.getByRole('button', { name: 'Save and tell the families' }), 1000);
 }, 7000);
+await S(`${B('Tactics board')}: ipakita ang galaw, at gumagalaw pa sa screen.`, async () => {
+  await r.go('/board'); await r.tap(a.getByRole('button', { name: 'Give-and-go', exact: true }), 900); await r.scroll(0, 900);
+  await r.tap(a.getByRole('button', { name: 'Play', exact: true }), 500); await r.scroll(0, 600); await r.wait(5500);
+}, 10000);
 await r.chip('SPED Rangers');
 await S(`Handa sa ${B('Road to Palaro')}: edad, papeles at bawat meet.`, async () => { await r.go('/pathway'); await r.wait(600); await r.scrollBy(260, 1400); });
 await S(`${B('Student ID')} at ${B('PSA')}, laging handa sa tournament.`, () => r.go('/documents'));
@@ -66,7 +71,7 @@ await S(`May tanong? Sumasagot ang ${B('Help')}, kahit Tagalog o Bisaya.`, async
 }, 7000);
 await r.chip('');
 await r.card(`<div class="k">LIGTAS AT PRIBADO</div><h1>Walang ads</h1><p>Pribado ang impormasyon ng bata. Gumagana kahit mahina ang signal.</p>`, 6000);
-await r.card(`<div class="k">LAHAT NG ITO, NASA RANGERS APP</div><ul class="feat">${FEATURES.map((f, i) => `<li style="animation-delay:${(0.25 + i * 0.35).toFixed(2)}s"><span>${f}</span></li>`).join('')}</ul>`, 20000, 'list');
+await r.card(`<div class="k">LAHAT NG ITO, NASA RANGERS APP</div><ul class="feat">${FEATURES.map((f, i) => `<li style="animation-delay:${(0.25 + i * 0.35).toFixed(2)}s"><span>${f}</span></li>`).join('')}</ul>`, 21000, 'list');
 await r.card(`<img src="/app/crest.png"><h1>Libre para sa Rangers family</h1><p>Buksan ang ${B('rangersfc.net/app')}</p><div class="pill">Mag-sign in gamit ang Google</div>`, 7500);
 await r.stop();
 } catch (e) { console.log('FAILED', String(e.message).split('\n').slice(0, 4).join(' | ')); await r.page.screenshot({ path: new URL('./out/err.png', import.meta.url).pathname }); }
