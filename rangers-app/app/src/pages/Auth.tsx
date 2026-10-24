@@ -4,11 +4,23 @@ import { Card, Page } from '../components/ui';
 import { claimAdmin, getCloud, redeemInvite, sendCode, setConsent, signInGoogle, signOut, syncNow, useCloud, verifyCode } from '../lib/cloud';
 import { useAppState } from '../lib/store';
 
+/** Facebook, Messenger and Instagram open links in their own browser, where Google refuses to sign in. */
+const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\//i.test(navigator.userAgent);
+
 export function Login({ joining }: { joining?: boolean }) {
   const [email, setEmail] = useState(''); const [code, setCode] = useState(''); const [sent, setSent] = useState(false); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
   const run = async (f: () => Promise<void>) => { setBusy(true); setErr(''); try { await f(); } catch (e) { setErr((e as Error).message); } setBusy(false); };
+  const copyLink = async () => { try { await navigator.clipboard.writeText(location.href); setCopied(true); } catch { setErr('Could not copy. Tap the three dots at the top and choose "Open in browser".'); } };
   return (
     <Page title={joining ? 'Join Rangers' : 'Sign in'}>
+      {inAppBrowser() && (
+        <Card className="mb-4 grid gap-2">
+          <p><b>You opened this inside Messenger or Facebook.</b> Google sign-in does not work here.</p>
+          <p>Tap the three dots at the top right and choose <b>Open in browser</b> (Chrome or Safari). Or copy the link and paste it into Chrome or Safari.</p>
+          <button className="btn ghost" onClick={copyLink}>{copied ? 'Link copied' : 'Copy link'}</button>
+        </Card>
+      )}
       <p className="mb-4 text-lg">{joining ? 'Sign in first, then your invite is linked to your account.' : 'Coaches and parents sign in here. Each person has their own login.'}</p>
       <Card className="grid gap-3">
         <button className="btn h-14" disabled={busy} onClick={() => run(signInGoogle)}>Continue with Google</button>
