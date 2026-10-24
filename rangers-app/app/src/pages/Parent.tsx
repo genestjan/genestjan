@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Back, Card, CREST, Empty, H2, Page } from '../components/ui';
 import { EventWeather } from '../components/Wx';
 import { useAppState } from '../lib/store';
@@ -11,12 +11,15 @@ import { BAND_AGE } from '../lib/sessionBuilder';
 import { statusFor, setAvailability } from './Schedule';
 import { TIPS_PARENTS } from '../content/safety';
 import { growthVelocity } from '../lib/growth';
+import { DetailsReminder, EmergencyEditor } from '../components/Emergency';
+import { openAssignments } from '../lib/assignments';
 
 export function ParentHome() {
   const s = useAppState(); const kids = useMyChildren();
   const tip = TIPS_PARENTS[new Date().getDate() % TIPS_PARENTS.length];
   const upcoming = s.events.filter((e) => kids.some((k) => k.teamId === e.teamId) && !e.cancelled && Date.parse(e.endsAt) > Date.now()).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const next = upcoming[0];
+  const todo = kids.reduce((n, k) => n + openAssignments(s.assignments.filter((a) => a.playerId === k.id), s.submissions).length, 0);
   const news = s.announcements.filter((a) => a.scope === 'club' || kids.some((k) => k.teamId === a.teamId)).sort((a, b) => b.at.localeCompare(a.at))[0];
   return (
     <Page title="Rangers FC">
@@ -24,6 +27,8 @@ export function ParentHome() {
       {kids.length === 0 && <Empty>No child is linked to this account yet. Open the private link your coach sent you.</Empty>}
       {kids.map((k) => { const team = s.teams.find((t) => t.id === k.teamId); return (
         <Card key={k.id} className="mb-3"><div className="flex items-center justify-between"><div><div className="text-2xl font-semibold">{k.firstName}</div><div className="muted text-sm">{team?.name}{k.number ? ` · #${k.number}` : ''}</div></div><Link to={`/progress/${k.id}`} className="btn px-4">Progress</Link></div></Card>); })}
+      {kids.map((k) => <div key={k.id} className="mb-3"><DetailsReminder p={k} /></div>)}
+      {todo > 0 && <Link to="/tasks" className="card mb-3 block p-4"><div className="text-xl font-semibold">{todo} task{todo === 1 ? '' : 's'} from your coach</div><div className="muted">Tap to see the list and send your photos or videos.</div></Link>}
       {next && (<><H2>Next up</H2><Card className="grid gap-3"><div><div className="text-2xl font-semibold">{next.title}</div><div className="muted">{fmtDateTime(next.startsAt)} · {next.venue}</div></div>
         {kids.filter((k) => k.teamId === next.teamId).map((k) => { const st = statusFor(s, next, k.id); return (
           <div key={k.id} className="flex items-center gap-2"><span className="min-w-14 font-semibold">{k.firstName}</span>{(['going', 'maybe', 'no'] as const).map((v) => <button key={v} className={`btn flex-1 px-2 ${st === v ? '' : 'ghost'}`} aria-pressed={st === v} onClick={() => setAvailability(s, next.id, k.id, v, 'parent')}>{v === 'going' ? 'Going' : v === 'maybe' ? 'Maybe' : 'Not going'}</button>)}</div>); })}
@@ -66,6 +71,21 @@ export function ProgressPage({ playerId }: { playerId?: string }) {
       <H2>Attendance and playing time</H2>
       <Card className="grid gap-1"><p>{att.length ? `Came to ${came} of ${att.length} recorded sessions.` : 'Attendance shows here once the coach starts recording it.'}</p>{mins.slice(0, 5).map((m) => <p key={m.id} className="text-sm">{m.date}, {m.name}: {m.minutes} min</p>)}{mins.length === 0 && <p className="muted text-sm">Match minutes show here after each game.</p>}</Card>
       {g.status === 'spurt' && <><H2>Growth</H2><Card>{k.firstName} is in a growth spurt. Clumsiness is normal and temporary. Coaches are easing off jumping and sprinting. Tell the coach about any knee or heel pain.</Card></>}
+    </Page>
+  );
+}
+
+/** Family-facing page to enter or update a child's details. */
+export function DetailsPage() {
+  const { id } = useParams(); const s = useAppState(); const kids = useMyChildren();
+  const k = kids.find((x) => x.id === id) ?? kids[0];
+  if (!k) return <Page title="Details"><Empty>No child linked yet.</Empty></Page>;
+  const p = s.players.find((x) => x.id === k.id) ?? k;
+  return (
+    <Page title={`${p.firstName}'s details`} back={<Back to="/" />}>
+      {kids.length > 1 && <div className="mb-3 flex flex-wrap gap-2">{kids.map((x) => <Link key={x.id} to={`/details/${x.id}`} className={`btn px-4 ${x.id === k.id ? '' : 'ghost'}`}>{x.firstName}</Link>)}</div>}
+      <p className="mb-3">Please fill in what you can. Changes save as you type.</p>
+      <Card><EmergencyEditor p={p} /></Card>
     </Page>
   );
 }

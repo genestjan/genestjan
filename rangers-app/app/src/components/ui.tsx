@@ -50,7 +50,7 @@ export function Pitch({ format, children, className = 'w-full', svgRef, ...rest 
 }
 
 const COACH_TABS = [['/', 'Today'], ['/schedule', 'Schedule'], ['/inbox', 'Inbox'], ['/train', 'Train'], ['/squad', 'Squad'], ['/more', 'More']] as const;
-const PARENT_TABS = [['/', 'Home'], ['/schedule', 'Schedule'], ['/inbox', 'Inbox'], ['/progress', 'Progress'], ['/more', 'More']] as const;
+const PARENT_TABS = [['/', 'Home'], ['/schedule', 'Schedule'], ['/tasks', 'Tasks'], ['/inbox', 'Inbox'], ['/progress', 'Progress'], ['/more', 'More']] as const;
 export function TabBar() {
   const role = useRole();
   const tabs = role === 'parent' ? PARENT_TABS : COACH_TABS;

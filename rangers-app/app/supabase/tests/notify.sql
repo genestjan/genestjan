@@ -22,6 +22,13 @@ insert into public.records (id,kind,team_id,visibility,data,author) values ('300
 select t.ok(public.enqueue_event_reminders() = 1, 'one reminder for the event 24h away');
 select t.ok(public.enqueue_event_reminders() = 0, 'reminders are not duplicated');
 select t.ok((select count(*) from public.notification_queue where title like 'Tomorrow:%') = 1, 'far-away event gets no reminder');
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-0000000000c1', true);
+insert into public.records (id,kind,team_id,player_id,visibility,data) values ('30000000-0000-0000-0000-000000000006','assignment','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{"title":"Ball mastery"}');
+select t.ok((select count(*) from public.notification_queue where user_id='00000000-0000-0000-0000-0000000000b1' and title='New assignment from your coach') = 1, 'a new assignment notifies the child''s parent');
+select t.ok((select count(*) from public.notification_queue where user_id='00000000-0000-0000-0000-0000000000b2' and title like 'New assignment%') = 0, 'other parents are not notified of the assignment');
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-0000000000b1', true);
+insert into public.records (id,kind,team_id,player_id,visibility,data,author) values ('30000000-0000-0000-0000-000000000007','submission','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{"status":"submitted","feedback":""}','00000000-0000-0000-0000-0000000000b1');
+select t.ok((select count(*) from public.notification_queue where user_id='00000000-0000-0000-0000-0000000000c1' and title='A task was sent in') = 1, 'a proof notifies the team coach');
 select name, case when ok then 'PASS' else 'FAIL' end from t.results order by ok, name;
 select count(*) filter (where not ok) > 0 as failed, count(*) filter (where not ok) as failures, count(*) as total from t.results \gset
 rollback;

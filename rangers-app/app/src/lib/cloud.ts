@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { applyRows, isUuid, rowJson, toRows, type RowIn } from './syncMap';
-import { getState, migrate, onChange, update, type AppState } from './store';
+import { db, getState, migrate, onChange, update, type AppState } from './store';
 import type { Player } from './model';
 
 const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -66,7 +66,7 @@ export async function verifyCode(email: string, token: string) { const c = await
 export async function signOut() { const c = await sb(); await c.auth.signOut(); wipeLocal(); }
 /** Clears everything stored on this phone for the signed-in person (keeps only the display mode). */
 export function wipeLocal() {
-  snap = new Map(); cursor = ''; saveSnap();
+  snap = new Map(); cursor = ''; saveSnap(); void db.media.clear().catch(() => undefined);
   update((s) => ({ ...migrate({}), mode: s.mode }), 'remote');
 }
 
@@ -97,7 +97,7 @@ const playerRow = (p: Player) => ({ id: p.id, team_id: p.teamId, first_name: p.f
 function canWrite(kind: string) {
   if (cs.role === 'admin') return true;
   if (cs.role === 'coach') return kind !== 'settings';
-  return ['availability', 'message', 'charge_ref', 'seen'].includes(kind);
+  return ['availability', 'message', 'charge_ref', 'seen', 'submission'].includes(kind);
 }
 const friendly = (kind: string, msg: string) => (/head injury/.test(msg) ? 'only a head coach can clear a head injury' : /row-level security|42501|permission/i.test(msg) ? `not allowed to change this ${kind}` : msg);
 let pushTimer: ReturnType<typeof setTimeout> | undefined; let pushing = false; let again = false;

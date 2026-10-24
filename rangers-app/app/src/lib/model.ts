@@ -5,7 +5,11 @@ export type Programme = 'rangers' | 'newmabu' | 'gila';
 export type Role = 'admin' | 'coach' | 'parent';
 
 export interface Team { id: string; name: string; programme: Programme; ageBand: AgeBand; defaultFormat: FormatId }
-export interface Emergency { contacts: { name: string; phone: string }[]; allergies: string; inhaler: boolean; note: string }
+/** Family-entered details. Stored in the private table: only the child's coaches and own parents can read it. */
+export interface Emergency {
+  contacts: { name: string; phone: string }[]; allergies: string; inhaler: boolean; note: string;
+  fullName?: string; birthDate?: string; address?: string; phone?: string; medication?: string; other?: string;   // note = health condition
+}
 export interface Player extends BasePlayer {
   teamId: string; lastName?: string; birthDate?: string; photoConsent: boolean; videoConsent?: boolean; emergency?: Emergency; left?: boolean; leftAt?: string;
 }
@@ -22,6 +26,12 @@ export interface Message { id: string; threadId: string; playerId: string; teamI
 export interface SessionBlock { slot: string; drillId: string; minutes: number }
 export interface TrainingSession { id: string; teamId: string; eventId?: string; date: string; band: AgeBand; minutes: number; theme: string; blocks: SessionBlock[]; reflection?: { energy: 'low' | 'ok' | 'high'; fun: 'yes' | 'partly' | 'no'; note: string } }
 export interface Assessment { id: string; playerId: string; teamId: string; term: string; ratings: Record<string, number>; strength: string; working: string; familyComment: string; coachNote: string; publishedAt?: string; selfRatings?: Record<string, number>; fromPub?: boolean }
+/** One assignment for one child. A group of children sent the same assignment share a groupId. */
+export interface AssignTask { id: string; text: string }
+export interface Assignment { id: string; groupId: string; playerId: string; teamId: string; title: string; why: string; tasks: AssignTask[]; videoPath?: string; videoKind?: 'image' | 'video'; templateId?: string; dueOn?: string; at: string; by: string }
+export type SubmissionStatus = 'submitted' | 'approved' | 'redo';
+/** A child's proof (photo or video) for one task. */
+export interface Submission { id: string; assignmentId: string; taskId: string; playerId: string; teamId: string; mediaPath: string; mediaType: 'image' | 'video'; at: string; status: SubmissionStatus; feedback: string }
 export interface Goal { id: string; playerId: string; text: string; status: 'active' | 'done'; at: string }
 export interface Recognition { id: string; playerId: string; valueKey: string; note: string; at: string }
 export interface BadgeAward { id: string; playerId: string; badgeKey: string; at: string }

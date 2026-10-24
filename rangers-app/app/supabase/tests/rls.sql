@@ -187,6 +187,54 @@ select t.ok(public.my_role() = 'coach', 'after approval they are a coach');
 select t.ok(t.count($q$select count(*) from public.players where first_name='Ben'$q$) = 1, 'and still see their own child');
 reset role;
 
+-- ========== assignments and proofs (0003) ==========
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000c1');
+insert into public.records (id,kind,team_id,player_id,visibility,data) values
+ ('50000000-0000-0000-0000-000000000001','assignment','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{"title":"Ball mastery","tasks":[{"id":"t1","text":"50 toe taps"}]}');
+select t.ok(t.count($q$select count(*) from public.records where kind='assignment'$q$) = 1, 'coach can assign work to their own child');
+select t.ok(t.state($q$insert into public.records (id,kind,team_id,player_id,visibility,data) values (gen_random_uuid(),'assignment','10000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000001','family','{}')$q$) = '42501', 'coach cannot assign work in another team');
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.count($q$select count(*) from public.records where kind='assignment'$q$) = 1, 'the child''s parent sees the assignment');
+select t.ok(t.state($q$insert into public.records (id,kind,team_id,player_id,visibility,data) values (gen_random_uuid(),'assignment','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{}')$q$) = '42501', 'a parent cannot create assignments');
+select t.ok(t.state($q$insert into public.records (id,kind,team_id,player_id,visibility,data) values ('50000000-0000-0000-0000-000000000002','submission','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{"status":"submitted","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/x.jpg"}')$q$) = '00000', 'a parent can send a proof for their own child');
+select t.ok(t.state($q$insert into public.records (id,kind,team_id,player_id,visibility,data) values (gen_random_uuid(),'submission','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000002','family','{"status":"submitted","feedback":""}')$q$) = '42501', 'a parent cannot send a proof for someone else''s child');
+select t.ok(t.state($q$insert into public.records (id,kind,team_id,player_id,visibility,data) values (gen_random_uuid(),'submission','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{"status":"approved","feedback":""}')$q$) = '42501', 'a parent cannot send a proof already marked approved');
+select t.ok(t.state($q$update public.records set data = '{"status":"approved","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/x.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '42501', 'a parent cannot approve their own proof');
+select t.ok(t.state($q$update public.records set data = '{"status":"submitted","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/y.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '00000', 'a parent can replace their own proof');
+select t.login('00000000-0000-0000-0000-0000000000b2');
+select t.ok(t.count($q$select count(*) from public.records where kind in ('assignment','submission')$q$) = 0, 'another family sees no assignments or proofs');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(t.count($q$select count(*) from public.records where kind='submission'$q$) = 1, 'the coach sees the proof');
+select t.ok(t.state($q$update public.records set data = '{"status":"redo","feedback":"Try again, slower","mediaPath":"p/20000000-0000-0000-0000-000000000001/y.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '00000', 'the coach can ask for a redo with feedback');
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.state($q$update public.records set data = '{"status":"submitted","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/z.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '00000', 'after a redo request the parent can send a new proof');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(t.state($q$update public.records set data = '{"status":"approved","feedback":"Great","mediaPath":"p/20000000-0000-0000-0000-000000000001/z.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '00000', 'the coach can approve');
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.state($q$update public.records set data = '{"status":"submitted","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/q.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '00000' and t.count($q$select count(*) from public.records where id='50000000-0000-0000-0000-000000000002' and data->>'status'='approved'$q$) = 1, 'a parent cannot change a proof the coach already approved');
+
+-- Media bucket
+reset role;
+select t.ok((select file_size_limit from storage.buckets where id='media') = 41943040 and not (select public from storage.buckets where id='media'), 'media bucket is private with a 40 MB limit');
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','p/20000000-0000-0000-0000-000000000001/a.jpg')$q$) = '00000', 'parent can upload a proof for their own child');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','p/20000000-0000-0000-0000-000000000002/a.jpg')$q$) = '42501', 'parent cannot upload into another child''s folder');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000001/v.mp4')$q$) = '42501', 'parent cannot upload a coach video');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','p/not-a-uuid/a.jpg')$q$) = '42501', 'a malformed path is refused');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000001/v.mp4')$q$) = '00000', 'coach can upload an instruction video for their team');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','t/10000000-0000-0000-0000-000000000002/v.mp4')$q$) = '42501', 'coach cannot upload for another team');
+select t.ok(t.count($q$select count(*) from storage.objects where name like 'p/20000000-0000-0000-0000-000000000001/%'$q$) = 1, 'coach can see their child''s proof file');
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.count($q$select count(*) from storage.objects where name like 't/10000000-0000-0000-0000-000000000001/%'$q$) = 1, 'parent can watch their team''s instruction video');
+select t.login('00000000-0000-0000-0000-0000000000b2');
+select t.ok(t.count($q$select count(*) from storage.objects where name like 'p/20000000-0000-0000-0000-000000000001/%'$q$) = 0, 'another family cannot see the proof file');
+select t.login('00000000-0000-0000-0000-0000000000c2');
+select t.ok(t.count($q$select count(*) from storage.objects$q$) = 0, 'a coach of another team sees none of these files');
+reset role;
+
 select name, case when ok then 'PASS' else 'FAIL' end as result from t.results order by ok, name;
 select count(*) filter (where not ok) > 0 as failed, count(*) filter (where not ok) as failures, count(*) as total from t.results \gset
 rollback;

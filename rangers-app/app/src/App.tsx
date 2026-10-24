@@ -17,9 +17,13 @@ import Safety from './pages/Safety';
 import Support from './pages/Support';
 import BoardEditor from './pages/BoardEditor';
 import More, { Help, Motivation, Privacy, Settings, Tips } from './pages/More';
-import { ParentHome, ProgressPage } from './pages/Parent';
+import { DetailsPage, ParentHome, ProgressPage } from './pages/Parent';
 import { Gate, Join, Login, pendingInvite } from './pages/Auth';
 import { TabBar } from './components/ui';
+import { Tour, Welcome } from './components/Onboarding';
+import { tourRole, useTour, useWelcome } from './lib/onboarding';
+import { AssignDetail, AssignList, AssignNew } from './pages/Assign';
+import { TaskDetail, Tasks } from './pages/Tasks';
 import { loadState, useAppState } from './lib/store';
 import { cloudEnabled, init as initCloud, useCloud } from './lib/cloud';
 import { isStaff, useRole } from './lib/role';
@@ -30,8 +34,10 @@ const ProgressRoute = () => { const { id } = useParams(); return <ProgressPage p
 function Shell() {
   const role = useRole(); const staff = isStaff(role); const loc = useLocation(); const s = useAppState();
   const fullscreen = /\/present$|^\/tv$/.test(loc.pathname);
+  const tour = useTour(tourRole(role));
   return (
     <>
+      {tour.open && !fullscreen && <Tour role={tourRole(role)} onDone={tour.done} />}
       {s.previewChildId && !cloudEnabled && <div className="bg-red px-4 py-1 text-center text-sm text-white">Preview: this is what a parent sees. Go to More to return.</div>}
       <Routes>
         <Route path="/" element={staff ? <Today /> : <ParentHome />} />
@@ -46,10 +52,16 @@ function Shell() {
         <Route path="/tips" element={<Tips />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/progress" element={<ProgressPage />} />
+        <Route path="/details/:id" element={<DetailsPage />} />
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/tasks/:id" element={<TaskDetail />} />
         <Route path="/progress/:id" element={<ProgressRoute />} />
         <Route path="/tv" element={<Tv />} />
         <Route path="/join/:token" element={<Join />} />
         {staff && (<>
+          <Route path="/assign" element={<AssignList />} />
+          <Route path="/assign/new" element={<AssignNew />} />
+          <Route path="/assign/:groupId" element={<AssignDetail />} />
           <Route path="/squad" element={<Squad />} />
           <Route path="/player/:id" element={<PlayerProfile />} />
           <Route path="/match" element={<MatchList />} />
@@ -76,9 +88,10 @@ function Shell() {
 }
 
 function Gatekeeper() {
-  const c = useCloud(); const loc = useLocation();
+  const c = useCloud(); const loc = useLocation(); const w = useWelcome();
   if (loc.pathname.startsWith('/join')) return <Routes><Route path="/join/:token" element={<Join />} /><Route path="*" element={<Join />} /></Routes>;
   if (loc.pathname === '/tv') return <Tv />;
+  if (!w.seen) return <Welcome onStart={w.done} />;
   if (!cloudEnabled) return <Shell />;
   if (c.status === 'loading') return <div className="p-8 text-center muted">Loading...</div>;
   if (c.status === 'signed-out') return <Login />;

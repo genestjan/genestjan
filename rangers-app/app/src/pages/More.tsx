@@ -1,3 +1,4 @@
+import { tourRole, useTour } from '../lib/onboarding';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Back, Card, H2, Page } from '../components/ui';
@@ -12,13 +13,13 @@ import { download, fmtDateTime, share } from '../lib/util';
 import { TIPS_PARENTS } from '../content/safety';
 
 export default function More() {
-  const role = useRole(); const staff = isStaff(role); const s = useAppState(); const cloud = useCloud(); const nav = useNavigate();
+  const role = useRole(); const staff = isStaff(role); const s = useAppState(); const cloud = useCloud(); const nav = useNavigate(); const myKids = useMyChildren();
   const L = ({ to, children }: { to: string; children: React.ReactNode }) => <Link to={to} className="card block p-4 text-lg font-semibold">{children}</Link>;
   return (
     <Page title="More">
       <div className="grid gap-2">
         {staff ? (<><L to="/match">Matches</L><L to="/board">Tactics board</L><L to="/safety">Safety: head knock, heat, thunder</L><L to="/recognise">Recognise a child</L><L to="/review">Term reviews</L><L to="/motivation">Motivation corner</L><L to="/support">Club support: fund, boots, contributions</L><L to="/settings">Settings and club admin</L><L to="/help">Match day help</L></>)
-          : (<><L to="/support">Club support</L><L to="/privacy">Privacy and my child's information</L><L to="/tips">Tips for parents</L><L to="/help">Help</L></>)}
+          : (<><L to="/tasks">Tasks from the coach</L>{myKids.map((k) => <L key={k.id} to={`/details/${k.id}`}>{k.firstName}'s details and health information</L>)}<L to="/support">Club support</L><L to="/privacy">Privacy and my child's information</L><L to="/tips">Tips for parents</L><L to="/help">Help</L></>)}
         {!cloudEnabled && staff && <button className="btn ghost" onClick={() => { update((x) => ({ ...x, previewChildId: x.players[0]?.id })); nav('/'); }}>Preview the parent app</button>}
         {!cloudEnabled && s.previewChildId && <button className="btn" onClick={() => { update((x) => ({ ...x, previewChildId: undefined })); nav('/'); }}>Back to the coach app</button>}
         {cloudEnabled && <button className="btn ghost" onClick={() => signOut()}>Sign out ({cloud.email})</button>}
@@ -32,11 +33,13 @@ export function Tips() {
   return <Page title="Tips" back={<Back to="/more" />}><Card><ul className="grid gap-3 text-lg">{TIPS_PARENTS.map((t) => <li key={t}>{t}</li>)}</ul></Card></Page>;
 }
 export function Help() {
+  const role = useRole(); const tour = useTour(tourRole(role));
   return (
     <Page title="Help" back={<Back to="/more" />}>
       <Card className="grid gap-3"><h2 className="text-2xl">Match day in five steps</h2>
         <ol className="list-decimal pl-5"><li>Matches, New match: pick the format, periods and how often you sub.</li><li>Tick who is here. Check the minutes plan. Lock a keeper if you want.</li><li>Show the kids: lineup, our 3 keys, the move, values. Swipe through.</li><li>Kick off. The phone buzzes before each sub. Tap a child on the pitch, then a child on the bench to swap.</li><li>Half-time: ask them first what is working. After the match, celebrate, win or lose.</li></ol>
         <h2 className="text-2xl">Showing the board on a TV</h2><ul className="list-disc pl-5"><li>Hold the tablet up: simplest for small groups. Use Sun mode outdoors.</li><li>HDMI: USB-C to HDMI adapter and cable. Most reliable, no internet needed.</li><li>Screen mirroring to a smart TV or casting stick on the same Wi-Fi.</li><li>TV link: open this app's address followed by /tv on the TV, then type the code shown on your phone.</li></ul>
+        <h2 className="text-2xl">Tour</h2><button className="btn ghost" onClick={() => { tour.replay(); history.back(); }}>Replay the app tour</button>
         <h2 className="text-2xl">Add to the home screen</h2><p>Android Chrome: three dots, Add to Home screen. iPhone: open in Safari (not inside Messenger), Share, Add to Home Screen. Reminders on iPhone only work after this.</p></Card>
     </Page>
   );
