@@ -47,6 +47,11 @@ try {
   const admin = await mk('admin'), parent = await mk('parent'), coach = await mk('coach');
   const body = (p) => p.textContent('body');
 
+  // A failed Google sign-in comes back as ?error_description=... : the app must say what went wrong, not just loop
+  await admin.goto(APP + '?error=server_error&error_description=Unable+to+exchange+external+code#/'); await sleep(1200);
+  ok((await body(admin)).includes('Unable to exchange external code'), 'a failed sign-in shows its reason on the sign-in page');
+  ok(!(await admin.url()).includes('error='), 'and the error is cleaned from the address');
+
   // 1. Club admin signs in and sets up the club
   await admin.goto(APP); await signIn(admin, 'admin@test.local');
   await admin.getByRole('button', { name: 'Set up the club (admin)' }).click();

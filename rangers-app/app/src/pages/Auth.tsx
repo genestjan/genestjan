@@ -7,10 +7,19 @@ import { useAppState } from '../lib/store';
 /** Facebook, Messenger and Instagram open links in their own browser, where Google refuses to sign in. */
 /** Email codes need a verified sender (see SETUP.md). Off until VITE_EMAIL_CODES=1 is set at build time. */
 const EMAIL_CODES = import.meta.env.VITE_EMAIL_CODES === '1';
+/** Supabase sends a failed sign-in back as ?error=...&error_description=... on the address. Read it once, then clean the address. */
+function takeAuthError(): string {
+  try {
+    const q = new URLSearchParams(location.search); const h = new URLSearchParams(location.hash.replace(/^#\/?/, '').replace(/^[^?]*\?/, ''));
+    const msg = q.get('error_description') || h.get('error_description') || q.get('error') || '';
+    if (msg || q.has('error') || q.has('error_code')) history.replaceState(null, '', location.pathname + (location.hash.startsWith('#/') ? location.hash.split('?')[0] : '#/'));
+    return msg.replace(/\+/g, ' ');
+  } catch { return ''; }
+}
 const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\//i.test(navigator.userAgent);
 
 export function Login({ joining }: { joining?: boolean }) {
-  const [email, setEmail] = useState(''); const [code, setCode] = useState(''); const [sent, setSent] = useState(false); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
+  const [email, setEmail] = useState(''); const [code, setCode] = useState(''); const [sent, setSent] = useState(false); const [err, setErr] = useState(takeAuthError); const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const run = async (f: () => Promise<void>) => { setBusy(true); setErr(''); try { await f(); } catch (e) { setErr((e as Error).message); } setBusy(false); };
   const copyLink = async () => { try { await navigator.clipboard.writeText(location.href); setCopied(true); } catch { setErr('Could not copy. Tap the three dots at the top and choose "Open in browser".'); } };

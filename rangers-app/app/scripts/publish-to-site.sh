@@ -9,7 +9,7 @@ site="${1:?give the path of the rangersfc website checkout}"
 [ -f "$site/CNAME" ] && grep -q rangersfc.net "$site/CNAME" || { echo "That folder is not the rangersfc.net website"; exit 1; }
 npm run typecheck
 npm test --silent
-APP_BASE=/app/ npx vite build
+APP_BASE=/app/ npx vite build --mode production
 rm -rf "$site/app"
 mkdir -p "$site/app"
 cp -r dist/. "$site/app/"

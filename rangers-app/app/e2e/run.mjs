@@ -83,7 +83,12 @@ try {
   ok((await text()).includes('1 task from your coach') && (await text()).includes('Please finish Ana'), 'parent home shows the task and the details reminder');
   await p.getByRole('link', { name: /Tasks/ }).first().click(); ok((await text()).includes('Ball mastery at home'), 'parent sees the assignment');
   await p.getByRole('link', { name: /Ball mastery at home/ }).click(); ok((await text()).includes('0 of 3 done') && (await text()).includes('Watch first'), 'task list shows the coach video and 0 of 3');
-  for (let i = 1; i <= 3; i++) { await p.getByLabel(i === 1 ? 'Add a photo or video' : 'Add a photo or video').first().setInputFiles(photo); await p.waitForFunction((n) => document.body.textContent.includes(`${n} of 3 done`), i, { timeout: 5000 }).catch(() => undefined); }
+  for (let i = 1; i <= 3; i++) {
+    await p.getByLabel('Add a photo or video').first().setInputFiles(photo);
+    // wait until the screen shows the task as sent (one picker fewer) before choosing the next file, as a person would
+    for (let t = 0; t < 60 && await p.getByLabel('Add a photo or video').count() > 3 - i; t++) await p.waitForTimeout(250);
+    await p.waitForTimeout(150);
+  }
   ok((await text()).includes('Well done') && (await text()).includes('every task'), 'sending a proof for every task clears the list'); await shot('tasks');
   await p.goto(B + '/details/' + ANA);
   await p.getByLabel('Full name').fill('Ana Reyes'); await p.getByLabel('Birthday').fill('2015-03-04'); await p.getByLabel('Home address').fill('Purok 1, Mabuhay, General Santos');
