@@ -10,7 +10,7 @@ export const GUIDES: Guide[] = [
     { route: '/', target: 'attention', title: 'Needs your attention', text: 'Anything waiting for you shows here: messages, task photos to check, missing ID papers.' },
     { route: '/', target: 'tab-schedule', title: 'Schedule', text: 'Add trainings, matches and school meets. Families get a reminder the day before.' },
     { route: '/', target: 'tab-inbox', title: 'Inbox', text: 'Post announcements to the team and message a child\'s family privately.' },
-    { route: '/', target: 'tab-squad', title: 'Squad', text: 'Your players. Open a child to invite their family and see their details and ID papers.' },
+    { route: '/', target: 'tab-squad', title: 'Team', text: 'Your players. Open a child to invite their family and see their details and ID papers.' },
     { route: '/', target: 'help-button', title: 'Help is always here', text: 'Tap Help any time to ask a question or open more "Show me how" guides.' },
   ] },
   { id: 'add-players', for: 'coach', title: 'Add players and invite families', steps: [

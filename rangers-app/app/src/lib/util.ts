@@ -15,3 +15,11 @@ export async function share(text: string, title = 'Rangers FC') {
 export const unique = <T,>(a: T[]) => [...new Set(a)];
 export const sortBy = <T,>(a: T[], f: (x: T) => string | number) => [...a].sort((x, y) => (f(x) < f(y) ? -1 : f(x) > f(y) ? 1 : 0));
 export const download = (name: string, text: string, type = 'application/json') => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); };
+/** A calendar file (.ics) for one event, so families can add it to their phone's calendar. */
+export function icsFor(e: { id: string; title: string; startsAt: string; endsAt: string; venue: string; bring?: string }, link: string) {
+  const t = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const esc = (v: string) => v.replace(/\\/g, '\\\\').replace(/[,;]/g, (m) => '\\' + m).replace(/\n/g, '\\n');
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Rangers FC//Rangers App//EN', 'BEGIN:VEVENT', `UID:${e.id}@rangersfc.net`, `DTSTAMP:${t(new Date().toISOString())}`,
+    `DTSTART:${t(e.startsAt)}`, `DTEND:${t(e.endsAt)}`, `SUMMARY:${esc(e.title)}`, e.venue ? `LOCATION:${esc(e.venue)}` : '', `DESCRIPTION:${esc((e.bring ? `Bring: ${e.bring}\n` : '') + link)}`,
+    'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', `DESCRIPTION:${esc(e.title)}`, 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
+}

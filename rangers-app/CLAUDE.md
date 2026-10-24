@@ -25,7 +25,7 @@ What is actually in use (keep to this unless an ADR changes it):
 - Cloud sync in `src/lib/syncMap.ts` + `src/lib/cloud.ts`: diff-based push of changed rows, pull by `updated_at`, Supabase Realtime for live messages
 - zod for external input that matters (backup files); extend it to anything new that comes from outside
 - Supabase: Postgres with Row Level Security, Auth (Google sign-in and email one-time code), Edge Function `send-push`, pg_cron
-- Fonts self-hosted through `@fontsource` (Bebas Neue, Barlow)
+- Fonts self-hosted through `@fontsource` (Bebas Neue, Barlow); icons from `lucide-react` (pinned, tree-shaken)
 - Tests: Vitest (`npm test`), browser flows (`npm run test:e2e`, Playwright), database access rules (`npm run test:db`, plain SQL tests on any Postgres)
 - Not used yet: i18next (UI text is English in the components; translations are Phase 7), TanStack Query, react-hook-form
 - Pin exact dependency versions. Add a new dependency only when the spec allows it or an ADR records why.
@@ -63,7 +63,7 @@ What is actually in use (keep to this unless an ADR changes it):
 ## Conventions
 
 - Language in the UI: plain English, British spelling, short sentences. No em dashes in UI text. (Strings are inline for now; move them to i18next when Filipino and Cebuano are added.)
-- Branding tokens live in `src/styles/tokens.css` and `tailwind.config`: red `#C31E24`, navy `#051A31`, deep `#03080F`, cream `#F9F6EF`, theme colour `#05101F`, headings Bebas Neue, body Barlow, pill buttons, 20 px card radius. Never hard-code colours in components.
+- Look (Jan's mockup, October 2026): deep royal blue background, gold `#F6C431` for the main action (navy `#0A1F44` text on gold), white text, crest red `#C31E24` only for the crest and alerts. Tokens live as CSS variables in `src/styles/index.css` (`--bg`, `--card`, `--gold`, `--red`...) and `tailwind.config.js` (`gold`, `ink`, `red`, `crest`); sun mode redefines them for bright light. Headings Barlow bold; Bebas Neue only for the club wordmark. Icons from `lucide-react` (ADR 0011). Shared parts in `src/components/ui.tsx`: Page, Tile, Row, Segmented, DateBlock, Avatar, Hero, ClubHero. Component classes stay inside `@layer components` so Tailwind utilities can override them. Never hard-code colours in components.
 - Keep pure logic (rotation, fair share, heat index, growth velocity, rubric summary, fee states, sync mapping) in `src/lib/` with no React imports, each with unit tests. New record types go in `syncMap.ts` CONFIG with the right visibility, and the database allow-lists if parents may write them.
 - IDs are UUIDs generated on the device so offline records never collide.
 - Times are stored in UTC (`timestamptz`) and shown in `Asia/Manila`.

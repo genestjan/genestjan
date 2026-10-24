@@ -86,7 +86,7 @@ export function AssignNew() {
       <H2>4. Choose the players</H2>
       <Card className="grid gap-2" tour="assign-players">
         <div className="flex gap-2"><button className="btn ghost flex-1" onClick={() => setChosen(kids.map((k) => k.id))}>Everyone</button><button className="btn ghost flex-1" onClick={() => setChosen([])}>Nobody</button></div>
-        {kids.length === 0 && <p className="muted">Add players in Squad first.</p>}
+        {kids.length === 0 && <p className="muted">Add players in Team first.</p>}
         {kids.map((k) => (
           <label key={k.id} className="flex items-center gap-3 py-1"><input type="checkbox" className="h-6 w-6" checked={chosen.includes(k.id)} onChange={(e) => setChosen(e.target.checked ? [...chosen, k.id] : chosen.filter((x) => x !== k.id))} />{k.firstName}{k.number ? ` · #${k.number}` : ''}</label>))}
       </Card>

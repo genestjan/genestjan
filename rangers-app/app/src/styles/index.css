@@ -1,17 +1,47 @@
 @import '@fontsource/bebas-neue/400.css';
 @import '@fontsource/barlow/400.css';
 @import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow/700.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root { --bg:#03080F; --card:#051A31; --text:#F9F6EF; --muted:#9fb0c3; --line:#16324f; --pitch:#0a2a4a; }
-:root[data-mode='sun'] { --bg:#F9F6EF; --card:#ffffff; --text:#051A31; --muted:#4b5d70; --line:#c9d2dc; --pitch:#e6efe9; }
-body { background: var(--bg); color: var(--text); font-family: Barlow, sans-serif; -webkit-tap-highlight-color: transparent; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; }
-.btn { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 20px; border-radius:999px; font-weight:600; background:#C31E24; color:#fff; box-shadow:0 8px 26px rgba(195,30,36,.32); }
-.btn.ghost { background:transparent; color:var(--text); border:1px solid var(--muted); box-shadow:none; }
-.btn:disabled { opacity:.4; }
-.field { min-height:48px; border-radius:14px; padding:0 14px; background:var(--card); border:1px solid var(--line); color:var(--text); width:100%; }
-h1,h2,h3,.display { font-family:'Bebas Neue',Impact,sans-serif; letter-spacing:.02em; }
+/* Rangers look: deep royal blue, gold for the main action, white text. Sun mode is a high-contrast light version for bright pitches. */
+:root {
+  --bg: #061633; --bg-top: #0d2c6b; --card: #0d2a5e; --card-hi: #143777; --text: #ffffff; --muted: #aebfe0; --line: rgba(255,255,255,.10);
+  --gold: #f6c431; --gold-ink: #0a1f44; --red: #ff6b6b; --ok: #4ade80; --pitch: #0b3a2c; --tab: #071a40;
+}
+:root[data-mode='sun'] {
+  --bg: #f4f7fc; --bg-top: #dfe8f7; --card: #ffffff; --card-hi: #eef3fb; --text: #0a1f44; --muted: #4b5d7a; --line: #cfd9ea;
+  --gold: #f6c431; --gold-ink: #0a1f44; --red: #c31e24; --ok: #15803d; --pitch: #e6efe9; --tab: #ffffff;
+}
+html { background: var(--bg); }
+body {
+  min-height: 100vh; color: var(--text); font-family: Barlow, 'Helvetica Neue', Arial, sans-serif; -webkit-tap-highlight-color: transparent;
+  background: radial-gradient(900px 520px at 50% -120px, var(--bg-top) 0%, transparent 70%), var(--bg); background-attachment: fixed;
+}
+/* Component classes sit in Tailwind's components layer so utilities (px-0, w-11, bg-...) can override them. */
+@layer components {
+.card { background: linear-gradient(180deg, var(--card-hi) 0%, var(--card) 100%); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.22); }
+:root[data-mode='sun'] .card { box-shadow: 0 2px 10px rgba(10,31,68,.08); }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:0 20px; border-radius:999px; font-weight:700;
+  background: var(--gold); color: var(--gold-ink); box-shadow: 0 8px 22px rgba(246,196,49,.28); transition: transform .08s ease; }
+.btn:active { transform: scale(.98); }
+.btn.ghost { background: rgba(255,255,255,.07); color: var(--text); border: 1px solid rgba(255,255,255,.14); box-shadow: none; }
+:root[data-mode='sun'] .btn.ghost { background: #ffffff; border-color: var(--line); }
+.btn.danger { background: transparent; color: var(--red); border: 1px solid var(--red); box-shadow: none; }
+.btn:disabled { opacity: .45; }
+.field { min-height:48px; border-radius:14px; padding:0 14px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color: var(--text); width:100%; }
+:root[data-mode='sun'] .field { background:#fff; border-color: var(--line); }
+.field::placeholder { color: var(--muted); opacity: .8; }
+select.field option { color: #0a1f44; }
+}
+h1, h2, h3 { font-family: Barlow, 'Helvetica Neue', Arial, sans-serif; font-weight: 700; letter-spacing: 0; }
+.display { font-family: 'Bebas Neue', Impact, sans-serif; letter-spacing: .02em; }
 .muted { color: var(--muted); }
+@layer components {
+.icon-chip { display:grid; place-items:center; width:44px; height:44px; border-radius:14px; background: rgba(255,255,255,.08); }
+.tile-gold { background: linear-gradient(160deg, #ffd65a 0%, var(--gold) 60%, #e0aa12 100%); color: var(--gold-ink); border-color: transparent; }
+.tile-gold .muted { color: rgba(10,31,68,.75); }
+.tile-gold .icon-chip { background: rgba(10,31,68,.12); }
+}

@@ -1,3 +1,6 @@
+import { Avatar, CLUB_PHOTO, CREST, Hero, IconChip, Row } from '../components/ui';
+import { Award, ClipboardCheck, ClipboardList, Dumbbell, HeartHandshake, HeartPulse, HelpCircle, IdCard, Lightbulb, ListChecks, Lock, LogOut, Medal, Megaphone, Settings as SettingsIcon, Shapes, ShieldAlert, Sparkles, TrendingUp, Trophy, type LucideIcon } from 'lucide-react';
+import { unreadCount } from '../lib/inbox';
 import { HelpChat } from '../components/HelpChat';
 import { guidesFor } from '../content/guides';
 import { startGuide } from '../lib/guide';
@@ -16,19 +19,52 @@ import { EmergencyEditor } from '../components/Emergency';
 import { download, fmtDateTime, share } from '../lib/util';
 import { TIPS_PARENTS } from '../content/safety';
 
+/** One line of the More menu (defined outside the page so it is not rebuilt on every render). */
+const R = ({ to, icon, title, badge }: { to: string; icon: LucideIcon; title: string; badge?: number }) => <Row to={to} lead={<IconChip icon={icon} />} title={title} badge={badge ? <span className="rounded-full bg-red px-2 text-sm font-bold text-white">{badge}</span> : undefined} />;
+
 export default function More() {
   const role = useRole(); const staff = isStaff(role); const s = useAppState(); const cloud = useCloud(); const nav = useNavigate(); const myKids = useMyChildren();
-  const L = ({ to, children }: { to: string; children: React.ReactNode }) => <Link to={to} className="card block p-4 text-lg font-semibold">{children}</Link>;
+  const team = activeTeam(s); const unread = unreadCount(s, staff ? 'staff' : 'parent', staff ? 'coach' : 'parent');
+  const roleName = role === 'admin' ? 'Club admin' : role === 'coach' ? 'Coach' : 'Parent or guardian';
   return (
     <Page title="More">
-      <div className="grid gap-2">
-        {staff ? (<><L to="/attendance">Attendance</L><L to="/pathway">Road to Palaro (school teams)</L><L to="/documents">ID papers</L><L to="/match">Matches</L><L to="/board">Tactics board</L><L to="/safety">Safety: head knock, heat, thunder</L><L to="/recognise">Recognise a child</L><L to="/review">Term reviews</L><L to="/motivation">Motivation corner</L><L to="/support">Club support: fund, boots, contributions</L><L to="/settings">Settings and club admin</L><L to="/help">Match day help</L></>)
-          : (<><L to="/tasks">Tasks from the coach</L>{myKids.map((k) => <L key={k.id} to={`/details/${k.id}`}>{k.firstName}'s details and health information</L>)}{myKids.map((k) => <L key={'d' + k.id} to={`/docs/${k.id}`}>{k.firstName}'s ID papers</L>)}{myKids.some((k) => isSchoolTeam(s.teamInfo, k.teamId)) && <L to="/pathway">Road to Palaro</L>}<L to="/support">Club support</L><L to="/privacy">Privacy and my child's information</L><L to="/tips">Tips for parents</L><L to="/help">Help</L></>)}
+      <Row to={staff ? '/settings' : myKids[0] ? `/details/${myKids[0].id}` : '/privacy'} lead={<Avatar name={s.me.name || 'Me'} size={56} />} title={<span className="text-lg">{s.me.name || 'Me'}</span>} sub={`${roleName}${staff ? ` · ${team.name}` : myKids.length ? ` · ${myKids.map((k) => k.firstName).join(', ')}` : ''}`} />
+      <div className="mt-3 grid gap-2">
+        {staff ? (<>
+          <R to="/inbox" icon={Megaphone} title="Announcements and messages" badge={unread} />
+          <R to="/attendance" icon={ClipboardCheck} title="Attendance" />
+          <R to="/pathway" icon={Medal} title="Road to Palaro (school teams)" />
+          <R to="/documents" icon={IdCard} title="ID papers" />
+          <R to="/match" icon={Trophy} title="Matches" />
+          <R to="/train" icon={Dumbbell} title="Training" />
+          <R to="/board" icon={Shapes} title="Tactics board" />
+          <R to="/safety" icon={ShieldAlert} title="Safety: head knock, heat, thunder" />
+          <R to="/recognise" icon={Award} title="Recognise a child" />
+          <R to="/review" icon={ClipboardList} title="Term reviews" />
+          <R to="/motivation" icon={Sparkles} title="Motivation corner" />
+          <R to="/support" icon={HeartHandshake} title="Club support: fund, boots, contributions" />
+          <R to="/settings" icon={SettingsIcon} title="Settings and club admin" />
+          <R to="/help" icon={HelpCircle} title="Help and Show me how" />
+        </>) : (<>
+          <R to="/inbox" icon={Megaphone} title="Announcements and messages" badge={unread} />
+          <R to="/tasks" icon={ListChecks} title="Tasks from the coach" />
+          <R to="/progress" icon={TrendingUp} title="Progress" />
+          {myKids.map((k) => <R key={k.id} to={`/details/${k.id}`} icon={HeartPulse} title={`${k.firstName}'s details and health information`} />)}
+          {myKids.map((k) => <R key={'d' + k.id} to={`/docs/${k.id}`} icon={IdCard} title={`${k.firstName}'s ID papers`} />)}
+          {myKids.some((k) => isSchoolTeam(s.teamInfo, k.teamId)) && <R to="/pathway" icon={Medal} title="Road to Palaro" />}
+          <R to="/support" icon={HeartHandshake} title="Club support" />
+          <R to="/privacy" icon={Lock} title="Privacy and my child's information" />
+          <R to="/tips" icon={Lightbulb} title="Tips for parents" />
+          <R to="/help" icon={HelpCircle} title="Help and Show me how" />
+        </>)}
         {!cloudEnabled && staff && <button className="btn ghost" onClick={() => { update((x) => ({ ...x, previewChildId: x.players[0]?.id })); nav('/'); }}>Preview the parent app</button>}
         {!cloudEnabled && s.previewChildId && <button className="btn" onClick={() => { update((x) => ({ ...x, previewChildId: undefined })); nav('/'); }}>Back to the coach app</button>}
-        {cloudEnabled && <button className="btn ghost" onClick={() => signOut()}>Sign out ({cloud.email})</button>}
+        {cloudEnabled && <button className="btn ghost" onClick={() => signOut()}><LogOut size={18} />Sign out ({cloud.email})</button>}
       </div>
       {cloudEnabled && <p className="muted mt-3 text-sm">{cloud.syncing ? 'Syncing...' : cloud.lastSync ? `Last synced ${fmtDateTime(new Date(cloud.lastSync).toISOString())}` : 'Not synced yet'} {cloud.offline && ' · offline'} <button className="underline" onClick={() => syncNow()}>Sync now</button></p>}
+      <Hero image={CLUB_PHOTO[team.programme]} className="mt-5 min-h-[150px]">
+        <div className="flex min-h-[150px] items-center gap-3 p-4"><img src={CREST[team.programme]} alt="" width={72} height={72} className="h-[72px] w-[72px] rounded-full bg-white object-contain p-1" /><div className="text-white"><div className="display text-3xl leading-none">{PROGRAMMES[team.programme].name}</div><div className="text-sm italic text-gold">Play with your heart</div></div></div>
+      </Hero>
     </Page>
   );
 }

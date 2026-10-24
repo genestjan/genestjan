@@ -45,7 +45,7 @@ function Shell() {
   return (
     <>
       <GuideOverlay />
-      {s.previewChildId && !cloudEnabled && <div className="bg-red px-4 py-1 text-center text-sm text-white">Preview: this is what a parent sees. Go to More to return.</div>}
+      {s.previewChildId && !cloudEnabled && <div className="bg-crest px-4 py-1 text-center text-sm text-white">Preview: this is what a parent sees. Go to More to return.</div>}
       <Routes>
         <Route path="/" element={staff ? <Today /> : <ParentHome />} />
         <Route path="/schedule" element={<Schedule />} />
@@ -129,7 +129,7 @@ export default function App() {
   if (!ready) return null;
   return (
     <HashRouter>
-      {!online && <div className="bg-red px-4 py-1 text-center text-sm text-white">Offline: everything still works and is saved on this device.</div>}
+      {!online && <div className="bg-crest px-4 py-1 text-center text-sm text-white">Offline: everything still works and is saved on this device.</div>}
       <Gatekeeper />
     </HashRouter>
   );

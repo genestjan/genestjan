@@ -68,7 +68,7 @@ export function HelpChat({ role }: { role: 'coach' | 'parent' }) {
     <Card className="grid gap-3">
       <div className="rounded-2xl p-3" style={{ background: 'var(--bg)' }}>Hi! I am the Rangers Helper. Ask how to do something in the app, or about your team: the next training, what to bring, papers, tasks, the squad. I answer from what is in the app, so I work without signal and nothing you type leaves this phone.</div>
       {msgs.map((m, i) => m.from === 'you'
-        ? <div key={i} className="ml-8 rounded-2xl bg-red p-3 text-white">{m.text}</div>
+        ? <div key={i} className="ml-8 rounded-2xl bg-gold p-3 text-ink">{m.text}</div>
         : <div key={i} className="mr-4 grid gap-2 rounded-2xl p-3" style={{ background: 'var(--bg)' }} role="status"><p>{m.text}</p>
             <div className="flex flex-wrap gap-2">
               {m.r?.guide && <button className="btn min-h-[40px] px-3 text-sm" onClick={() => startGuide(m.r!.guide!)}>Show me how</button>}

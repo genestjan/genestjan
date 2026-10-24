@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Back, Card, Chip, Empty, H2, Page } from '../components/ui';
+import { Back, Ball, Card, Chip, CREST, DateBlock, Empty, H2, Page, Segmented } from '../components/ui';
+import { Award, Backpack, CalendarDays, CalendarPlus, ChevronRight, Clock, Cross, MapPin, Medal, PartyPopper, Plus, Trophy, Users } from 'lucide-react';
 import { EventWeather } from '../components/Wx';
 import { activeTeam, del, put, teamPlayers, uid, useAppState, type AppState } from '../lib/store';
 import type { Availability, ClubEvent, EventType, MeetLevel, MeetOutcome } from '../lib/model';
 import { LEVELS, VENUES, infoFor, levelName } from '../lib/school';
 import { STATUSES, summarise } from '../lib/attendance';
-import { eventShareText, fmtDate, fmtDateTime, fmtTime, localInput, share } from '../lib/util';
+import { download, eventShareText, fmtDate, fmtDateTime, fmtTime, icsFor, localInput, share } from '../lib/util';
 import { isStaff, useMyChildren, useRole } from '../lib/role';
 import { newMatch } from './Home';
 import { YAM1 } from '../lib/weather';
@@ -34,25 +35,34 @@ function Rsvp({ e, childId, by }: { e: ClubEvent; childId: string; by: string })
   );
 }
 
+const TYPE_ICON: Record<string, (p: { size?: number }) => JSX.Element> = {
+  training: Ball, match: (p) => <Trophy {...p} />, tournament: (p) => <Medal {...p} />, meet: (p) => <Award {...p} />, festival: (p) => <PartyPopper {...p} />, meeting: (p) => <Users {...p} />, other: (p) => <CalendarDays {...p} />,
+};
+type Range = 'all' | 'week' | 'month' | 'past';
 export default function Schedule() {
   const s = useAppState(); const role = useRole(); const staff = isStaff(role); const kids = useMyChildren(); const team = activeTeam(s);
-  const [past, setPast] = useState(false);
+  const [range, setRange] = useState<Range>('all'); const past = range === 'past';
   const mine = staff ? s.events.filter((e) => e.teamId === team.id) : s.events.filter((e) => kids.some((k) => k.teamId === e.teamId));
-  const list = mine.filter((e) => (past ? Date.parse(e.endsAt) <= Date.now() : Date.parse(e.endsAt) > Date.now())).sort((a, b) => (past ? b.startsAt.localeCompare(a.startsAt) : a.startsAt.localeCompare(b.startsAt)));
+  const now = Date.now(); const limit = range === 'week' ? now + 7 * 86400000 : range === 'month' ? now + 31 * 86400000 : Infinity;
+  const list = mine.filter((e) => (past ? Date.parse(e.endsAt) <= now : Date.parse(e.endsAt) > now && Date.parse(e.startsAt) <= limit)).sort((a, b) => (past ? b.startsAt.localeCompare(a.startsAt) : a.startsAt.localeCompare(b.startsAt)));
   return (
-    <Page title="Schedule" actions={staff && <Link className="btn px-4" to="/event/new" data-tour="new-event">New</Link>}>
-      <div className="mb-3 flex gap-2"><Chip on={!past} onClick={() => setPast(false)}>Coming up</Chip><Chip on={past} onClick={() => setPast(true)}>Past</Chip></div>
-      {list.length === 0 && <Empty>{staff ? 'No events yet. Tap New to add training or a match.' : 'Nothing scheduled yet.'}</Empty>}
+    <Page title="Schedule" actions={staff && <Link className="btn h-11 min-h-[44px] w-11 px-0" to="/event/new" data-tour="new-event" aria-label="New event"><Plus size={22} /></Link>}>
+      <Segmented label="Show" value={range} onChange={setRange} options={[['all', 'Upcoming'], ['week', 'This week'], ['month', 'This month'], ['past', 'Past']]} />
+      {list.length === 0 && <Empty>{staff ? 'No events here yet. Tap + to add training, a match or a school meet.' : 'Nothing scheduled here yet.'}</Empty>}
       <ul className="grid gap-3">
-        {list.map((e) => (
-          <li key={e.id} className={`card p-4 ${e.cancelled ? 'opacity-60' : ''}`}>
-            <Link to={`/event/${e.id}`} className="block"><div className="flex items-baseline justify-between gap-2"><span className="text-xl font-semibold">{e.title}{e.cancelled && ' (cancelled)'}</span><span className="muted text-sm capitalize">{e.type}</span></div>
-              <div className="muted">{fmtDateTime(e.startsAt)} · {e.venue || 'Venue to confirm'}</div></Link>
+        {list.map((e) => { const Icon = TYPE_ICON[e.type] ?? TYPE_ICON.other; return (
+          <li key={e.id} className={`card p-3 ${e.cancelled ? 'opacity-60' : ''}`}>
+            <Link to={`/event/${e.id}`} className="flex items-center gap-3"><DateBlock iso={e.startsAt} />
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2 text-base font-bold"><Icon size={18} /><span className="truncate">{e.title}{e.cancelled && ' (cancelled)'}</span></span>
+                <span className="muted block text-sm">{fmtTime(e.startsAt)} to {fmtTime(e.endsAt)}</span>
+                <span className="muted block truncate text-sm">{e.venue || 'Venue to confirm'}</span>
+              </span><ChevronRight size={20} className="muted shrink-0" /></Link>
             {!staff && !e.cancelled && !past && <div className="mt-3 grid gap-2">{kids.filter((k) => k.teamId === e.teamId).map((k) => <Rsvp key={k.id} e={e} childId={k.id} by="parent" />)}</div>}
-            {staff && !past && <div className="muted mt-1 text-sm">{teamPlayers(s, e.teamId).filter((p) => statusFor(s, e, p.id) === 'going').length} going</div>}
-          </li>
-        ))}
+            {staff && !past && <div className="muted mt-2 text-sm">{teamPlayers(s, e.teamId).filter((p) => statusFor(s, e, p.id) === 'going').length} going{e.squad?.length ? ` · squad of ${e.squad.length}` : ''}</div>}
+          </li>); })}
       </ul>
+      {staff && <Link to="/event/new" className="btn mt-4 w-full"><CalendarDays size={20} />Add an event</Link>}
     </Page>
   );
 }
@@ -112,12 +122,24 @@ export function EventDetail() {
   const startMatch = () => { const going = e.squad?.length ? e.squad.filter((id) => !s.blocked.includes(id) && players.some((p) => p.id === id)) : players.filter((p) => statusFor(s, e, p.id) === 'going' && !s.blocked.includes(p.id)).map((p) => p.id); const m = newMatch(going.length ? going : players.filter((p) => !s.blocked.includes(p.id)).map((p) => p.id), e.teamId, team?.defaultFormat); m.eventId = e.id; m.name = e.opponent ? `${e.title} vs ${e.opponent}` : e.title; put('matches', m); nav(`/match/${m.id}`); };
   return (
     <Page title={e.title} back={<Back to="/schedule" />}>
-      <Card className="grid gap-2">
+      <Card className="grid gap-3">
+        <div className="flex items-center justify-between gap-2"><span className="font-bold">{fmtDate(e.startsAt)}</span><span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ background: 'rgba(255,255,255,.1)' }}>{e.type === 'meet' ? levelName(e.meetLevel) : e.type[0].toUpperCase() + e.type.slice(1)}</span></div>
         {e.cancelled && <p className="font-bold text-red">Cancelled</p>}
-        <div className="text-xl">{fmtDate(e.startsAt)}, {fmtTime(e.startsAt)} to {fmtTime(e.endsAt)}</div>
-        <div>{e.venue}{e.mapUrl && <> · <a className="underline" href={e.mapUrl} target="_blank" rel="noreferrer">Map</a></>}</div>
-        {e.type === 'meet' && <div className="font-semibold">{levelName(e.meetLevel)}{e.category ? ` · ${e.category}` : ''}{e.outcome ? ` · ${OUTCOMES.find((o) => o.id === e.outcome)?.label}` : ''}{e.resultNote ? `: ${e.resultNote}` : ''}</div>}
-        {e.bring && <div><b>Bring:</b> {e.bring}</div>}{e.opponent && <div><b>Against:</b> {e.opponent}</div>}{e.hospital && staff && <div><b>Nearest hospital:</b> {e.hospital}</div>}{e.notes && <div>{e.notes}</div>}
+        {['match', 'tournament', 'meet'].includes(e.type) && (
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-2 text-center">
+            <div className="grid justify-items-center gap-1"><img src={CREST[team?.programme ?? 'rangers']} alt="" width={72} height={72} className="h-[72px] w-[72px] rounded-full bg-white object-contain p-1" /><span className="text-sm font-bold uppercase">{team?.name ?? 'Rangers'}</span></div>
+            <span className="text-3xl font-bold">VS</span>
+            <div className="grid justify-items-center gap-1"><span className="grid h-[72px] w-[72px] place-items-center rounded-full text-2xl font-bold" style={{ background: 'linear-gradient(160deg,#5b2a86,#2a1050)', border: '2px solid rgba(255,255,255,.3)' }}>{(e.opponent || e.category || '?').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span><span className="text-sm font-bold uppercase">{e.opponent || (e.type === 'meet' ? 'Opponents to confirm' : 'To confirm')}</span></div>
+          </div>)}
+        <div className="grid gap-1.5">
+          <div className="flex items-center gap-2"><Clock size={18} className="shrink-0" />{fmtTime(e.startsAt)} to {fmtTime(e.endsAt)}</div>
+          <div className="flex items-center gap-2"><MapPin size={18} className="shrink-0" /><span>{e.venue || 'Venue to confirm'}{e.mapUrl && <> · <a className="underline" href={e.mapUrl} target="_blank" rel="noreferrer">Map</a></>}</span></div>
+          {e.bring && <div className="flex items-center gap-2"><Backpack size={18} className="shrink-0" />{e.bring}</div>}
+          {e.hospital && staff && <div className="flex items-center gap-2"><Cross size={18} className="shrink-0" />Nearest hospital: {e.hospital}</div>}
+        </div>
+        {e.type === 'meet' && (e.category || e.outcome || e.resultNote) && <div className="font-semibold">{levelName(e.meetLevel)}{e.category ? ` · ${e.category}` : ''}{e.outcome ? ` · ${OUTCOMES.find((o) => o.id === e.outcome)?.label}` : ''}{e.resultNote ? `: ${e.resultNote}` : ''}</div>}
+        {e.notes && <div>{e.notes}</div>}
+        <button className="btn" onClick={() => download(`${e.title.replace(/\W+/g, '-')}.ics`, icsFor(e, appUrl(`/event/${e.id}`)), 'text/calendar')}><CalendarPlus size={20} />Add to calendar</button>
       </Card>
       <H2>Heat and weather</H2><Card><EventWeather e={e} /></Card>
       {!staff && e.squad?.length ? <><H2>Squad</H2><Card className="grid gap-1">{kids.filter((k) => k.teamId === e.teamId).map((k) => <p key={k.id} className={e.squad!.includes(k.id) ? 'text-lg font-semibold' : ''}>{e.squad!.includes(k.id) ? `${k.firstName} is in the squad.` : `${k.firstName} is not in the squad this time.`}</p>)}</Card></> : null}

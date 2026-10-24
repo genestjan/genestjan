@@ -1,11 +1,14 @@
 import { Link, useParams } from 'react-router-dom';
-import { Back, Card, CREST, Empty, H2, Page } from '../components/ui';
+import { Avatar, Back, Card, CREST, ClubHero, DateBlock, Empty, H2, IconChip, Page, Row, SectionHead, Tile } from '../components/ui';
+import { CalendarDays, ChevronRight, ListChecks, Medal, MessageCircle, TrendingUp } from 'lucide-react';
+import { unreadMessages } from '../lib/inbox';
+import { PROGRAMMES } from '../lib/model';
 import { EventWeather } from '../components/Wx';
 import { useAppState } from '../lib/store';
 import { LEVEL_WORDS } from '../lib/model';
 import { RUBRIC } from '../content/rubric';
 import { summarise, drillFor } from '../lib/development';
-import { fmtDateTime } from '../lib/util';
+import { fmtDate, fmtTime } from '../lib/util';
 import { useMyChildren } from '../lib/role';
 import { BAND_AGE } from '../lib/sessionBuilder';
 import { statusFor, setAvailability } from './Schedule';
@@ -24,23 +27,34 @@ export function ParentHome() {
   const upcoming = s.events.filter((e) => kids.some((k) => k.teamId === e.teamId) && !e.cancelled && Date.parse(e.endsAt) > Date.now()).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const next = upcoming[0];
   const todo = kids.reduce((n, k) => n + openAssignments(s.assignments.filter((a) => a.playerId === k.id), s.submissions).length, 0);
-  const news = s.announcements.filter((a) => a.scope === 'club' || kids.some((k) => k.teamId === a.teamId)).sort((a, b) => b.at.localeCompare(a.at))[0];
+  const news = s.announcements.filter((a) => a.scope === 'club' || kids.some((k) => k.teamId === a.teamId)).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3);
+  const prog = (kids[0] && s.teams.find((t) => t.id === kids[0].teamId)?.programme) || 'rangers';
+  const unread = unreadMessages(s, 'parent', 'coach').length;
   return (
-    <Page title="Rangers FC">
-      <div className="mb-3 flex items-center gap-3"><img src={CREST.rangers} alt="Rangers FC crest" width={44} height={44} className="h-11 w-11 object-contain" /><p className="display text-2xl text-red">Play with your heart</p></div>
+    <Page title="Rangers FC" bare>
+      <ClubHero programme={prog} values={PROGRAMMES[prog].values} unread={unread} />
       {kids.length === 0 && <Empty>No child is linked to this account yet. Open the private link your coach sent you.</Empty>}
-      {kids.map((k) => { const team = s.teams.find((t) => t.id === k.teamId); return (
-        <Card key={k.id} className="mb-3" tour="home-child"><div className="flex items-center justify-between"><div><div className="text-2xl font-semibold">{k.firstName}</div><div className="muted text-sm">{team?.name}{k.number ? ` · #${k.number}` : ''}</div></div><Link to={`/progress/${k.id}`} className="btn px-4">Progress</Link></div></Card>); })}
-      {kids.map((k) => <div key={k.id} className="mb-3 grid gap-3"><DocsReminder p={k} /><DetailsReminder p={k} /></div>)}
+      <div className="grid gap-2">
+        {kids.map((k) => { const team = s.teams.find((t) => t.id === k.teamId); return (
+          <Row key={k.id} to={`/progress/${k.id}`} tour="home-child" lead={<Avatar name={k.firstName} number={k.number} />} title={<span className="text-lg">{k.firstName}</span>} sub={`${team?.name ?? ''}${k.number ? ` · #${k.number}` : ''} · Progress`} />); })}
+      </div>
+      {kids.length > 0 && <div className="mt-3 grid gap-3">{kids.map((k) => <div key={k.id} className="grid gap-3"><DocsReminder p={k} /><DetailsReminder p={k} /></div>)}</div>}
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <Tile to="/schedule" icon={CalendarDays} title="Schedule" sub="Training and matches" gold />
+        <Tile to="/tasks" icon={ListChecks} title="Tasks" sub={todo ? `${todo} to do` : 'Home tasks'} />
+        <Tile to="/progress" icon={TrendingUp} title="Progress" sub="Reviews and goals" />
+        <Tile to="/inbox" icon={MessageCircle} title="Messages" sub="Talk to the coach" />
+      </div>
       {kids.filter((k) => isSchoolTeam(s.teamInfo, k.teamId)).map((k) => { const el = s.eligibility.find((x) => x.playerId === k.id); const miss = docsMissing(el); return (
-        <Link key={k.id} to="/pathway" className="card mb-3 block p-4"><div className="text-xl font-semibold">Road to Palaro</div><div className="muted">{el?.selectedFor?.length ? `${k.firstName} is selected for the next level. ` : ''}{miss.length ? `School screening: ${miss.length} paper${miss.length === 1 ? '' : 's'} still needed for ${k.firstName}.` : `${k.firstName}'s screening papers are ready.`}</div></Link>); })}
-      {todo > 0 && <Link to="/tasks" className="card mb-3 block p-4"><div className="text-xl font-semibold">{todo} task{todo === 1 ? '' : 's'} from your coach</div><div className="muted">Tap to see the list and send your photos.</div></Link>}
-      {next && (<><H2>Next up</H2><Card className="grid gap-3" tour="rsvp"><div><div className="text-2xl font-semibold">{next.title}</div><div className="muted">{fmtDateTime(next.startsAt)} · {next.venue}</div></div>
+        <div key={k.id} className="mt-3"><Row to="/pathway" lead={<IconChip icon={Medal} />} title="Road to Palaro" sub={`${el?.selectedFor?.length ? `${k.firstName} is selected for the next level. ` : ''}${miss.length ? `School screening: ${miss.length} paper${miss.length === 1 ? '' : 's'} still needed for ${k.firstName}.` : `${k.firstName}'s screening papers are ready.`}`} /></div>); })}
+      {todo > 0 && <div className="mt-3"><Row to="/tasks" lead={<IconChip icon={ListChecks} />} title={`${todo} task${todo === 1 ? '' : 's'} from your coach`} sub="Tap to see the list and send your photos." /></div>}
+      {next && (<><SectionHead title="Next up" to="/schedule" link="Schedule" /><Card className="grid gap-3" tour="rsvp">
+        <Link to={`/event/${next.id}`} className="flex items-center gap-3"><DateBlock iso={next.startsAt} /><span className="min-w-0 flex-1"><span className="block text-lg font-bold">{next.title}</span><span className="muted block text-sm">{fmtTime(next.startsAt)} to {fmtTime(next.endsAt)}</span><span className="muted block truncate text-sm">{next.venue}</span></span><ChevronRight size={20} className="muted" /></Link>
         {kids.filter((k) => k.teamId === next.teamId).map((k) => { const st = statusFor(s, next, k.id); return (
-          <div key={k.id} className="flex items-center gap-2"><span className="min-w-14 font-semibold">{k.firstName}</span>{(['going', 'maybe', 'no'] as const).map((v) => <button key={v} className={`btn flex-1 px-2 ${st === v ? '' : 'ghost'}`} aria-pressed={st === v} onClick={() => setAvailability(s, next.id, k.id, v, 'parent')}>{v === 'going' ? 'Going' : v === 'maybe' ? 'Maybe' : 'Not going'}</button>)}</div>); })}
-        <EventWeather e={next} compact /><Link to={`/event/${next.id}`} className="btn ghost">Details and map</Link></Card></>)}
-      {news && <><H2>Latest news</H2><Link to="/inbox" className="card block p-4"><div className="text-xl font-semibold">{news.title}</div><div className="truncate">{news.body}</div></Link></>}
-      <H2>Tip of the week</H2><Card>{tip}</Card>
+          <div key={k.id} className="grid gap-1"><span className="text-sm font-semibold">Is {k.firstName} coming?</span><div className="grid grid-cols-3 gap-2">{(['going', 'maybe', 'no'] as const).map((v) => <button key={v} className={`btn px-2 ${st === v ? '' : 'ghost'}`} aria-pressed={st === v} onClick={() => setAvailability(s, next.id, k.id, v, 'parent')}>{v === 'going' ? 'Going' : v === 'maybe' ? 'Maybe' : 'Not going'}</button>)}</div></div>); })}
+        <EventWeather e={next} compact /></Card></>)}
+      {news.length > 0 && <><SectionHead title="Latest updates" to="/inbox" /><div className="grid gap-2">{news.map((n) => <Row key={n.id} to="/inbox" lead={<img src={CREST[prog]} alt="" className="h-14 w-14 shrink-0 rounded-xl bg-white object-contain p-1" />} title={n.title} sub={fmtDate(n.at)} />)}</div></>}
+      <SectionHead title="Tip of the week" /><Card>{tip}</Card>
     </Page>
   );
 }

@@ -181,7 +181,7 @@ try {
   await coach.goto(APP + '#/safety?player=' + ben.id); await coach.getByRole('button', { name: /Record head injury/ }).click();
   await waitFor(async () => (await svc("records?kind=eq.injury&select=data")).some((r) => r.data.head), 'head injury saved');
   await admin.reload(); await sleep(1500); await admin.goto(APP + '#/squad');
-  await waitFor(async () => (await body(admin)).includes('out: head knock'), 'head-knock block reaches the other coach\'s phone');
+  await waitFor(async () => /out: head knock/i.test(await body(admin)), 'head-knock block reaches the other coach\'s phone');
   await coach.goto(APP + '#/player/' + ben.id); await coach.getByRole('button', { name: 'Head coach: record medical clearance' }).click();
   await waitFor(async () => (await svc("records?kind=eq.injury&select=data")).some((r) => r.data.clearedOn), 'head coach clearance saved');
 

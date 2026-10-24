@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       manifest: {
         name: 'Rangers FC', short_name: 'Rangers', start_url: '.', scope: '.',
-        display: 'standalone', background_color: '#03080F', theme_color: '#05101F',
+        display: 'standalone', background_color: '#061633', theme_color: '#061633',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
