@@ -130,15 +130,17 @@ export async function claimAdmin() { const c = await sb(); const { error } = awa
 export async function redeemInvite(token: string): Promise<string> { const c = await sb(); const { data, error } = await c.rpc('redeem_invite', { t: token }); if (error) throw error; await onSession((await c.auth.getSession()).data.session); return data as string; }
 export async function createFamilyInvite(playerId: string): Promise<string> { await pushNow(); const c = await sb(); const { data, error } = await c.rpc('create_family_invite', { p: playerId }); if (error) throw error; return data as string; }
 export async function createCoachInvite(): Promise<string> { const c = await sb(); const { data, error } = await c.rpc('create_coach_invite'); if (error) throw error; return data as string; }
-export async function createAdminInvite(): Promise<string> { const c = await sb(); const { data, error } = await c.rpc('create_admin_invite'); if (error) throw error; return data as string; }
+/** Before update.sql (0005, 0006) has been run in Supabase, the new database functions are missing: say so plainly. */
+const notYet = (e: { message: string; code?: string }, what: string) => (e.code === 'PGRST202' || /could not find the function|schema cache/i.test(e.message) ? new Error(`${what} is not switched on yet. The club admin needs to run the latest update.sql in Supabase.`) : e);
+export async function createAdminInvite(): Promise<string> { const c = await sb(); const { data, error } = await c.rpc('create_admin_invite'); if (error) throw notYet(error, 'Admin invites'); return data as string; }
 /** Takes admin rights away (they stay a coach); u = yourself to step down. The club always keeps one admin. */
-export async function removeAdmin(u: string) { const c = await sb(); const { error } = await c.rpc('remove_admin', { u }); if (error) throw error; if (u === cs.userId) await onSession((await c.auth.getSession()).data.session); }
+export async function removeAdmin(u: string) { const c = await sb(); const { error } = await c.rpc('remove_admin', { u }); if (error) throw notYet(error, 'Stepping down'); if (u === cs.userId) await onSession((await c.auth.getSession()).data.session); }
 /** A coach who left: off every team (a parent in the club keeps their own children). */
-export async function removeMember(u: string) { const c = await sb(); const { error } = await c.rpc('remove_member', { u }); if (error) throw error; }
-export async function removeStaff(u: string, t: string) { const c = await sb(); const { error } = await c.rpc('remove_staff', { u, t }); if (error) throw error; }
+export async function removeMember(u: string) { const c = await sb(); const { error } = await c.rpc('remove_member', { u }); if (error) throw notYet(error, 'Removing a coach'); }
+export async function removeStaff(u: string, t: string) { const c = await sb(); const { error } = await c.rpc('remove_staff', { u, t }); if (error) throw notYet(error, 'Taking a coach off a team'); }
 export interface Feedback { id: string; user_id: string; name: string; role: string; kind: FeedbackKind; rating: number | null; message: string; page: string; status: 'new' | 'seen' | 'done'; created_at: string }
 export async function sendFeedback(kind: FeedbackKind, message: string, rating: number | null, page: string) {
-  const c = await sb(); const { error } = await c.rpc('send_feedback', { k: kind, msg: message, stars: rating, where_in: page }); if (error) throw error;
+  const c = await sb(); const { error } = await c.rpc('send_feedback', { k: kind, msg: message, stars: rating, where_in: page }); if (error) throw notYet(error, 'Feedback');
 }
 /** Readers get everyone's feedback; anyone else gets only what they sent. Newest first. */
 export async function listFeedback(): Promise<Feedback[]> { const c = await sb(); const { data, error } = await c.from('feedback').select('*').order('created_at', { ascending: false }).limit(300); if (error) throw error; return (data ?? []) as Feedback[]; }
@@ -156,7 +158,7 @@ export function useNewFeedback(): number {
 }
 export async function newFeedbackCount(): Promise<number> { const c = await sb(); const { count } = await c.from('feedback').select('id', { count: 'exact', head: true }).eq('status', 'new'); return count ?? 0; }
 export async function feedbackReaders(): Promise<string[]> { const c = await sb(); const { data } = await c.from('feedback_readers').select('user_id'); return ((data ?? []) as { user_id: string }[]).map((x) => x.user_id); }
-export async function setFeedbackReader(u: string, keep: boolean) { const c = await sb(); const { error } = await c.rpc('set_feedback_reader', { u, keep }); if (error) throw error; if (u === cs.userId) await onSession((await c.auth.getSession()).data.session); }
+export async function setFeedbackReader(u: string, keep: boolean) { const c = await sb(); const { error } = await c.rpc('set_feedback_reader', { u, keep }); if (error) throw notYet(error, 'Choosing feedback readers'); if (u === cs.userId) await onSession((await c.auth.getSession()).data.session); }
 export async function approveMember(u: string, ok: boolean) { const c = await sb(); const { error } = await c.rpc('approve_member', { u, approve: ok }); if (error) throw error; }
 export async function assignStaff(u: string, t: string, head: boolean) { const c = await sb(); const { error } = await c.rpc('assign_staff', { u, t, is_head: head }); if (error) throw error; }
 export interface Member { user_id: string; role: string; status: string; name: string; teams: { team_id: string; head: boolean }[] }
