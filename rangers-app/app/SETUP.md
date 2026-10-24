@@ -8,6 +8,7 @@ Never paste a secret (service_role key, database password, SMTP password, VAPID 
 1. Go to supabase.com, sign in with the club Google account, **New project**: name `rangers`, region **Southeast Asia (Singapore)**, Free plan. Save the database password in Bitwarden.
 2. **Database > Extensions**: turn on `pg_cron`.
 3. **SQL Editor > New query**: paste the whole of `supabase/setup.sql`, press **Run**. It should say "Success. No rows returned".
+   - Already ran an older `setup.sql`? Then run only `supabase/migrations/0003_assignments.sql` the same way (new query, paste, Run). It adds assignments and a private `media` storage bucket for photos and videos (40 MB limit). Safe to run once.
 4. **Project Settings > API**: copy the **Project URL** and the **anon public** key and send them to me (or put them in `.env.production`, see `.env.example`).
 
 ## 2. Sign-in settings (about 10 minutes, you)
@@ -25,6 +26,8 @@ The website deploys from the `main` branch of `ayakent/RangersFc` with no build 
 **Option B, me:** give the genestjan account write access to `RangersFc` (Settings > Collaborators) and install the Claude GitHub App on it. Then `scripts/publish-to-site.sh` builds and copies it, and I push.
 
 Logins switch on when the build includes your Supabase Project URL and anon key: send them to me and I produce a new upload (or run `VITE_SUPABASE_URL=... VITE_SUPABASE_ANON_KEY=... scripts/publish-to-site.sh <site>`). Until then the published app runs in on-device mode: everything works on each phone, with no logins or syncing.
+
+Photos and videos use Supabase Storage (1 GB free). Photos are shrunk on the phone to about 1280 px first. The online upload and playback path is covered by database tests but has not been run against a live Supabase project, so test one photo and one video early (Part 4, step 5 onwards).
 
 ## 4. First sign-in (you, 5 minutes)
 1. Open https://rangersfc.net/app/ and sign in.

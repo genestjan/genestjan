@@ -43,7 +43,7 @@ let browser;
 try {
   await waitFor(() => fetch(APP).then((r) => r.ok), 'preview server');
   browser = await chromium.launch({ executablePath: exe });
-  const mk = async (who) => { const c = await browser.newContext({ viewport: { width: 390, height: 844 } }); const p = await c.newPage(); watch(p, who); return p; };
+  const mk = async (who) => { const c = await browser.newContext({ viewport: { width: 390, height: 844 } }); await c.addInitScript(() => { try { for (const k of ['welcome', 'tour-coach', 'tour-parent']) localStorage.setItem('rangers-' + k, '1'); } catch { /* ignore */ } }); const p = await c.newPage(); watch(p, who); return p; };
   const admin = await mk('admin'), parent = await mk('parent'), coach = await mk('coach');
   const body = (p) => p.textContent('body');
 
@@ -100,6 +100,23 @@ try {
   await admin.goto(APP + '#/inbox'); await admin.getByRole('button', { name: 'Messages' }).click();
   await waitFor(async () => (await body(admin)).includes('Thanks coach!'), 'admin sees the parent reply');
   await admin.goto(APP + '#/'); ok(/1\s*Not going/.test((await body(admin)).replace(/\s+/g, ' ')), 'admin dashboard counts the parent\'s Not going reply');
+
+  // 5b. Assignments and family details, through the real database rules
+  await admin.goto(APP + '#/assign/new'); await admin.getByRole('button', { name: 'Ball mastery at home' }).click(); await admin.getByLabel(/^Ana/).check(); await admin.getByRole('button', { name: 'Send to 1 player' }).click();
+  await waitFor(async () => (await svc("records?kind=eq.assignment&select=player_id")).length === 1, 'assignment saved to the server');
+  await parent.goto(APP + '#/tasks'); await parent.reload();
+  await waitFor(async () => (await body(parent)).includes('Ball mastery at home'), 'parent sees the assignment');
+  const anaTeam = (await svc('players?first_name=eq.Ana&select=team_id'))[0].team_id;
+  const mkSub = (status, player = ana.id) => asParent('records', { method: 'POST', body: JSON.stringify({ id: crypto.randomUUID(), kind: 'submission', team_id: anaTeam, player_id: player, visibility: 'family', data: { status, feedback: '', mediaPath: 'p/x/y.jpg' } }) });
+  ok((await mkSub('approved')).status === 403, 'API: parent cannot send a proof already approved');
+  ok((await mkSub('submitted', ben.id)).status === 403, 'API: parent cannot send a proof for another child');
+  ok((await mkSub('submitted')).status === 201, 'API: parent can send a proof for their own child');
+  const mkAssign = await asParent('records', { method: 'POST', body: JSON.stringify({ id: crypto.randomUUID(), kind: 'assignment', team_id: anaTeam, player_id: ana.id, visibility: 'family', data: { title: 'x', tasks: [] } }) });
+  ok(mkAssign.status === 403, 'API: parent cannot create an assignment');
+  await parent.goto(APP + '#/details/' + ana.id); await parent.getByLabel('Home address').fill('Purok 1, Mabuhay');
+  await waitFor(async () => JSON.stringify(await svc('player_private?select=data')).includes('Purok 1, Mabuhay'), 'family-entered details reached the server');
+  await admin.goto(APP + '#/player/' + ana.id); await admin.reload();
+  await waitFor(async () => (await admin.getByLabel('Home address').inputValue().catch(() => '')) === 'Purok 1, Mabuhay', 'coach sees the address the parent entered');
 
   // 6. Review published to the family without the private note, then taken back
   await admin.goto(APP + '#/review/' + ana.id); await admin.getByRole('group', { name: 'First touch' }).getByRole('button', { name: 'Got it' }).click();

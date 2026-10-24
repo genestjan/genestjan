@@ -5,9 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 /** The page may only talk to its own Supabase project (and the weather API): the exact origin goes into the CSP. */
 function cspSupabase(url: string | undefined): Plugin {
-  let allow = '';
-  if (url) { const u = new URL(url); allow = ` ${u.origin} ${u.origin.replace(/^http/, 'ws')}`; }
-  return { name: 'csp-supabase', transformIndexHtml: (html) => html.replace(' __SUPABASE__', allow) };
+  let allow = ''; let origin = '';
+  if (url) { const u = new URL(url); allow = ` ${u.origin} ${u.origin.replace(/^http/, 'ws')}`; origin = ` ${u.origin}`; }
+  return { name: 'csp-supabase', transformIndexHtml: (html) => html.replace(' __SUPABASE__', allow).replace(/ __SUPABASE_HTTP__/g, origin) };
 }
 
 export default defineConfig(({ mode }) => ({

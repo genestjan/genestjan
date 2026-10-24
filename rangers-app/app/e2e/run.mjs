@@ -103,7 +103,7 @@ try {
 
   // a brand new phone: welcome screen, then the tour, once only
   const fresh = await browser.newContext({ viewport: { width: 390, height: 844 } }); const f = await fresh.newPage();
-  await f.goto(B + '/'); ok((await f.textContent('body')).includes('Welcome to Rangers'), 'new phone sees the welcome screen');
+  await f.goto(B + '/'); await f.getByRole('button', { name: 'Get started' }).waitFor({ timeout: 5000 }).catch(() => undefined); ok((await f.textContent('body')).includes('Welcome to Rangers'), 'new phone sees the welcome screen');
   await f.getByRole('button', { name: 'Get started' }).click(); await f.waitForTimeout(300);
   ok((await f.textContent('body')).includes('Step 1 of 6') && (await f.textContent('body')).includes('Your Today screen'), 'the coach tour starts after the welcome');
   for (let i = 0; i < 5; i++) await f.getByRole('button', { name: 'Next' }).click();
