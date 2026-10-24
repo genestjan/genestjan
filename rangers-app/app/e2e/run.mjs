@@ -117,7 +117,7 @@ try {
   await f.goto(B + '/'); await f.getByRole('button', { name: 'Get started' }).waitFor({ timeout: 5000 }).catch(() => undefined); ok((await f.textContent('body')).includes('Welcome to Rangers'), 'new phone sees the welcome screen');
   await f.getByRole('button', { name: 'Get started' }).click(); await f.waitForTimeout(800);
   const dlg = () => f.getByRole('dialog', { name: 'Show me how' });
-  ok((await dlg().textContent()).includes('step 1 of 7') && (await dlg().textContent()).includes('Your Today screen') && !(await dlg().textContent()).includes('not on the screen yet'), 'the getting-started guide points at the real Today screen');
+  ok((await dlg().textContent()).includes('step 1 of 7') && (await dlg().textContent()).includes('Your Home screen') && !(await dlg().textContent()).includes('not on the screen yet'), 'the getting-started guide points at the real Today screen');
   for (let i = 0; i < 6; i++) { await f.getByRole('button', { name: 'Next' }).click(); await f.waitForTimeout(250); }
   ok((await dlg().textContent()).includes('Help is always here') && !(await dlg().textContent()).includes('not on the screen yet'), 'the last step points at the Help button');
   await f.getByRole('button', { name: 'Done' }).click(); await f.waitForTimeout(200);

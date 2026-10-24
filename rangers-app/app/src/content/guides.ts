@@ -5,7 +5,7 @@ export interface Guide { id: string; title: string; for: 'coach' | 'parent'; ste
 
 export const GUIDES: Guide[] = [
   { id: 'start-coach', for: 'coach', title: 'Getting started (coaches)', steps: [
-    { route: '/', target: 'today-next', title: 'Your Today screen', text: 'This is home. It shows the next training or match and how many families replied Going, Maybe or Not going.' },
+    { route: '/', target: 'today-next', title: 'Your Home screen', text: 'This is home. It shows the next training or match and how many families replied Going, Maybe or Not going.' },
     { route: '/', target: 'quick-actions', title: 'Quick actions', text: 'The jobs you do most: start a match, plan training, assign tasks, take attendance, recognise a child.' },
     { route: '/', target: 'attention', title: 'Needs your attention', text: 'Anything waiting for you shows here: messages, task photos to check, missing ID papers.' },
     { route: '/', target: 'tab-schedule', title: 'Schedule', text: 'Add trainings, matches and school meets. Families get a reminder the day before.' },

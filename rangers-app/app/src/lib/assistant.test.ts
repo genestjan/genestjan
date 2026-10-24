@@ -20,6 +20,19 @@ describe('Help chat', () => {
     expect(top('how to send task photo', 'parent')).toBe('send-photo');
     expect(top('install the app on iphone', 'parent')).toBe('home-screen');
   });
+  it('answers Tagalog and Cebuano how-to questions with the steps, not the guide list', () => {
+    expect(top('paano mag attendance?')).toBe('take-attendance');
+    expect(top('unsaon pag attendance')).toBe('take-attendance');
+    expect(top('paano pumili ng squad para sa laro')).toBe('pick-squad');
+    expect(top('paano mag assign ng task')).toBe('assign');
+    expect(top('paano mag upload ng PSA', 'parent')).toBe('add-papers');
+    expect(top('paano magpadala ng litrato', 'parent')).toBe('send-photo');
+    expect(top('paano mag message sa coach', 'parent')).toBe('message-coach');
+    expect(top('paano gamitin ang app', 'parent')).toBe('tour');
+    expect(top('paano?', 'parent')).toBe('tour');
+    expect(top('attendance')).toBe('attendance');   // no "how": the live fact comes first
+    expect(top('squad')).toBe('squad');
+  });
   it('keeps coach-only answers away from families', () => {
     expect(match('how do I add players', 'parent').some((m) => m.entry.id === 'add-players')).toBe(false);
   });

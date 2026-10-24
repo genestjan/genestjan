@@ -9,19 +9,22 @@ const SMALL = new Set(['the', 'a', 'an', 'to', 'for', 'of', 'my', 'i', 'do', 'ho
 const HOW = /\b(how|paano|unsaon|pano)\b/;
 export function match(question: string, role: 'coach' | 'parent'): { entry: HelpEntry; score: number }[] {
   const q = norm(question); const words = new Set(q.trim().split(' ').map(stem)); const howTo = HOW.test(q);
-  return HELP.filter((e) => !e.for || e.for === role).map((entry) => {
-    let score = 0;
+  const found = HELP.filter((e) => !e.for || e.for === role).map((entry) => {
+    let score = 0; const seen = new Set<string>();   // "task" and "tasks" are one word, counted once
     for (const raw of entry.keys) {
       const strong = raw.startsWith('!'); const kn = norm(strong ? raw.slice(1) : raw);
       if (kn.trim().includes(' ')) {
         const parts = kn.trim().split(' ').filter((w) => !SMALL.has(w));
         if (q.includes(kn)) score += 3; else if (parts.length && parts.every((w) => words.has(stem(w)))) score += 2;
       }
-      else if (words.has(stem(kn.trim()))) score += strong ? 2 : kn.trim().length <= 2 ? 0.5 : 1;
+      else if (words.has(stem(kn.trim())) && !seen.has(stem(kn.trim()))) { seen.add(stem(kn.trim())); score += strong ? 2 : kn.trim().length <= 2 ? 0.5 : 1; }
     }
     if (score > 0 && howTo && entry.answer) score += 1;   // "how do I..." wants steps, not a fact
     return { entry, score };
   }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score);
+  // "paano?" or "how?" with nothing else we know: offer the guides rather than "I do not know"
+  const tour = HELP.find((e) => e.id === 'tour');
+  return found.length || !howTo || !tour ? found : [{ entry: tour, score: 0.5 }];
 }
 
 /** Answers from the help list; live team facts come from facts(). Never sends anything anywhere. */

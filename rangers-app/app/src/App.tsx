@@ -40,6 +40,8 @@ function Shell() {
   const role = useRole(); const staff = isStaff(role); const loc = useLocation(); const s = useAppState();
   const fullscreen = /\/present$|^\/tv$/.test(loc.pathname);
   const tour = useTour(tourRole(role));
+  // A new screen starts at the top (the page used to keep the last screen's scroll, so Team opened half way down)
+  useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
   // First time on this phone: walk through the real screens once (replay any time from Help).
   useEffect(() => { if (tour.open && !fullscreen) { tour.done(); startGuide(tourRole(role) === 'parent' ? 'start-parent' : 'start-coach'); } }, [tour.open, fullscreen, role]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
