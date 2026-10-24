@@ -11,6 +11,8 @@ import { PROGRAMMES } from '../lib/model';
 import { CREST } from '../components/ui';
 import { unreadMessages } from '../lib/inbox';
 import { progress } from '../lib/assignments';
+import { isSchoolTeam } from '../lib/school';
+import { docsMissingFor } from '../components/Docs';
 
 export default function Today() {
   const s = useAppState(); const nav = useNavigate();
@@ -21,6 +23,7 @@ export default function Today() {
   const going = av('going'), no = av('no'), maybe = av('maybe'); const noReply = Math.max(0, kids.length - going - no - maybe);
   const nudge = needRecognition(kids.map((k) => k.id), s.recognitions, Date.now());
   const spurts = kids.filter((k) => growthVelocity(s.growth.filter((g) => g.playerId === k.id)).status === 'spurt');
+  const school = isSchoolTeam(s.teamInfo, team.id); const noDocs = kids.filter((k) => docsMissingFor(k).length).length;
   const toReview = s.assignments.filter((a) => a.teamId === team.id).reduce((n, a) => n + progress(a, s.submissions).toReview, 0);
   const unread = unreadMessages(s, 'coach', 'parent').filter((m) => m.teamId === team.id).length;
   const startMatch = () => { const m = newMatch(kids.filter((k) => !s.blocked.includes(k.id)).map((k) => k.id), team.id, team.defaultFormat); if (next?.type !== 'training' && next) { m.eventId = next.id; m.name = next.title; if (next.opponent) m.name = `${next.title} vs ${next.opponent}`; const ids = kids.filter((k) => statusFor(s, next, k.id) === 'going').map((k) => k.id); if (ids.length) m.availableIds = ids.filter((i) => !s.blocked.includes(i)); } put('matches', m); nav(`/match/${m.id}`); };
@@ -30,6 +33,7 @@ export default function Today() {
       <div className="mb-3 flex items-center gap-3"><img src={CREST[team.programme]} alt={`${PROGRAMMES[team.programme].name} crest`} width={44} height={44} className="h-11 w-11 object-contain" /><p className="display text-2xl text-red">Play with your heart</p></div>
       {s.blocked.length > 0 && <Tone tone="bad">{s.blocked.length} child(ren) out after a head knock: {s.players.filter((p) => s.blocked.includes(p.id)).map((p) => p.firstName).join(', ')}. <Link to="/safety" className="underline">Open safety</Link></Tone>}
       <H2>Next up</H2>
+      <div data-tour="today-next">
       {next ? (
         <Card className="grid gap-3">
           <div><div className="text-2xl font-semibold">{next.title}</div><div className="muted">{fmtDateTime(next.startsAt)} · {next.venue || 'Venue to confirm'}</div></div>
@@ -37,22 +41,27 @@ export default function Today() {
           <EventWeather e={next} compact />
           <div className="flex flex-wrap gap-2"><Link className="btn" to={`/event/${next.id}`}>Open event</Link>{next.type === 'training' ? <Link className="btn ghost" to="/train">Plan the session</Link> : <button className="btn ghost" onClick={startMatch}>Set up match</button>}</div>
         </Card>
-      ) : <Card><p className="mb-3">Nothing scheduled.</p><Link className="btn" to="/event/new">Add an event</Link></Card>}
+      ) : <Card><p className="mb-3">Nothing scheduled.</p><Link className="btn" to="/event/new">Add an event</Link></Card>}</div>
       <H2>Quick actions</H2>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3" data-tour="quick-actions">
         <button className="btn h-16" onClick={startMatch}>New match</button>
         <Link className="btn ghost h-16" to="/train">Plan training</Link>
         <Link className="btn ghost h-16" to="/assign">Assign tasks</Link>
+        <Link className="btn ghost h-16" to="/attendance">Take attendance</Link>
+        <Link className="btn ghost h-16" to="/recognise">Recognise a child</Link>
+        {school && <Link className="btn ghost h-16" to="/pathway">Road to Palaro</Link>}
+        <Link className="btn ghost h-16" to="/documents">ID papers</Link>
         <Link className="btn ghost h-16" to="/inbox">Post an announcement</Link>
         <Link className="btn ghost h-16" to="/board">Tactics board</Link>
       </div>
       <H2>Needs your attention</H2>
-      <ul className="grid gap-2">
+      <ul className="grid gap-2" data-tour="attention">
+        {noDocs > 0 && <li><Link to="/documents" className="card block p-3">{noDocs} child(ren) still missing ID papers (student ID or PSA)</Link></li>}
         {toReview > 0 && <li><Link to="/assign" className="card block p-3">{toReview} task photo(s) to review</Link></li>}
         {unread > 0 && <li><Link to="/inbox" className="card block p-3">{unread} unread message(s) from parents</Link></li>}
         {nudge.length > 0 && <li><Link to="/recognise" className="card block p-3">{nudge.length} child(ren) not recognised in 6 weeks: {nudge.slice(0, 3).map((id) => s.players.find((p) => p.id === id)?.firstName).join(', ')}{nudge.length > 3 ? '...' : ''}</Link></li>}
         {spurts.length > 0 && <li className="card p-3">Growth spurt: {spurts.map((p) => p.firstName).join(', ')}. Ease off jumping and sprinting for a few weeks.</li>}
-        {toReview === 0 && unread === 0 && nudge.length === 0 && spurts.length === 0 && <li className="muted card p-3">All clear.</li>}
+        {noDocs === 0 && toReview === 0 && unread === 0 && nudge.length === 0 && spurts.length === 0 && <li className="muted card p-3">All clear.</li>}
       </ul>
       {kids.length === 0 && <Link to="/squad" className="btn mt-4">Add your squad</Link>}
     </Page>

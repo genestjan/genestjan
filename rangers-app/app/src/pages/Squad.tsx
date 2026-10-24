@@ -23,7 +23,7 @@ export default function Squad() {
       <p className="muted mb-3">{team.name}. First names or nicknames show on the kids' screens; last names stay with coaches.</p>
       <Card className="mb-4">
         <label className="mb-1 block font-semibold" htmlFor="paste">Add players (one per line, like "7 Ana")</label>
-        <textarea id="paste" className="field py-3" rows={3} value={paste} onChange={(e) => setPaste(e.target.value)} />
+        <textarea id="paste" data-tour="squad-add" className="field py-3" rows={3} value={paste} onChange={(e) => setPaste(e.target.value)} />
         <div className="mt-3 flex flex-wrap gap-2"><button className="btn" disabled={!paste.trim()} onClick={add}>Add</button>
           {!cloudEnabled && <button className="btn ghost" onClick={() => update((x) => ({ ...x, players: [...x.players, ...DEMO_PLAYERS.filter((d) => !x.players.some((p) => p.id === d.id)).map((d) => ({ ...d, teamId: team.id }))] }))}>Load demo team</button>}</div>
       </Card>

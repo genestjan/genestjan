@@ -34,7 +34,8 @@ export const CONFIG: Cfg[] = [
   { key: 'funds', kind: 'fund', vis: () => 'club', team: () => null, player: () => null },
   { key: 'equipment', kind: 'equipment', vis: () => 'staff', team: () => null, player: () => null },
   { key: 'stories', kind: 'story', vis: () => 'club', team: () => null, player: () => null },
-  fam('bootRequests', 'boot'), fam('minutes', 'minutes'), fam('charges', 'charge'), fam('chargeRefs', 'charge_ref'), fam('seen', 'seen'), fam('assignments', 'assignment'), fam('submissions', 'submission'),
+  fam('bootRequests', 'boot'), fam('minutes', 'minutes'), fam('charges', 'charge'), fam('chargeRefs', 'charge_ref'), fam('seen', 'seen'), fam('assignments', 'assignment'), fam('submissions', 'submission'), fam('eligibility', 'eligibility'),
+  { key: 'teamInfo', kind: 'team_info', vis: () => 'team', team: (i) => i.teamId, player: () => null },
 ];
 const BY_KIND = new Map(CONFIG.map((c) => [c.kind, c]));
 

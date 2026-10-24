@@ -11,8 +11,9 @@ export function Page({ title, children, back, actions }: { title: string; childr
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-4" style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}>
       <header className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">{back}<h1 className={`line-clamp-2 break-words leading-none ${title.length > 14 ? 'text-3xl' : 'text-4xl'}`}>{title}</h1></div>
+        <div className="flex min-w-0 items-center gap-3">{back}<h1 className={`line-clamp-2 leading-none ${title.length > 12 ? 'text-2xl' : title.length > 8 ? 'text-3xl' : 'text-4xl'}`}>{title}</h1></div>
         <div className="flex shrink-0 items-center gap-2">{actions}
+          <Link to="/help" className="btn ghost h-12 w-12 px-0 text-xl" data-tour="help-button" aria-label="Help" title="Help">?</Link>
           <button className="btn ghost px-3" aria-label="Toggle sun mode" onClick={() => update((s) => ({ ...s, mode: s.mode === 'club' ? 'sun' : 'club' }))}>{mode === 'club' ? 'Sun' : 'Club'}</button>
         </div>
       </header>
@@ -24,7 +25,7 @@ export function Page({ title, children, back, actions }: { title: string; childr
 /** Club crests, served next to the app (relative paths work under /app/). */
 export const CREST = { rangers: 'crest.png', newmabu: 'new-mabu-mark.png', gila: 'gila-mark.png' } as const;
 export const Back = ({ to = '/' }: { to?: string }) => <Link to={to} className="btn ghost px-4" aria-label="Back">Back</Link>;
-export const Card = ({ children, className = '' }: { children: ReactNode; className?: string }) => <div className={`card p-4 ${className}`}>{children}</div>;
+export const Card = ({ children, className = '', tour }: { children: ReactNode; className?: string; tour?: string }) => <div className={`card p-4 ${className}`} data-tour={tour}>{children}</div>;
 export const H2 = ({ children }: { children: ReactNode }) => <h2 className="mb-2 mt-5 text-3xl">{children}</h2>;
 export const Empty = ({ children }: { children: ReactNode }) => <p className="muted card p-4">{children}</p>;
 export function Chip({ on, children, onClick }: { on?: boolean; children: ReactNode; onClick?: () => void }) {
@@ -59,7 +60,7 @@ export function TabBar() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t" style={{ background: 'var(--card)', borderColor: 'var(--line)', paddingBottom: 'env(safe-area-inset-bottom)' }} aria-label="Main">
       {tabs.map(([to, label]) => (
-        <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `relative flex min-h-[56px] flex-1 items-center justify-center text-sm font-semibold ${isActive ? 'text-red' : 'muted'}`}>
+        <NavLink key={to} to={to} end={to === '/'} data-tour={to === '/' ? 'tab-home' : `tab-${to.slice(1)}`} className={({ isActive }) => `relative flex min-h-[56px] flex-1 items-center justify-center text-sm font-semibold ${isActive ? 'text-red' : 'muted'}`}>
           {label}{label === 'Inbox' && unread > 0 && <span className="absolute right-2 top-1 rounded-full bg-red px-1.5 text-xs text-white">{unread}</span>}
         </NavLink>
       ))}

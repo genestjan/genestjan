@@ -17,10 +17,15 @@ import Safety from './pages/Safety';
 import Support from './pages/Support';
 import BoardEditor from './pages/BoardEditor';
 import More, { Help, Motivation, Privacy, Settings, Tips } from './pages/More';
-import { DetailsPage, ParentHome, ProgressPage } from './pages/Parent';
+import { DetailsPage, DocsPage, ParentHome, ProgressPage, TeamDocs } from './pages/Parent';
+import { EligibilityEditor, Pathway } from './pages/School';
+import { AttendanceHome, AttendanceReport, TakeAttendance } from './pages/Attendance';
+import { PickSquad } from './pages/Pick';
 import { Gate, Join, LocalChoice, Login, pendingInvite } from './pages/Auth';
 import { TabBar } from './components/ui';
-import { Tour, Welcome } from './components/Onboarding';
+import { Welcome } from './components/Onboarding';
+import { GuideOverlay } from './components/Guide';
+import { startGuide } from './lib/guide';
 import { tourRole, useTour, useWelcome } from './lib/onboarding';
 import { AssignDetail, AssignList, AssignNew } from './pages/Assign';
 import { TaskDetail, Tasks } from './pages/Tasks';
@@ -35,9 +40,11 @@ function Shell() {
   const role = useRole(); const staff = isStaff(role); const loc = useLocation(); const s = useAppState();
   const fullscreen = /\/present$|^\/tv$/.test(loc.pathname);
   const tour = useTour(tourRole(role));
+  // First time on this phone: walk through the real screens once (replay any time from Help).
+  useEffect(() => { if (tour.open && !fullscreen) { tour.done(); startGuide(tourRole(role) === 'parent' ? 'start-parent' : 'start-coach'); } }, [tour.open, fullscreen, role]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <>
-      {tour.open && !fullscreen && <Tour role={tourRole(role)} onDone={tour.done} />}
+      <GuideOverlay />
       {s.previewChildId && !cloudEnabled && <div className="bg-red px-4 py-1 text-center text-sm text-white">Preview: this is what a parent sees. Go to More to return.</div>}
       <Routes>
         <Route path="/" element={staff ? <Today /> : <ParentHome />} />
@@ -53,6 +60,8 @@ function Shell() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/details/:id" element={<DetailsPage />} />
+        <Route path="/docs/:id" element={<DocsPage />} />
+        <Route path="/pathway" element={<Pathway />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/tasks/:id" element={<TaskDetail />} />
         <Route path="/progress/:id" element={<ProgressRoute />} />
@@ -60,6 +69,12 @@ function Shell() {
         <Route path="/join/:token" element={<Join />} />
         {staff && (<>
           <Route path="/assign" element={<AssignList />} />
+          <Route path="/attendance" element={<AttendanceHome />} />
+          <Route path="/attendance/report" element={<AttendanceReport />} />
+          <Route path="/attendance/:id" element={<TakeAttendance />} />
+          <Route path="/event/:id/squad" element={<PickSquad />} />
+          <Route path="/pathway/:id" element={<EligibilityEditor />} />
+          <Route path="/documents" element={<TeamDocs />} />
           <Route path="/assign/new" element={<AssignNew />} />
           <Route path="/assign/:groupId" element={<AssignDetail />} />
           <Route path="/squad" element={<Squad />} />

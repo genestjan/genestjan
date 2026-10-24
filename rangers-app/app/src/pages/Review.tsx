@@ -1,3 +1,4 @@
+import { bandOf, infoFor } from '../lib/school';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Back, Card, Empty, Page } from '../components/ui';
@@ -27,7 +28,7 @@ export function Review() {
   const existing = s.assessments.find((a) => a.playerId === playerId && a.term === term);
   const [a, setA] = useState<Assessment | null>(null);
   if (!p) return <Page title="Review" back={<Back to="/review" />}><Empty>Player not found.</Empty></Page>;
-  const skills = RUBRIC[team.ageBand];
+  const band = bandOf(p, team, infoFor(s.teamInfo, team.id)); const skills = RUBRIC[band];
   const cur: Assessment = a ?? existing ?? { id: uid(), playerId: p.id, teamId: p.teamId, term, ratings: {}, strength: '', working: '', familyComment: '', coachNote: '' };
   const prev = s.assessments.filter((x) => x.playerId === p.id && x.term !== term).sort((x, y) => y.term.localeCompare(x.term))[0];
   const sum = summarise(skills, cur, prev);
@@ -37,7 +38,7 @@ export function Review() {
   const corners = [...new Set(skills.map((x) => x.corner))];
   return (
     <Page title={p.firstName} back={<Back to="/review" />}>
-      <p className="muted mb-3">{term} · {team.ageBand} · {idx + 1} of {kids.length}</p>
+      <p className="muted mb-3">{term} · {band}{band !== team.ageBand ? ' (own age group)' : ''} · {idx + 1} of {kids.length}</p>
       {corners.map((c) => (
         <Card key={c} className="mb-3 grid gap-3"><h2 className="text-2xl">{c}</h2>
           {skills.filter((x) => x.corner === c).map((sk) => (

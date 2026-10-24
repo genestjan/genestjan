@@ -9,18 +9,35 @@ export interface Team { id: string; name: string; programme: Programme; ageBand:
 export interface Emergency {
   contacts: { name: string; phone: string }[]; allergies: string; inhaler: boolean; note: string;
   fullName?: string; birthDate?: string; address?: string; phone?: string; medication?: string; other?: string;   // note = health condition
+  docs?: { studentId?: DocRef; birthCert?: DocRef };   // photos of ID papers that tournament organisers ask to see
 }
+export interface DocRef { path: string; at: string }
 export interface Player extends BasePlayer {
   teamId: string; lastName?: string; birthDate?: string; photoConsent: boolean; videoConsent?: boolean; emergency?: Emergency; left?: boolean; leftAt?: string;
 }
-export type EventType = 'training' | 'match' | 'tournament' | 'festival' | 'meeting' | 'other';
+export type EventType = 'training' | 'match' | 'tournament' | 'meet' | 'festival' | 'meeting' | 'other';
+/** DepEd school sports ladder ("Road to Palaro"), lowest to highest. */
+export type MeetLevel = 'intramurals' | 'district' | 'gscaa' | 'sraa' | 'palaro';
+export type MeetOutcome = '' | 'qualified' | 'champion' | 'placed' | 'eliminated';
 export interface ClubEvent {
   id: string; teamId: string; type: EventType; title: string; startsAt: string; endsAt: string;
   venue: string; mapUrl: string; lat?: number; lng?: number; hospital: string; bring: string; opponent: string; notes: string;
   goingByDefault: boolean; cancelled?: boolean;
+  meetLevel?: MeetLevel; category?: string; outcome?: MeetOutcome; resultNote?: string;   // school meets only
+  squad?: string[]; squadAnnounced?: string[];   // players picked, and those whose families were already told
 }
 export interface Availability { id: string; eventId: string; playerId: string; status: 'going' | 'no' | 'maybe'; by: string; at: string }
-export interface Attendance { id: string; eventId: string; playerId: string; present: boolean }
+export type AttendanceStatus = 'present' | 'late' | 'absent' | 'excused';
+/** present stays for older saved data: true for present or late. */
+export interface Attendance { id: string; eventId: string; playerId: string; present: boolean; status?: AttendanceStatus }
+/** School-team settings (one per team). Kept as a team record so the team's coaches can edit it. */
+export interface TeamInfo {
+  id: string; teamId: string; kind: 'club' | 'school'; mixedAges: boolean;
+  schoolName: string; district: string; coordinator: string; coordinatorPhone: string;
+  categories: string[]; cutoffs: Record<string, string>;   // category -> 'born on or after' date (from the current DepEd memo)
+}
+/** A child's school-competition paperwork and category. Statuses only: the documents themselves are never stored. */
+export interface Eligibility { id: string; playerId: string; category: string; docs: Record<string, boolean>; selectedFor: MeetLevel[]; note: string }
 export interface Announcement { id: string; scope: 'team' | 'club'; teamId?: string; title: string; body: string; at: string; by: string; pinned?: boolean; seenBy: string[] }
 export interface Message { id: string; threadId: string; playerId: string; teamId: string; from: 'coach' | 'parent'; byName: string; body: string; at: string; readBy: string[] }
 export interface SessionBlock { slot: string; drillId: string; minutes: number }

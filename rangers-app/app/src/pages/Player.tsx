@@ -12,22 +12,24 @@ import { summarise } from '../lib/development';
 import { today, ageOf } from '../lib/util';
 import { cloudEnabled, createFamilyInvite, inviteLink, useCloud } from '../lib/cloud';
 import { CONCUSSION } from '../content/safety';
+import { bandOf, infoFor } from '../lib/school';
+import { docsMissingFor, removeDocs } from '../components/Docs';
 import { share } from '../lib/util';
 
 export default function PlayerProfile() {
   const { id } = useParams(); const nav = useNavigate(); const s = useAppState(); const cloud = useCloud();
   const p = s.players.find((x) => x.id === id);
   const [invite, setInvite] = useState(''); const [err, setErr] = useState('');
+  const [h, setH] = useState(''); const [goal, setGoal] = useState('');   // before the early return: hooks must run in the same order every time
   if (!p) return <Page title="Player" back={<Back to="/squad" />}><Empty>Player not found.</Empty></Page>;
   const team = s.teams.find((t) => t.id === p.teamId) ?? s.teams[0];
   const set = (patch: Partial<Player>) => put('players', { ...p, ...patch });
-  const skills = RUBRIC[team.ageBand];
+  const skills = RUBRIC[bandOf(p, team, infoFor(s.teamInfo, team.id))];
   const mine = s.assessments.filter((a) => a.playerId === p.id).sort((a, b) => a.term.localeCompare(b.term));
   const sum = mine.length ? summarise(skills, mine[mine.length - 1], mine[mine.length - 2]) : null;
   const growth = s.growth.filter((g) => g.playerId === p.id).sort((a, b) => b.date.localeCompare(a.date));
   const gv = growthVelocity(growth);
   const injuries = s.injuries.filter((i) => i.playerId === p.id).sort((a, b) => b.date.localeCompare(a.date));
-  const [h, setH] = useState(''); const [goal, setGoal] = useState('');
   const pin = s.settings.headCoachPin;
   const role = useRole();
   const canClear = !cloudEnabled || role === 'admin' || s.myStaff.some((x) => x.teamId === p.teamId && x.head);
@@ -57,7 +59,7 @@ export default function PlayerProfile() {
       <Card className="grid gap-2">
         {cloudEnabled && cloud.status === 'ready' ? (<>
           <p>Create a private one-time link for this child's parent. It works once and expires in 14 days.</p>
-          <button className="btn" onClick={doInvite}>Create invite link</button>
+          <button className="btn" onClick={doInvite} data-tour="invite">Create invite link</button>
           {invite && <><input className="field" readOnly value={invite} onFocus={(e) => e.target.select()} aria-label="Invite link" />
             <button className="btn ghost" onClick={() => share(`Hi! Here is ${p.firstName}'s private link for the Rangers app (it only works once, please don't share it): ${invite}`)}>Send it privately</button></>}
           {err && <p className="text-red" role="alert">{err}</p>}
@@ -97,13 +99,15 @@ export default function PlayerProfile() {
       <Card className="grid gap-3">
         <h3 className="text-2xl">Emergency information</h3>
         <EmergencyEditor p={p} />
+        <h3 className="mt-2 text-2xl">ID papers</h3>
+        <Link className="btn ghost" to={`/docs/${p.id}`}>{docsMissingFor(p).length === 0 ? 'Student ID and PSA birth certificate: view' : `${docsMissingFor(p).length === 2 ? 'Student ID and PSA birth certificate' : docsMissingFor(p)[0] === 'studentId' ? 'Student ID' : 'PSA birth certificate'} missing: add`}</Link>
         <h3 className="mt-2 text-2xl">Injuries</h3>
         {injuries.length === 0 && <p className="muted">None recorded.</p>}
         {injuries.map((i) => <div key={i.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--line)' }}><b>{i.date}: {i.kind}</b> ({i.bodyPart}){i.head && <span className="text-red"> head injury</span>}<div className="text-sm">{i.notes}</div>{i.head && (i.clearedOn ? <div className="text-sm">Cleared {i.clearedOn}: {i.clearedNote}</div> : canClear ? <button className="btn ghost mt-2 min-h-[44px] text-sm" onClick={() => clear(i)}>Head coach: record medical clearance</button> : <p className="muted mt-2 text-sm">Only a head coach can record medical clearance.</p>)}</div>)}
         <Link className="btn ghost" to={`/safety?player=${p.id}`}>Record an injury or suspected head knock</Link>
         <p className="muted text-xs">{CONCUSSION.note}</p>
       </Card>
-      <div className="mt-6"><button className="btn ghost" onClick={() => { if (confirm(`Remove ${p.firstName} from the squad? Their records stay in your backup.`)) { set({ left: true }); nav('/squad'); } }}>Mark as left the club</button> <button className="btn ghost" onClick={() => confirm(`Delete ${p.firstName} and everything about them? This cannot be undone.`) && (del('players', p.id), nav('/squad'))}>Delete completely</button></div>
+      <div className="mt-6"><button className="btn ghost" onClick={async () => { if (confirm(`Remove ${p.firstName} from the squad? Their ID paper photos are deleted; other records stay in your backup.`)) { const q = await removeDocs(p); put('players', { ...q, left: true, leftAt: new Date().toISOString() }); nav('/squad'); } }}>Mark as left the club</button> <button className="btn ghost" onClick={() => confirm(`Delete ${p.firstName} and everything about them? This cannot be undone.`) && (del('players', p.id), nav('/squad'))}>Delete completely</button></div>
     </Page>
   );
 }

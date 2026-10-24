@@ -17,7 +17,7 @@ export default function Inbox() {
   const th = staff ? threads(s, team.id) : kids.map((k) => ({ playerId: k.id, msgs: s.messages.filter((m) => m.playerId === k.id).sort((a, b) => a.at.localeCompare(b.at)) }));
   return (
     <Page title="Inbox">
-      <div className="mb-3 flex gap-2"><Chip on={tab === 'news'} onClick={() => setTab('news')}>Announcements</Chip><Chip on={tab === 'msgs'} onClick={() => setTab('msgs')}>Messages</Chip></div>
+      <div className="mb-3 flex gap-2"><Chip on={tab === 'news'} onClick={() => setTab('news')}>Announcements</Chip><span data-tour="messages-tab"><Chip on={tab === 'msgs'} onClick={() => setTab('msgs')}>Messages</Chip></span></div>
       {tab === 'news' && (<>
         {staff && (
           <Card className="mb-4 grid gap-2">

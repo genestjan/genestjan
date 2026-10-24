@@ -9,18 +9,18 @@ const LOCAL = 'local:';
 export interface Prepared { blob: Blob; ext: 'jpg' }
 const HEIC = 'This phone saved the photo in a format that cannot be sent. Take a screenshot of the photo and send that, or set the camera to "Most compatible".';
 /** Checks a chosen photo and shrinks it on the phone (saves the family's mobile data and the club's storage). */
-export async function prepare(file: File): Promise<Prepared> {
+export async function prepare(file: File, opts: { edge?: number; target?: number } = {}): Promise<Prepared> {
   const c = checkMedia(file);
   if (!c.ok) throw new Error(c.reason);
   let bmp: ImageBitmap;
   try { bmp = await createImageBitmap(file); } catch { throw new Error(/heic|heif/i.test(file.type) ? HEIC : 'This photo could not be opened. Take a new photo with the camera.'); }
-  const cv = document.createElement('canvas'); let edge = MAX_IMAGE_EDGE; let last: Blob | null = null;
+  const cv = document.createElement('canvas'); let edge = opts.edge ?? MAX_IMAGE_EDGE; const target = opts.target ?? TARGET_IMAGE_BYTES; let last: Blob | null = null;
   for (let round = 0; round < 3; round++, edge = Math.round(edge * 0.75)) {
     const { w, h } = fitImage(bmp.width, bmp.height, edge); cv.width = w; cv.height = h;
     cv.getContext('2d')!.drawImage(bmp, 0, 0, w, h);
     for (const q of JPEG_STEPS) {
       last = await new Promise<Blob | null>((r) => cv.toBlob(r, 'image/jpeg', q));
-      if (last && last.size <= TARGET_IMAGE_BYTES) return { blob: last, ext: 'jpg' };
+      if (last && last.size <= target) return { blob: last, ext: 'jpg' };
     }
   }
   if (last && last.size <= MAX_UPLOAD_BYTES) return { blob: last, ext: 'jpg' };

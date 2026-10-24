@@ -17,7 +17,7 @@ export function AssignList() {
   const list = groups(s.assignments.filter((a) => a.teamId === team.id));
   return (
     <Page title="Assign" back={<Back to="/" />}>
-      <Link to="/assign/new" className="btn mb-3 w-full">New assignment</Link>
+      <Link to="/assign/new" className="btn mb-3 w-full" data-tour="assign-new">New assignment</Link>
       {list.length === 0 && <Empty>No assignments yet. Pick a ready-made one or write your own, choose the players, and they get a task list to clear with photos.</Empty>}
       <div className="grid gap-3">
         {list.map((g) => {
@@ -57,7 +57,7 @@ export function AssignNew() {
   return (
     <Page title="New assignment" back={<Back to="/assign" />}>
       <H2>1. Start from a ready-made one</H2>
-      <div className="grid gap-2">
+      <div className="grid gap-2" data-tour="assign-templates">
         {templates.map((t) => <button key={t.id} className={`btn ${templateId === t.id ? '' : 'ghost'} justify-start text-left`} aria-pressed={templateId === t.id} onClick={() => applyTemplate(t.id)}>{t.title}</button>)}
         <button className="btn ghost" onClick={() => setAll(!all)}>{all ? `Only show ones for ${team.ageBand}` : 'Show all ready-made assignments'}</button>
       </div>
@@ -74,7 +74,7 @@ export function AssignNew() {
         <label className="grid gap-1 text-sm font-semibold">Due date (optional)<input type="date" className="field" min={today()} value={due} onChange={(e) => setDue(e.target.value)} /></label>
       </Card>
       <H2>3. Show them how (optional)</H2>
-      <Card className="grid gap-3">
+      <Card className="grid gap-3" tour="assign-show-how">
         <label className="grid gap-1 text-sm font-semibold">YouTube link to a how-to video
           <input className="field" inputMode="url" placeholder="https://youtu.be/..." value={yt} onChange={(e) => setYt(e.target.value)} /></label>
         {yt.trim() && !ytId && <p className="text-sm text-red" role="alert">That is not a YouTube video link. Copy it from YouTube's Share button.</p>}
@@ -84,7 +84,7 @@ export function AssignNew() {
           : <MediaPicker label="Add a photo (for example a drawing of the drill)" pathFor={() => teamPhotoPath(team.id, uid())} onSaved={setPhoto} />}
       </Card>
       <H2>4. Choose the players</H2>
-      <Card className="grid gap-2">
+      <Card className="grid gap-2" tour="assign-players">
         <div className="flex gap-2"><button className="btn ghost flex-1" onClick={() => setChosen(kids.map((k) => k.id))}>Everyone</button><button className="btn ghost flex-1" onClick={() => setChosen([])}>Nobody</button></div>
         {kids.length === 0 && <p className="muted">Add players in Squad first.</p>}
         {kids.map((k) => (

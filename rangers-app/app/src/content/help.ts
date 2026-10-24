@@ -1,0 +1,49 @@
+/** Questions the Help chat can answer. Keywords include common Filipino and Cebuano words.
+ *  A key starting with ! is a question word (when, where, bring...) and counts double, so "asa ang training" means where, not when.
+ *  Answers that need live team facts are marked with fact; the app fills those in. */
+export type Fact = 'next' | 'where' | 'bring' | 'contact' | 'papers' | 'tasks' | 'palaro' | 'squad' | 'attendance' | 'values';
+export interface HelpEntry { id: string; for?: 'coach' | 'parent'; keys: string[]; answer?: string; fact?: Fact; guide?: string; link?: { to: string; label: string } }
+
+export const HELP: HelpEntry[] = [
+  // live team facts
+  { id: 'next', fact: 'next', keys: ['!next', '!when', '!kailan', '!kanus-a', '!sunod', 'training', 'practice', 'game', 'match', 'schedule', 'today', 'tomorrow', 'ensayo'] },
+  { id: 'where', fact: 'where', keys: ['!where', '!saan', '!asa', '!venue', '!location', 'map', 'field', 'pitch'] },
+  { id: 'bring', fact: 'bring', keys: ['!bring', '!dala', '!dalhin', 'what to wear', 'kit', 'boots'] },
+  { id: 'contact', fact: 'contact', keys: ['contact', 'call', 'phone', 'number', 'coach number', 'coordinator', 'teacher', 'mapeh'] },
+  { id: 'papers', fact: 'papers', keys: ['papers', 'documents', 'requirements', 'psa', 'nso', 'birth certificate', 'student id', 'id', 'screening', 'sf10', 'form 137', 'medical clearance', 'dental'], guide: 'id-papers' },
+  { id: 'tasks', fact: 'tasks', keys: ['task', 'tasks', 'assignment', 'homework', 'to do'], guide: 'task-photo' },
+  { id: 'palaro', fact: 'palaro', keys: ['palaro', 'palarong pambansa', 'gscaa', 'sraa', 'district meet', 'intramurals', 'meet', 'road to palaro', 'deped', 'division'] },
+  { id: 'squad', fact: 'squad', keys: ['squad', 'picked', 'selected', 'lineup', 'line-up', 'roster', 'rouster', 'team list', 'napili'] },
+  { id: 'attendance', fact: 'attendance', keys: ['attendance', 'absent', 'present', 'late', 'excused'], guide: 'attendance' },
+  { id: 'values', fact: 'values', keys: ['values', 'motto', 'play with your heart', 'club values'] },
+  // how-to, coaches
+  { id: 'add-players', for: 'coach', keys: ['add player', 'add players', 'new player', 'squad list', 'register player', 'enrol'], answer: 'Go to Squad, type or paste the names (one per line, for example "7 Ana"), then tap Add.', guide: 'add-players', link: { to: '/squad', label: 'Open Squad' } },
+  { id: 'invite', for: 'coach', keys: ['invite', 'invite parent', 'invite link', 'parent login', 'join link', 'add parent'], answer: 'Open the child in Squad and tap Create invite link. Send it privately to that child\'s parent. Each link works once and expires.', guide: 'add-players' },
+  { id: 'coach-invite', for: 'coach', keys: ['add coach', 'invite coach', 'new coach', 'approve coach', 'assistant coach'], answer: 'More, Settings, Coaches: create a coach invite link. When they sign in, tap Approve, then Add to team (or Head coach of).', link: { to: '/settings', label: 'Open Settings' } },
+  { id: 'event', for: 'coach', keys: ['add event', 'new event', 'add training', 'schedule training', 'add match', 'add game', 'create event', 'school meet'], answer: 'Schedule, then New event. Choose training, match, tournament or school meet, set the time and place, and Save.', guide: 'new-event' },
+  { id: 'take-attendance', for: 'coach', keys: ['take attendance', 'record attendance', 'mark present', 'who came', 'attendance report'], answer: 'Today, Take attendance. Tap Present, Late, Absent or Excused for each child. The report can be downloaded for the school.', guide: 'attendance', link: { to: '/attendance', label: 'Take attendance' } },
+  { id: 'pick-squad', for: 'coach', keys: ['pick squad', 'choose players', 'select players', 'pick team', 'announce squad', 'roster for game'], answer: 'Open the match, tournament or meet in Schedule and tap Pick the squad. Saving can post a team announcement and message each picked family.', guide: 'squad' },
+  { id: 'assign', for: 'coach', keys: ['assign', 'send task', 'home task', 'give homework', 'youtube', 'video'], answer: 'Today, Assign tasks, New assignment. Pick a ready-made one or write your own, add a YouTube link or photo to show how, choose the players and Send.', guide: 'assign' },
+  { id: 'recognise', for: 'coach', keys: ['recognise', 'recognize', 'praise', 'reward', 'badge', 'shout out'], answer: 'Today, Recognise a child: choose who, the value they showed, and one line about why. The family sees it on their Progress page.', guide: 'recognise', link: { to: '/recognise', label: 'Recognise a child' } },
+  { id: 'school-team', for: 'coach', keys: ['school team', 'sped rangers', 'mixed ages', 'age cutoff', 'category', 'eligibility'], answer: 'More, Settings: tick School team (DepEd) and Mixed ages for that team, and add the school details and age cutoffs from the DepEd memo. Then use Road to Palaro.', guide: 'palaro' },
+  { id: 'announce', for: 'coach', keys: ['announcement', 'announce', 'post news', 'message all', 'group message'], answer: 'Inbox: write a title and message and tap Post. Choose this team or the whole club. Families get a notification.', link: { to: '/inbox', label: 'Open Inbox' } },
+  { id: 'match-day', for: 'coach', keys: ['match day', 'substitution', 'subs', 'playing time', 'rotation', 'minutes', 'lineup board'], answer: 'Today, New match: tick who is here and the app plans fair playing time. It works without signal and the clock keeps running when the screen locks.' },
+  { id: 'head-knock', for: 'coach', keys: ['head', 'concussion', 'head knock', 'injury', 'injured'], answer: 'Safety, Head knock: record it straight away. The child is blocked from lineups until a head coach records clearance. If in doubt, sit them out.', link: { to: '/safety', label: 'Open Safety' } },
+  { id: 'heat', keys: ['heat', 'hot', 'thunder', 'lightning', 'rain', 'weather'], answer: 'Each event shows the heat index forecast. On Danger days shorten or move training, and add water breaks. Thunder: stop play and wait 30 minutes after the last thunder.' },
+  { id: 'review', for: 'coach', keys: ['review', 'term review', 'assessment', 'progress report', 'rating'], answer: 'More, Term reviews. Rate each skill, write a short comment for the family and Publish. Ratings are never compared between children.' },
+  // how-to, families
+  { id: 'rsvp', for: 'parent', keys: ['going', 'not going', 'reply', 'rsvp', 'cannot come', 'absent tomorrow', 'hindi makakapunta', 'dili makaadto'], answer: 'On Home (or in Schedule), tap Going, Maybe or Not going for the next session. The coach sees it straight away.' },
+  { id: 'send-photo', for: 'parent', keys: ['send photo', 'upload photo', 'proof', 'picture', 'litrato', 'clear the list'], answer: 'Tasks, open the task, then Add a photo for each task. When every task has a photo, the list is cleared.', guide: 'task-photo', link: { to: '/tasks', label: 'Open Tasks' } },
+  { id: 'add-papers', for: 'parent', keys: ['upload id', 'upload psa', 'upload birth certificate', 'add papers', 'student id photo'], answer: 'Home, tap the red ID papers box (or More, your child\'s ID papers). Take a clear photo of the student ID and of the PSA birth certificate.', guide: 'id-papers' },
+  { id: 'details', for: 'parent', keys: ['details', 'address', 'allergy', 'allergies', 'medicine', 'medication', 'health', 'emergency contact', 'birthday'], answer: 'More, your child\'s details and health information. Fill in what you can; it saves as you type. Only the coaches and your family can see it.', guide: 'details' },
+  { id: 'message-coach', for: 'parent', keys: ['message coach', 'talk to coach', 'ask coach', 'chat coach', 'text coach'], answer: 'Inbox, Messages, then your child\'s name. Write to the coach privately.', guide: 'message-coach', link: { to: '/inbox', label: 'Open Inbox' } },
+  { id: 'progress', for: 'parent', keys: ['progress', 'how is my child', 'review', 'report card', 'improve'], answer: 'Progress shows what the coach has shared: strengths, what your child is working on, their goal, recognition and attendance.', link: { to: '/progress', label: 'Open Progress' } },
+  // everyone
+  { id: 'home-screen', keys: ['install', 'download', 'home screen', 'app icon', 'add to home', 'iphone', 'android'], answer: 'Android: in Chrome tap the three dots, then Add to Home screen. iPhone: open in Safari (not Messenger), tap Share, then Add to Home Screen.' },
+  { id: 'messenger', keys: ['messenger', 'facebook', 'google sign in not working', 'cannot sign in', 'login problem', 'sign in'], answer: 'Open the link in Chrome or Safari, not inside Messenger or Facebook (tap the three dots, Open in browser). Then tap Continue with Google.' },
+  { id: 'notifications', keys: ['notification', 'notifications', 'alert', 'reminder', 'push'], answer: 'You get alerts for announcements, messages, new tasks and the day before an event. On iPhone, alerts only work after Add to Home Screen.' },
+  { id: 'offline', keys: ['offline', 'no signal', 'no internet', 'no load', 'walang signal'], answer: 'Most of the app works without signal and sends your changes when you are back online. Sending photos needs internet.' },
+  { id: 'privacy', keys: ['privacy', 'delete', 'data', 'who can see', 'consent', 'personal information'], answer: 'Only your child\'s coaches and your family see their details, health information and ID papers. More, Privacy explains it, and how to ask for deletion.', link: { to: '/privacy', label: 'Read the privacy notice' } },
+  { id: 'sign-out', keys: ['sign out', 'log out', 'logout', 'switch account', 'another account'], answer: 'More, then Sign out at the bottom. Signing out removes the club\'s information from this phone.' },
+  { id: 'tour', keys: ['tutorial', 'tour', 'guide', 'how to use', 'show me', 'paano', 'unsaon', 'help'], answer: 'Pick a "Show me how" guide below this chat. Each one opens the right screen and points at the button to tap.' },
+];

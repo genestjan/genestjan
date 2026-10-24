@@ -112,17 +112,23 @@ try {
   ok((await text()).includes('Try again') && (await text()).includes('Send a new photo'), 'child can resend a task that was sent back');
   await p.goto(B + '/more'); await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
 
-  // a brand new phone: welcome screen, then the tour, once only
+  // a brand new phone: welcome screen, then the "getting started" guide on the real screens, once only
   const fresh = await browser.newContext({ viewport: { width: 390, height: 844 } }); const f = await fresh.newPage();
   await f.goto(B + '/'); await f.getByRole('button', { name: 'Get started' }).waitFor({ timeout: 5000 }).catch(() => undefined); ok((await f.textContent('body')).includes('Welcome to Rangers'), 'new phone sees the welcome screen');
-  await f.getByRole('button', { name: 'Get started' }).click(); await f.waitForTimeout(300);
-  ok((await f.textContent('body')).includes('Step 1 of 6') && (await f.textContent('body')).includes('Your Today screen'), 'the coach tour starts after the welcome');
-  for (let i = 0; i < 5; i++) await f.getByRole('button', { name: 'Next' }).click();
+  await f.getByRole('button', { name: 'Get started' }).click(); await f.waitForTimeout(800);
+  const dlg = () => f.getByRole('dialog', { name: 'Show me how' });
+  ok((await dlg().textContent()).includes('step 1 of 7') && (await dlg().textContent()).includes('Your Today screen') && !(await dlg().textContent()).includes('not on the screen yet'), 'the getting-started guide points at the real Today screen');
+  for (let i = 0; i < 6; i++) { await f.getByRole('button', { name: 'Next' }).click(); await f.waitForTimeout(250); }
+  ok((await dlg().textContent()).includes('Help is always here') && !(await dlg().textContent()).includes('not on the screen yet'), 'the last step points at the Help button');
   await f.getByRole('button', { name: 'Done' }).click(); await f.waitForTimeout(200);
-  ok(!(await f.textContent('body')).includes('Step 1 of 6') && await f.getByRole('dialog').count() === 0, 'tour closes');
-  await f.reload(); await f.waitForTimeout(500); ok(!(await f.textContent('body')).includes('Welcome to Rangers') && await f.getByRole('dialog').count() === 0, 'welcome and tour do not come back');
-  await f.goto(B + '/help'); await f.getByRole('button', { name: 'Replay the app tour' }).click(); await f.waitForTimeout(400);
-  ok(await f.getByRole('dialog').count() === 1, 'the tour can be replayed from Help'); await fresh.close();
+  ok(await f.getByRole('dialog').count() === 0, 'guide closes');
+  await f.reload(); await f.waitForTimeout(500); ok(!(await f.textContent('body')).includes('Welcome to Rangers') && await f.getByRole('dialog').count() === 0, 'welcome and guide do not come back');
+  await f.getByRole('link', { name: 'Help' }).first().click(); await f.waitForURL(/#\/help/);
+  await f.getByLabel('Ask a question').fill('How do I take attendance?'); await f.getByRole('button', { name: 'Ask', exact: true }).click();
+  ok((await f.textContent('body')).includes('Tap Present, Late, Absent or Excused'), 'Help chat answers a how-to question');
+  await f.getByRole('button', { name: 'Show me how' }).first().click(); await f.waitForTimeout(800);
+  ok(/#\/attendance/.test(f.url()) && (await dlg().textContent()).includes('Open today'), 'Show me how opens the right screen with the guide');
+  await f.getByRole('button', { name: 'Close' }).click(); await fresh.close();
 
   // review: publish, parent sees it without the private note; take back hides it
   await p.goto(B + '/review/' + ANA); await p.getByRole('group', { name: 'First touch' }).getByRole('button', { name: 'Got it' }).click();
@@ -145,6 +151,64 @@ try {
   await p.goto(B + '/board'); await p.getByRole('button', { name: 'Give-and-go' }).click(); await p.getByRole('button', { name: '+ Step' }).click(); await p.getByRole('button', { name: 'Save to my library' }).click();
   ok((await text()).includes('(mine)'), 'board move saved to the library'); await shot('board');
   await p.reload(); await p.goto(B + '/squad'); ok((await text()).includes('Nico'), 'data persists after reload');
+
+  // typing in the event form keeps focus (the box used to lose focus after each letter)
+  await p.goto(B + '/event/new'); const title = p.locator('label:has-text("Title") input'); await title.fill(''); await title.pressSequentially('Training at City High', { delay: 5 });
+  ok(await title.inputValue() === 'Training at City High', 'typing letter by letter in the event form works');
+
+  // attendance: start a session now, mark children, see the report
+  await p.goto(B + '/attendance'); await p.getByRole('button', { name: /Start a training session now/ }).click(); await p.waitForURL(/#\/attendance\/[0-9a-f-]{36}/);
+  await p.getByRole('group', { name: 'Ana attendance', exact: true }).getByRole('button', { name: 'Present' }).click();
+  await p.getByRole('group', { name: 'Ben attendance', exact: true }).getByRole('button', { name: 'Late' }).click();
+  await p.getByRole('group', { name: 'Carlo attendance', exact: true }).getByRole('button', { name: 'Excused' }).click();
+  await p.getByRole('button', { name: /Mark everyone not yet marked as present/ }).click();
+  ok(await p.getByRole('group', { name: 'Nico attendance', exact: true }).getByRole('button', { name: 'Present' }).getAttribute('aria-pressed') === 'true', 'attendance: mark individually, then everyone else present');
+  await p.goto(B + '/attendance/report'); ok((await text()).includes('Ana') && (await text()).includes('100%') && (await text()).includes('Download for the school'), 'attendance report per child'); await shot('attendance');
+
+  // recognise in three steps, with undo
+  await p.goto(B + '/recognise'); await p.getByRole('button', { name: /^Ana( ★)?$/ }).click(); await p.getByRole('button', { name: /Teamwork/ }).click(); await p.getByLabel('Why').fill('Passed to Ben when he was free');
+  await p.getByRole('button', { name: 'Recognise Ana' }).click(); ok((await text()).includes('Saved: Ana for Teamwork'), 'recognition saved with a clear confirmation');
+  await p.getByRole('button', { name: 'Undo' }).click(); ok(!(await text()).includes('Passed to Ben when he was free'), 'recognition can be undone');
+  await p.getByRole('button', { name: /^Ana( ★)?$/ }).click(); await p.getByRole('button', { name: /Teamwork/ }).click(); await p.getByLabel('Why').fill('Passed to Ben when he was free'); await p.getByRole('button', { name: 'Recognise Ana' }).click();
+  ok((await text()).includes('Recently recognised'), 'recent recognitions are listed');
+
+  // school team: settings, a District Meet, screening, the Road to Palaro
+  await p.goto(B + '/settings'); await p.getByText('School team (DepEd)').click(); await p.getByText(/^Mixed ages/).click();
+  await p.getByLabel('School', { exact: true }).fill('GSC SPED Integrated School'); await p.getByLabel('Cutoff for Secondary Boys').fill('2009-01-01');
+  await p.goto(B + '/event/new?meet=district'); ok(await p.locator('label:has-text("Title") input').inputValue() === 'District Meet', 'a District Meet link pre-fills the school meet');
+  await p.getByRole('button', { name: 'Save event' }).click(); await p.waitForURL(/#\/schedule/);
+  await p.goto(B + '/pathway'); ok((await text()).includes('District Meet') && (await text()).includes('Coming up') && (await text()).includes('GSC SPED Integrated School'), 'Road to Palaro shows the ladder and the next meet');
+  await p.locator('a', { hasText: /^Ana\b/ }).first().click(); await p.getByLabel('Category').selectOption('Secondary Boys'); await p.getByText('PSA birth certificate', { exact: true }).click();
+  await p.getByRole('button', { name: 'Region XII' }).click();
+  ok((await text()).includes('Age OK'), 'age checked against the DepEd cutoff (birthday from the family)'); await shot('screening');
+  await p.goto(B + '/review/' + ANA); ok((await text()).includes('U12'), 'mixed ages: Ana (11) is reviewed against U12, not the team group');
+
+  // pick the squad for the meet; the team is told and each picked family gets a message
+  await p.goto(B + '/schedule'); await p.getByText('District Meet').first().click(); await p.getByRole('link', { name: 'Pick the squad' }).click();
+  await p.getByLabel('Pick Ana').check(); await p.getByLabel('Pick Dina').check();
+  await p.getByRole('button', { name: 'Save and tell the families' }).click(); ok((await text()).includes('Saved 2 in the squad. Posted to the team. Sent 2 family messages.'), 'squad saved, announced and families messaged'); await shot('squad');
+  await p.goto(B + '/inbox'); ok((await text()).includes('Squad: District Meet') && (await text()).includes('Ana (#1)'), 'squad announcement posted');
+
+  // the family view: squad, screening, ID papers
+  await p.goto(B + '/player/' + ANA); await p.getByRole('button', { name: /Preview as this child/ }).click(); await p.waitForTimeout(300);
+  ok((await text()).includes("Required: Ana's ID papers") && (await text()).includes('Road to Palaro'), 'family home shows the ID papers reminder and the school card');
+  await p.goto(B + '/pathway'); ok((await text()).includes('Still needed: Form 137 / SF10') && (await text()).includes('Selected for: SRAA'), 'family sees what papers are still needed and the selection');
+  await p.goto(B + '/schedule'); await p.getByText('District Meet').first().click(); ok((await text()).includes('Ana is in the squad.'), 'family sees their child is in the squad');
+  await p.goto(B + '/inbox'); await p.getByRole('button', { name: 'Messages' }).click(); await p.getByRole('link', { name: /Message the coach about Ana/ }).click(); ok((await text()).includes('Ana has been picked for District Meet'), 'family received the private squad message');
+  await p.goto(B + '/docs/' + ANA);
+  await p.getByLabel('Take or choose a photo').first().setInputFiles(photo); await p.waitForTimeout(600); await p.getByLabel('Take or choose a photo').first().setInputFiles(photo); await p.waitForTimeout(600);
+  await p.goto(B + '/'); ok(!(await text()).includes("Required: Ana's ID papers"), 'ID papers reminder goes once both photos are in');
+  await p.goto(B + '/help'); await p.getByLabel('Ask a question').fill('kailan ang ensayo?'); await p.getByRole('button', { name: 'Ask', exact: true }).click();
+  ok((await text()).includes('Next: ') || (await text()).includes('Nothing is scheduled yet'), 'family asks in Filipino and gets the next session');
+  await p.goto(B + '/more'); await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
+  await p.goto(B + '/documents'); ok((await text()).includes('Student ID, PSA'), 'coach sees which children have their ID papers');
+
+  // ID photos are deleted when a child leaves the club
+  await p.goto(B + '/docs/20000000-0000-4000-8000-000000000014'); await p.getByLabel('Take or choose a photo').first().setInputFiles(photo); await p.waitForTimeout(600);
+  const mediaCount = () => p.evaluate(() => new Promise((r) => { const q = indexedDB.open('rangers-app'); q.onsuccess = () => { const c = q.result.transaction('media').objectStore('media').count(); c.onsuccess = () => r(c.result); }; }));
+  const before = await mediaCount();
+  p.once('dialog', (d) => d.accept()); await p.goto(B + '/player/20000000-0000-4000-8000-000000000014'); await p.getByRole('button', { name: 'Mark as left the club' }).click(); await p.waitForTimeout(500);
+  ok((await mediaCount()) === before - 1, 'a child\'s ID photo is deleted when they leave the club');
 
   // TV-size Match Day Board
   const tv = await ctx.newPage(); await tv.setViewportSize({ width: 1920, height: 1080 });

@@ -226,6 +226,23 @@ select t.ok(t.state($q$update public.records set data = '{"status":"approved","f
 select t.login('00000000-0000-0000-0000-0000000000b1');
 select t.ok(t.state($q$update public.records set data = '{"status":"submitted","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/q.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '00000' and t.count($q$select count(*) from public.records where id='50000000-0000-0000-0000-000000000002' and data->>'status'='approved'$q$) = 1, 'a parent cannot change a proof the coach already approved');
 
+-- School team settings and screening papers (team_info, eligibility)
+select t.login('00000000-0000-0000-0000-0000000000c1');
+insert into public.records (id,kind,team_id,player_id,visibility,data) values
+ ('60000000-0000-0000-0000-000000000001','team_info','10000000-0000-0000-0000-000000000001',null,'team','{"kind":"school","schoolName":"GSC SPED Integrated School"}'),
+ ('60000000-0000-0000-0000-000000000002','eligibility','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{"category":"Secondary Boys","docs":{"psa":true}}');
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.count($q$select count(*) from public.records where kind in ('team_info','eligibility')$q$) = 2, 'a family sees its team''s school details and its own child''s screening');
+select t.ok(t.state($q$insert into public.records (id,kind,team_id,player_id,visibility,data) values (gen_random_uuid(),'eligibility','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{"docs":{"psa":true,"sf10":true}}')$q$) = '42501', 'a parent cannot tick their own screening papers');
+select t.ok(t.state($q$update public.records set data = '{"selectedFor":["palaro"]}' where id='60000000-0000-0000-0000-000000000002'$q$) = '00000' and t.count($q$select count(*) from public.records where id='60000000-0000-0000-0000-000000000002' and data ? 'selectedFor'$q$) = 0, 'a parent cannot select their own child for a meet');
+select t.ok(t.state($q$insert into public.records (id,kind,team_id,visibility,data) values (gen_random_uuid(),'team_info','10000000-0000-0000-0000-000000000001','team','{}')$q$) = '42501', 'a parent cannot change school team settings');
+select t.login('00000000-0000-0000-0000-0000000000b2');
+select t.ok(t.count($q$select count(*) from public.records where kind = 'eligibility'$q$) = 0, 'another family in the team cannot see a child''s screening');
+select t.login('00000000-0000-0000-0000-0000000000b3');
+select t.ok(t.count($q$select count(*) from public.records where kind in ('team_info','eligibility')$q$) = 0, 'a family in another team sees neither');
+select t.login('00000000-0000-0000-0000-0000000000c2');
+select t.ok(t.state($q$update public.records set data = '{}' where id='60000000-0000-0000-0000-000000000001'$q$) = '00000' and t.count($q$select count(*) from public.records where id='60000000-0000-0000-0000-000000000001'$q$) = 0, 'a coach of another team cannot see or change the school settings');
+
 -- Media bucket
 reset role;
 select t.ok((select file_size_limit from storage.buckets where id='media') = 2097152 and not (select public from storage.buckets where id='media'), 'photo storage is private with a 2 MB limit');

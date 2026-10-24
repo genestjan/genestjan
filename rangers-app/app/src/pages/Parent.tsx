@@ -11,7 +11,11 @@ import { BAND_AGE } from '../lib/sessionBuilder';
 import { statusFor, setAvailability } from './Schedule';
 import { TIPS_PARENTS } from '../content/safety';
 import { growthVelocity } from '../lib/growth';
+import { bandOf, docsMissing, infoFor, isSchoolTeam } from '../lib/school';
 import { DetailsReminder, EmergencyEditor } from '../components/Emergency';
+import { DocsEditor, DocsReminder, docsMissingFor } from '../components/Docs';
+import { activeTeam, teamPlayers } from '../lib/store';
+import { isStaff, useRole } from '../lib/role';
 import { openAssignments } from '../lib/assignments';
 
 export function ParentHome() {
@@ -26,10 +30,12 @@ export function ParentHome() {
       <div className="mb-3 flex items-center gap-3"><img src={CREST.rangers} alt="Rangers FC crest" width={44} height={44} className="h-11 w-11 object-contain" /><p className="display text-2xl text-red">Play with your heart</p></div>
       {kids.length === 0 && <Empty>No child is linked to this account yet. Open the private link your coach sent you.</Empty>}
       {kids.map((k) => { const team = s.teams.find((t) => t.id === k.teamId); return (
-        <Card key={k.id} className="mb-3"><div className="flex items-center justify-between"><div><div className="text-2xl font-semibold">{k.firstName}</div><div className="muted text-sm">{team?.name}{k.number ? ` · #${k.number}` : ''}</div></div><Link to={`/progress/${k.id}`} className="btn px-4">Progress</Link></div></Card>); })}
-      {kids.map((k) => <div key={k.id} className="mb-3"><DetailsReminder p={k} /></div>)}
+        <Card key={k.id} className="mb-3" tour="home-child"><div className="flex items-center justify-between"><div><div className="text-2xl font-semibold">{k.firstName}</div><div className="muted text-sm">{team?.name}{k.number ? ` · #${k.number}` : ''}</div></div><Link to={`/progress/${k.id}`} className="btn px-4">Progress</Link></div></Card>); })}
+      {kids.map((k) => <div key={k.id} className="mb-3 grid gap-3"><DocsReminder p={k} /><DetailsReminder p={k} /></div>)}
+      {kids.filter((k) => isSchoolTeam(s.teamInfo, k.teamId)).map((k) => { const el = s.eligibility.find((x) => x.playerId === k.id); const miss = docsMissing(el); return (
+        <Link key={k.id} to="/pathway" className="card mb-3 block p-4"><div className="text-xl font-semibold">Road to Palaro</div><div className="muted">{el?.selectedFor?.length ? `${k.firstName} is selected for the next level. ` : ''}{miss.length ? `School screening: ${miss.length} paper${miss.length === 1 ? '' : 's'} still needed for ${k.firstName}.` : `${k.firstName}'s screening papers are ready.`}</div></Link>); })}
       {todo > 0 && <Link to="/tasks" className="card mb-3 block p-4"><div className="text-xl font-semibold">{todo} task{todo === 1 ? '' : 's'} from your coach</div><div className="muted">Tap to see the list and send your photos.</div></Link>}
-      {next && (<><H2>Next up</H2><Card className="grid gap-3"><div><div className="text-2xl font-semibold">{next.title}</div><div className="muted">{fmtDateTime(next.startsAt)} · {next.venue}</div></div>
+      {next && (<><H2>Next up</H2><Card className="grid gap-3" tour="rsvp"><div><div className="text-2xl font-semibold">{next.title}</div><div className="muted">{fmtDateTime(next.startsAt)} · {next.venue}</div></div>
         {kids.filter((k) => k.teamId === next.teamId).map((k) => { const st = statusFor(s, next, k.id); return (
           <div key={k.id} className="flex items-center gap-2"><span className="min-w-14 font-semibold">{k.firstName}</span>{(['going', 'maybe', 'no'] as const).map((v) => <button key={v} className={`btn flex-1 px-2 ${st === v ? '' : 'ghost'}`} aria-pressed={st === v} onClick={() => setAvailability(s, next.id, k.id, v, 'parent')}>{v === 'going' ? 'Going' : v === 'maybe' ? 'Maybe' : 'Not going'}</button>)}</div>); })}
         <EventWeather e={next} compact /><Link to={`/event/${next.id}`} className="btn ghost">Details and map</Link></Card></>)}
@@ -44,7 +50,7 @@ export function ProgressPage({ playerId }: { playerId?: string }) {
   const k = kids.find((x) => x.id === playerId) ?? kids[0];
   if (!k) return <Page title="Progress"><Empty>No child linked yet.</Empty></Page>;
   const team = s.teams.find((t) => t.id === k.teamId) ?? s.teams[0];
-  const skills = RUBRIC[team.ageBand];
+  const skills = RUBRIC[bandOf(k, team, infoFor(s.teamInfo, team.id))];
   const pubs = s.assessments.filter((a) => a.playerId === k.id && a.publishedAt).sort((a, b) => a.term.localeCompare(b.term));
   const cur = pubs[pubs.length - 1]; const prev = pubs[pubs.length - 2];
   const sum = cur ? summarise(skills, cur, prev) : null;
@@ -67,7 +73,7 @@ export function ProgressPage({ playerId }: { playerId?: string }) {
       <H2>Goal</H2><Card className="grid gap-1">{goals.length === 0 ? <p className="muted">Your coach will help {k.firstName} choose a goal.</p> : goals.map((x) => <p key={x.id} className={x.status === 'done' ? 'line-through' : ''}>{x.text}{x.status === 'done' && ' (done!)'}</p>)}</Card>
       <H2>Badges and recognition</H2>
       <Card className="grid gap-2"><div className="flex flex-wrap gap-2">{badges.map((b) => <span key={b.id} className="rounded-full border px-3 py-1" style={{ borderColor: 'var(--line)' }}>{b.badgeKey}</span>)}{badges.length === 0 && <span className="muted">Badges appear when {k.firstName} learns a new move.</span>}</div>
-        {recs.length > 0 && <p className="text-sm">Recognised for: {[...new Set(recs.map((r) => r.valueKey))].join(', ')}</p>}</Card>
+        {recs.length > 0 && <div className="grid gap-1 text-sm">{[...recs].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 5).map((r) => <p key={r.id}>Recognised for <b>{r.valueKey}</b>{r.note ? `: "${r.note}"` : ''}</p>)}</div>}</Card>
       <H2>Attendance and playing time</H2>
       <Card className="grid gap-1"><p>{att.length ? `Came to ${came} of ${att.length} recorded sessions.` : 'Attendance shows here once the coach starts recording it.'}</p>{mins.slice(0, 5).map((m) => <p key={m.id} className="text-sm">{m.date}, {m.name}: {m.minutes} min</p>)}{mins.length === 0 && <p className="muted text-sm">Match minutes show here after each game.</p>}</Card>
       {g.status === 'spurt' && <><H2>Growth</H2><Card>{k.firstName} is in a growth spurt. Clumsiness is normal and temporary. Coaches are easing off jumping and sprinting. Tell the coach about any knee or heel pain.</Card></>}
@@ -85,7 +91,37 @@ export function DetailsPage() {
     <Page title={`${p.firstName}'s details`} back={<Back to="/" />}>
       {kids.length > 1 && <div className="mb-3 flex flex-wrap gap-2">{kids.map((x) => <Link key={x.id} to={`/details/${x.id}`} className={`btn px-4 ${x.id === k.id ? '' : 'ghost'}`}>{x.firstName}</Link>)}</div>}
       <p className="mb-3">Please fill in what you can. Changes save as you type.</p>
-      <Card><EmergencyEditor p={p} /></Card>
+      <Card tour="details-form"><EmergencyEditor p={p} /></Card>
+    </Page>
+  );
+}
+
+/** ID papers for one child: the family adds them after joining; coaches can add them too. */
+export function DocsPage() {
+  const { id } = useParams(); const s = useAppState(); const kids = useMyChildren(); const staff = isStaff(useRole());
+  const p = s.players.find((x) => x.id === id && (staff || kids.some((k) => k.id === x.id)));
+  if (!p) return <Page title="ID papers"><Empty>This child is not linked to your account.</Empty></Page>;
+  return (
+    <Page title={`${p.firstName}'s ID papers`} back={<Back to={staff ? `/player/${p.id}` : '/'} />}>
+      <p className="mb-3">Tournament and school-meet organisers check age and enrolment, so the coach needs to show these on the day.</p>
+      <DocsEditor p={p} />
+      {!staff && docsMissingFor(p).length > 0 && <Link to="/" className="btn ghost mt-4 w-full">I do not have them with me: remind me later</Link>}
+      {!staff && docsMissingFor(p).length === 0 && <Link to="/" className="btn mt-4 w-full">Done</Link>}
+    </Page>
+  );
+}
+
+/** Coach: everyone's ID papers in one place, for tournament check-in. */
+export function TeamDocs() {
+  const s = useAppState(); const team = activeTeam(s); const kids = teamPlayers(s);
+  const missing = kids.filter((k) => docsMissingFor(k).length);
+  return (
+    <Page title="ID papers" back={<Back to="/" />}>
+      <p className="mb-3">{team.name}: {kids.length - missing.length} of {kids.length} children have both papers.{missing.length ? ' Missing ones are listed first.' : ''}</p>
+      <div className="grid gap-2">{[...missing, ...kids.filter((k) => !missing.includes(k))].map((k) => { const m = docsMissingFor(k); return (
+        <Link key={k.id} to={`/docs/${k.id}`} className="card flex items-center justify-between p-4"><span className="text-lg font-semibold">{k.firstName}{k.number ? ` #${k.number}` : ''}</span>
+          <span className={`text-sm ${m.length ? 'text-red' : ''}`}>{m.length === 0 ? 'Student ID, PSA' : m.length === 2 ? 'Both missing' : m[0] === 'studentId' ? 'Student ID missing' : 'PSA missing'}</span></Link>); })}</div>
+      <p className="muted mt-3 text-sm">These need an internet connection to open. At a venue with weak signal, open each one before you leave home.</p>
     </Page>
   );
 }

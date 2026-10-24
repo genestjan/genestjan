@@ -1,4 +1,8 @@
-import { tourRole, useTour } from '../lib/onboarding';
+import { HelpChat } from '../components/HelpChat';
+import { guidesFor } from '../content/guides';
+import { startGuide } from '../lib/guide';
+import { isSchoolTeam } from '../lib/school';
+import { SchoolSettings } from './School';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Back, Card, H2, Page } from '../components/ui';
@@ -18,8 +22,8 @@ export default function More() {
   return (
     <Page title="More">
       <div className="grid gap-2">
-        {staff ? (<><L to="/match">Matches</L><L to="/board">Tactics board</L><L to="/safety">Safety: head knock, heat, thunder</L><L to="/recognise">Recognise a child</L><L to="/review">Term reviews</L><L to="/motivation">Motivation corner</L><L to="/support">Club support: fund, boots, contributions</L><L to="/settings">Settings and club admin</L><L to="/help">Match day help</L></>)
-          : (<><L to="/tasks">Tasks from the coach</L>{myKids.map((k) => <L key={k.id} to={`/details/${k.id}`}>{k.firstName}'s details and health information</L>)}<L to="/support">Club support</L><L to="/privacy">Privacy and my child's information</L><L to="/tips">Tips for parents</L><L to="/help">Help</L></>)}
+        {staff ? (<><L to="/attendance">Attendance</L><L to="/pathway">Road to Palaro (school teams)</L><L to="/documents">ID papers</L><L to="/match">Matches</L><L to="/board">Tactics board</L><L to="/safety">Safety: head knock, heat, thunder</L><L to="/recognise">Recognise a child</L><L to="/review">Term reviews</L><L to="/motivation">Motivation corner</L><L to="/support">Club support: fund, boots, contributions</L><L to="/settings">Settings and club admin</L><L to="/help">Match day help</L></>)
+          : (<><L to="/tasks">Tasks from the coach</L>{myKids.map((k) => <L key={k.id} to={`/details/${k.id}`}>{k.firstName}'s details and health information</L>)}{myKids.map((k) => <L key={'d' + k.id} to={`/docs/${k.id}`}>{k.firstName}'s ID papers</L>)}{myKids.some((k) => isSchoolTeam(s.teamInfo, k.teamId)) && <L to="/pathway">Road to Palaro</L>}<L to="/support">Club support</L><L to="/privacy">Privacy and my child's information</L><L to="/tips">Tips for parents</L><L to="/help">Help</L></>)}
         {!cloudEnabled && staff && <button className="btn ghost" onClick={() => { update((x) => ({ ...x, previewChildId: x.players[0]?.id })); nav('/'); }}>Preview the parent app</button>}
         {!cloudEnabled && s.previewChildId && <button className="btn" onClick={() => { update((x) => ({ ...x, previewChildId: undefined })); nav('/'); }}>Back to the coach app</button>}
         {cloudEnabled && <button className="btn ghost" onClick={() => signOut()}>Sign out ({cloud.email})</button>}
@@ -33,14 +37,19 @@ export function Tips() {
   return <Page title="Tips" back={<Back to="/more" />}><Card><ul className="grid gap-3 text-lg">{TIPS_PARENTS.map((t) => <li key={t}>{t}</li>)}</ul></Card></Page>;
 }
 export function Help() {
-  const role = useRole(); const tour = useTour(tourRole(role)); const nav = useNavigate();
+  const role = useRole(); const r = role === 'parent' ? 'parent' : 'coach';
   return (
     <Page title="Help" back={<Back to="/more" />}>
+      <H2>Ask a question</H2>
+      <HelpChat role={r} />
+      <H2>Show me how</H2>
+      <p className="muted mb-2 text-sm">Each guide opens the right screen and points at the button to tap.</p>
+      <div className="grid gap-2">{guidesFor(r).map((g) => <button key={g.id} className="btn ghost justify-start text-left" onClick={() => startGuide(g.id)}>{g.title}</button>)}</div>
+      {r === 'coach' && <><H2>More help</H2>
       <Card className="grid gap-3"><h2 className="text-2xl">Match day in five steps</h2>
         <ol className="list-decimal pl-5"><li>Matches, New match: pick the format, periods and how often you sub.</li><li>Tick who is here. Check the minutes plan. Lock a keeper if you want.</li><li>Show the kids: lineup, our 3 keys, the move, values. Swipe through.</li><li>Kick off. The phone buzzes before each sub. Tap a child on the pitch, then a child on the bench to swap.</li><li>Half-time: ask them first what is working. After the match, celebrate, win or lose.</li></ol>
         <h2 className="text-2xl">Showing the board on a TV</h2><ul className="list-disc pl-5"><li>Hold the tablet up: simplest for small groups. Use Sun mode outdoors.</li><li>HDMI: USB-C to HDMI adapter and cable. Most reliable, no internet needed.</li><li>Screen mirroring to a smart TV or casting stick on the same Wi-Fi.</li><li>TV link: open this app's address followed by /tv on the TV, then type the code shown on your phone.</li></ul>
-        <h2 className="text-2xl">Tour</h2><button className="btn ghost" onClick={() => { tour.replay(); nav('/'); }}>Replay the app tour</button>
-        <h2 className="text-2xl">Add to the home screen</h2><p>Android Chrome: three dots, Add to Home screen. iPhone: open in Safari (not inside Messenger), Share, Add to Home Screen. Reminders on iPhone only work after this.</p></Card>
+        <h2 className="text-2xl">Add to the home screen</h2><p>Android Chrome: three dots, Add to Home screen. iPhone: open in Safari (not inside Messenger), Share, Add to Home Screen. Reminders on iPhone only work after this.</p></Card></>}
     </Page>
   );
 }
@@ -58,6 +67,8 @@ export function Settings() {
       <H2>You</H2><Card><label className="grid gap-1 text-sm font-semibold">Name shown on your messages<input className="field" value={s.me.name} onChange={(e) => update((x) => ({ ...x, me: { ...x.me, name: e.target.value } }))} /></label></Card>
       <H2>Teams</H2>
       <Card className="grid gap-2">{s.teams.map((t) => <div key={t.id} className="flex items-center justify-between gap-2"><span>{t.name} <span className="muted text-sm">({PROGRAMMES[t.programme].short}, {t.ageBand}, {t.defaultFormat})</span></span><button className={`btn min-h-[44px] px-3 text-sm ${t.id === team.id ? '' : 'ghost'}`} onClick={() => update((x) => ({ ...x, activeTeamId: t.id }))}>{t.id === team.id ? 'Active' : 'Use'}</button></div>)}
+        <h3 className="mt-2 text-2xl">School team settings for {team.name}</h3>
+        <SchoolSettings teamId={team.id} />
         <h3 className="mt-2 text-2xl">Rename the active team</h3>
         <input className="field" aria-label="Active team name" value={team.name} onChange={(e) => put('teams', { ...team, name: e.target.value })} />
         <h3 className="mt-2 text-2xl">Add a team</h3><input className="field" placeholder="Team name, e.g. Gila U12" aria-label="Team name" value={tn} onChange={(e) => setTn(e.target.value)} />

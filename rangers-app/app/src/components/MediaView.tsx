@@ -21,18 +21,18 @@ export function YouTube({ id }: { id: string }) {
 }
 
 /** One button that opens the phone's camera or photos, checks and shrinks the photo, uploads it, and returns the stored path. */
-export function MediaPicker({ label, pathFor, onSaved, disabled }: { label: string; pathFor: (p: Prepared) => string; onSaved: (path: string) => void; disabled?: boolean }) {
+export function MediaPicker({ label, pathFor, onSaved, disabled, quality, ghost }: { label: string; pathFor: (p: Prepared) => string; onSaved: (path: string) => void; disabled?: boolean; quality?: { edge?: number; target?: number }; ghost?: boolean }) {
   const ref = useRef<HTMLInputElement>(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState('');
   const pick = async (f: File | undefined) => {
     if (!f) return; setErr(''); setBusy(true);
-    try { const p = await prepare(f); const path = await saveMedia(p, pathFor(p)); onSaved(path); }
+    try { const p = await prepare(f, quality); const path = await saveMedia(p, pathFor(p)); onSaved(path); }
     catch (e) { setErr((e as Error).message); }
     setBusy(false); if (ref.current) ref.current.value = '';
   };
   return (
     <div className="grid gap-1">
       <input ref={ref} type="file" accept="image/*" className="sr-only" aria-label={label} onChange={(e) => void pick(e.target.files?.[0])} />
-      <button className="btn" disabled={busy || disabled} onClick={() => ref.current?.click()}>{busy ? 'Sending... please wait' : label}</button>
+      <button className={`btn ${ghost ? 'ghost' : ''}`} disabled={busy || disabled} onClick={() => ref.current?.click()}>{busy ? 'Sending... please wait' : label}</button>
       {err && <p role="alert" className="text-sm text-red">{err}</p>}
     </div>
   );

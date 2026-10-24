@@ -34,7 +34,7 @@ export function Tasks() {
 function TaskCard({ a }: { a: Assignment }) {
   const s = useAppState(); const pr = progress(a, s.submissions);
   return (
-    <Link to={`/tasks/${a.id}`} className="card block p-4">
+    <Link to={`/tasks/${a.id}`} className="card block p-4" data-tour="task-card">
       <div className="text-2xl font-semibold">{a.title}</div>
       <div className="muted">{pr.sent} of {pr.total} sent{a.dueOn ? ` · due ${fmtDate(a.dueOn)}` : ''}</div>
       {pr.redo > 0 && <div className="mt-1 font-semibold text-red">{pr.redo} to try again</div>}
@@ -69,7 +69,7 @@ function TaskRow({ a, n, taskId, text, sub }: { a: Assignment; n: number; taskId
   };
   const state = !sub ? 'To do' : sub.status === 'approved' ? 'Approved' : sub.status === 'redo' ? 'Try again' : 'Sent';
   return (
-    <Card className="grid gap-2">
+    <Card className="grid gap-2" tour={n === 1 ? 'add-photo' : undefined}>
       <div className="flex items-start justify-between gap-3"><div className="text-lg font-semibold">{n}. {text}</div><span className={`shrink-0 rounded-full border px-3 py-1 text-sm ${sub && sub.status !== 'redo' ? 'font-semibold text-red' : ''}`} style={{ borderColor: 'var(--line)' }}>{state}</span></div>
       {sub?.feedback && <p className="rounded-xl p-2" style={{ background: 'var(--line)' }}>Coach: {sub.feedback}</p>}
       {sub && <MediaView path={sub.mediaPath} version={sub.at} />}

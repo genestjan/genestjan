@@ -87,26 +87,26 @@ export function Join() {
   }, [c.status]);
   if (c.status === 'off') return <Page title="Join"><Card><p>Online accounts are not switched on for this app yet. Ask your coach.</p></Card></Page>;
   if (c.status === 'signed-out') return <Login joining />;
-  if (child) return <ConsentStep childName={child} onDone={() => nav('/', { replace: true })} />;
+  if (child) return <ConsentStep childName={child} onDone={(kidId) => nav(kidId ? `/docs/${kidId}` : '/', { replace: true })} />;
   return <Page title="Joining"><Card>{msg ? <p className="text-xl">{msg}</p> : err ? <p role="alert" className="text-red">{err}</p> : <p>Checking your invite...</p>}</Card></Page>;
 }
 
-export const NOTICE_VERSION = '2026-10-v2';
+export const NOTICE_VERSION = '2026-10-v3';
 /** Shown once after a parent links a child: the privacy notice and the consent choices, stored with the notice version. */
-function ConsentStep({ childName, onDone }: { childName: string; onDone: () => void }) {
+function ConsentStep({ childName, onDone }: { childName: string; onDone: (kidId?: string) => void }) {
   const s = useAppState(); const kid = s.players.find((p) => p.firstName === childName) ?? s.players[0];
   const [data, setData] = useState(false); const [photo, setPhoto] = useState(false); const [video, setVideo] = useState(false); const [busy, setBusy] = useState(false); const [err, setErr] = useState('');
   const save = async () => {
     if (!kid) { onDone(); return; }
     setBusy(true); setErr('');
-    try { await setConsent(kid.id, 'data', true, NOTICE_VERSION); await setConsent(kid.id, 'photo', photo, NOTICE_VERSION); await setConsent(kid.id, 'video', video, NOTICE_VERSION); await syncNow(); onDone(); }
+    try { await setConsent(kid.id, 'data', true, NOTICE_VERSION); await setConsent(kid.id, 'photo', photo, NOTICE_VERSION); await setConsent(kid.id, 'video', video, NOTICE_VERSION); await syncNow(); onDone(kid.id); }
     catch (e) { setErr((e as Error).message); setBusy(false); }
   };
   return (
     <Page title={`Welcome, ${childName}'s family`}>
       <Card className="mb-3 grid gap-2"><PrivacyText /></Card>
       <Card className="grid gap-3">
-        <label className="flex items-start gap-3"><input type="checkbox" className="mt-1 h-6 w-6" checked={data} onChange={(e) => setData(e.target.checked)} /><span><b>I agree</b> to the club using {childName}'s information as described above. (Needed to use the app.)</span></label>
+        <label className="flex items-start gap-3"><input type="checkbox" className="mt-1 h-6 w-6" checked={data} onChange={(e) => setData(e.target.checked)} /><span><b>I agree</b> to the club using {childName}'s information as described above, including keeping a photo of their student ID and PSA birth certificate. (Needed to use the app.)</span></label>
         <label className="flex items-start gap-3"><input type="checkbox" className="mt-1 h-6 w-6" checked={photo} onChange={(e) => setPhoto(e.target.checked)} /><span>Show {childName}'s photo on team screens. (Optional, you can change this later.)</span></label>
         <label className="flex items-start gap-3"><input type="checkbox" className="mt-1 h-6 w-6" checked={video} onChange={(e) => setVideo(e.target.checked)} /><span>Coaches may use video of {childName} in the club's drill library. (Optional.)</span></label>
         <button className="btn h-14" disabled={!data || busy} onClick={save}>Continue</button>
@@ -120,9 +120,9 @@ export function PrivacyText() {
   return (<>
     <h2 className="text-2xl">How we look after your child's information</h2>
     <p>The Rangers App is run by volunteers of Rangers Football Club (with FC New Mabu and Gila Academy) to organise training and matches. It is free and has no ads.</p>
-    <p><b>What we keep:</b> your name and email; your child's name, birth date, shirt number and team; attendance, playing time and football progress; your child's address, phone number and the health details you choose to give (emergency contacts, medication, allergies, inhaler, injuries at the club, height for growth spurts); photos your child sends as proof for tasks from the coach; a photo of your child on team screens only if you say yes.</p>
+    <p><b>What we keep:</b> your name and email; your child's name, birth date, shirt number and team; attendance, playing time and football progress; your child's address, phone number and the health details you choose to give (emergency contacts, medication, allergies, inhaler, injuries at the club, height for growth spurts); photos your child sends as proof for tasks from the coach; a photo of your child's student ID and PSA birth certificate, which tournament and school-meet organisers ask the coach to show; for school teams, which DepEd screening papers are ready (not the papers themselves); a photo of your child on team screens only if you say yes.</p>
     <p><b>Who sees it:</b> your child's coaches and the club admins. You see only your own child. Other parents never see your child's reviews, health information or contributions. Kids' screens show first names and shirt numbers only.</p>
-    <p><b>How long:</b> while your child is with the club, then deleted 12 months after they leave. We never sell or share it.</p>
+    <p><b>How long:</b> while your child is with the club, then deleted 12 months after they leave. Photos of ID papers are deleted as soon as your child leaves. We never sell or share it.</p>
     <p><b>Your rights:</b> change photo and video permission any time, download, correct or ask us to delete your child's information (More, Privacy). Contact Coach James, +63 993 291 0764.</p>
     <details><summary className="underline">Basahin sa Filipino</summary><p className="mt-2">Ang Rangers App ay pinapatakbo ng mga volunteer ng Rangers Football Club para ayusin ang training at mga laro. Libre ito at walang ads. Ang mga coach at admin lang ng club ang makakakita ng impormasyon ng inyong anak; kayo lang ang makakakita ng sa inyong anak. Buburahin ito 12 buwan pagkatapos umalis ang bata. Puwede ninyong baguhin ang pahintulot sa litrato, i-download, itama o ipabura ang impormasyon anumang oras.</p></details>
   </>);
