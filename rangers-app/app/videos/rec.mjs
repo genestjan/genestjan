@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 export const V = path.dirname(new URL(import.meta.url).pathname);
-const DIST = path.join(V, 'dist');                                   // APP_BASE=/app/ npx vite build --mode e2e --outDir videos/dist
 export const SITE = process.env.SITE_DIR || '/home/user/rangersfc';   // a checkout of the club website (crest, club photo, live sign-in page)
 export const ORIGIN = 'http://localhost:4611';
 export const APP = ORIGIN + '/app/#';
@@ -20,10 +19,19 @@ export const NOW = new Date('2026-10-24T15:30:00+08:00');   // a Saturday aftern
 const H = 240, base = Date.parse('2026-10-23T12:00:00Z');
 const hourly = (t, h) => ({ hourly: { time: Array.from({ length: H }, (_, i) => new Date(base + i * 3600e3).toISOString().slice(0, 13) + ':00'), temperature_2m: Array(H).fill(t), relative_humidity_2m: Array(H).fill(h), precipitation_probability: Array(H).fill(10), weather_code: Array(H).fill(1), cape: Array(H).fill(0) } });
 
-export async function launch() {
-  const browser = await chromium.launch({ executablePath: exe });
-  const ctx = await browser.newContext({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2, serviceWorkers: 'block', locale: 'en-PH', timezoneId: 'Asia/Manila', hasTouch: false });
-  await ctx.clock.install({ time: NOW });
+/** opts.dist: which build to film ('dist' = on-device demo, 'dist-cloud' = signed in to the local test server).
+ *  opts.clock: false keeps real time (needed with a real server, so sign-in times agree). */
+export async function launch(opts = {}) {
+  // Pages here are served by the recorder itself, so Chrome would treat them as public and refuse calls to the local test server.
+  const browser = await chromium.launch({ executablePath: exe, args: ['--disable-features=LocalNetworkAccessChecks,BlockInsecurePrivateNetworkRequests,PrivateNetworkAccessRespectPreflightResults'] });
+  const ctx = await makeContext(browser, opts);
+  return { browser, ctx };
+}
+/** A browser profile with the app served locally. Extra profiles stand for other people (a coach, a parent). */
+export async function makeContext(browser, opts = {}) {
+  const DIST = path.join(V, opts.dist ?? 'dist');
+  const ctx = await browser.newContext({ viewport: opts.viewport ?? { width: 540, height: 960 }, deviceScaleFactor: 2, serviceWorkers: 'block', locale: 'en-PH', timezoneId: 'Asia/Manila', hasTouch: false });
+  if (opts.clock !== false) await ctx.clock.install({ time: NOW });
   await ctx.addInitScript(() => { try { if (location.hostname === 'localhost' && location.pathname.startsWith('/app/')) for (const k of ['welcome', 'tour-coach', 'tour-parent']) localStorage.setItem('rangers-' + k, '1'); } catch { /* ignore */ } });
   // The on-device preview shows a "Preview" strip that real families never see; hide it on film.
   await ctx.addInitScript(() => { if (location.hostname !== 'localhost' || !location.pathname.startsWith('/app/')) return; const hide = () => { for (const d of document.querySelectorAll('div.bg-crest')) if (d.textContent?.startsWith('Preview: this is what a parent sees')) d.style.display = 'none'; }; new MutationObserver(hide).observe(document, { childList: true, subtree: true }); });
@@ -40,7 +48,7 @@ export async function launch() {
   await ctx.route('https://rangersfc.net/**', (r) => serve(r, path.join(SITE, decodeURIComponent(new URL(r.request().url()).pathname))));
   await ctx.route('**/api.open-meteo.com/**', (r) => r.fulfill({ json: hourly(30, 62) }));
   await ctx.route('**/*.supabase.co/**', (r) => r.abort());
-  return { browser, ctx };
+  return ctx;
 }
 
 /** A recorder bound to one stage page. Every helper waits so a viewer can follow. */
