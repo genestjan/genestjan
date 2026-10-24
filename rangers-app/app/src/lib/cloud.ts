@@ -1,16 +1,17 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { applyRows, isDemoId, isUuid, rowJson, toRows, type RowIn } from './syncMap';
 import { db, getState, migrate, onChange, update, type AppState } from './store';
 import type { Player } from './model';
+import type { FeedbackKind } from './feedback';
 
 const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const cloudEnabled = Boolean(URL && KEY);
 
 export type CloudStatus = 'off' | 'loading' | 'signed-out' | 'no-role' | 'pending' | 'local-choice' | 'ready';
-export interface CloudState { status: CloudStatus; role: 'admin' | 'coach' | 'parent' | null; email: string; userId: string; error: string; syncing: boolean; lastSync: number; offline: boolean }
-let cs: CloudState = { status: cloudEnabled ? 'loading' : 'off', role: null, email: '', userId: '', error: '', syncing: false, lastSync: 0, offline: false };
+export interface CloudState { status: CloudStatus; role: 'admin' | 'coach' | 'parent' | null; email: string; userId: string; error: string; syncing: boolean; lastSync: number; offline: boolean; /** reads the club's feedback (admins and chosen readers) */ reader: boolean }
+let cs: CloudState = { status: cloudEnabled ? 'loading' : 'off', role: null, email: '', userId: '', error: '', syncing: false, lastSync: 0, offline: false, reader: false };
 const subs = new Set<() => void>();
 const set = (p: Partial<CloudState>) => { cs = { ...cs, ...p }; subs.forEach((f) => f()); };
 export const getCloud = () => cs;
@@ -41,12 +42,20 @@ export async function init() {
   onChange((_p, _n, origin) => { if (origin === 'local') schedulePush(); });
 }
 
+/** Last role this phone had, per person. When it goes down (admin steps down, a coach is removed), the phone forgets
+ *  what it may no longer see and fetches again. */
+const ACCESS = 'rangers-last-role'; const RANK: Record<string, number> = { admin: 3, coach: 2, parent: 1 };
+function lostAccess(user: string, role: string | null): boolean {
+  try { const [u, r] = (localStorage.getItem(ACCESS) ?? '').split(':'); return u === user && (RANK[r] ?? 0) > (RANK[role ?? ''] ?? 0); } catch { return false; }
+}
+const keepAccess = (user: string, role: string) => { try { localStorage.setItem(ACCESS, `${user}:${role}`); } catch { /* private mode */ } };
 async function onSession(session: Session | null) {
-  if (!session) { set({ status: 'signed-out', role: null, email: '', userId: '' }); return; }
+  if (!session) { set({ status: 'signed-out', role: null, email: '', userId: '', reader: false }); return; }
   const c = await sb();
-  const { data, error } = await c.rpc('my_role');
+  const [{ data, error }, rd] = await Promise.all([c.rpc('my_role'), c.rpc('is_feedback_reader')]);
   const role = (data as string | null) ?? null;
-  const base = { email: session.user.email ?? '', userId: session.user.id, error: error?.message ?? '' };
+  const base = { email: session.user.email ?? '', userId: session.user.id, error: error?.message ?? '', reader: rd.data === true };
+  if (!error && lostAccess(session.user.id, role === 'pending' ? null : role)) { wipeLocal(); keepAccess(session.user.id, role ?? 'none'); }
   if (!role) { set({ ...base, status: 'no-role', role: null }); return; }
   if (role === 'pending') { set({ ...base, status: 'pending', role: null }); return; }
   // Never show one person's data to another on a shared phone: a different account, or a parent signing in
@@ -70,7 +79,7 @@ export async function resolveLocalChoice(keep: boolean) {
   await finishSignIn(session, cs.role ?? 'coach', { email: cs.email, userId: cs.userId, error: '' });
 }
 async function finishSignIn(session: Session, role: string, base: { email: string; userId: string; error: string }) {
-  set({ ...base, status: 'ready', role: role as CloudState['role'] });
+  set({ ...base, status: 'ready', role: role as CloudState['role'] }); keepAccess(session.user.id, role);
   const fallback = (session.user.user_metadata?.full_name as string | undefined) ?? (session.user.email ?? 'Me').split('@')[0];
   update((s) => ({ ...s, me: { ...s.me, userId: session.user.id, name: s.me.name === 'Coach' || !s.me.userId ? fallback : s.me.name } }), 'remote');
   await syncNow(); void subscribeRealtime();
@@ -121,14 +130,42 @@ export async function claimAdmin() { const c = await sb(); const { error } = awa
 export async function redeemInvite(token: string): Promise<string> { const c = await sb(); const { data, error } = await c.rpc('redeem_invite', { t: token }); if (error) throw error; await onSession((await c.auth.getSession()).data.session); return data as string; }
 export async function createFamilyInvite(playerId: string): Promise<string> { await pushNow(); const c = await sb(); const { data, error } = await c.rpc('create_family_invite', { p: playerId }); if (error) throw error; return data as string; }
 export async function createCoachInvite(): Promise<string> { const c = await sb(); const { data, error } = await c.rpc('create_coach_invite'); if (error) throw error; return data as string; }
+export async function createAdminInvite(): Promise<string> { const c = await sb(); const { data, error } = await c.rpc('create_admin_invite'); if (error) throw error; return data as string; }
+/** Takes admin rights away (they stay a coach); u = yourself to step down. The club always keeps one admin. */
+export async function removeAdmin(u: string) { const c = await sb(); const { error } = await c.rpc('remove_admin', { u }); if (error) throw error; if (u === cs.userId) await onSession((await c.auth.getSession()).data.session); }
+/** A coach who left: off every team (a parent in the club keeps their own children). */
+export async function removeMember(u: string) { const c = await sb(); const { error } = await c.rpc('remove_member', { u }); if (error) throw error; }
+export async function removeStaff(u: string, t: string) { const c = await sb(); const { error } = await c.rpc('remove_staff', { u, t }); if (error) throw error; }
+export interface Feedback { id: string; user_id: string; name: string; role: string; kind: FeedbackKind; rating: number | null; message: string; page: string; status: 'new' | 'seen' | 'done'; created_at: string }
+export async function sendFeedback(kind: FeedbackKind, message: string, rating: number | null, page: string) {
+  const c = await sb(); const { error } = await c.rpc('send_feedback', { k: kind, msg: message, stars: rating, where_in: page }); if (error) throw error;
+}
+/** Readers get everyone's feedback; anyone else gets only what they sent. Newest first. */
+export async function listFeedback(): Promise<Feedback[]> { const c = await sb(); const { data, error } = await c.from('feedback').select('*').order('created_at', { ascending: false }).limit(300); if (error) throw error; return (data ?? []) as Feedback[]; }
+export async function setFeedbackStatus(id: string, status: Feedback['status']) { const c = await sb(); const { error } = await c.from('feedback').update({ status }).eq('id', id); if (error) throw error; }
+/** How many feedback messages wait for the readers (0 for everyone else). Refreshes when the app comes back to the front. */
+export function useNewFeedback(): number {
+  const c = useCloud(); const [n, setN] = useState(0);
+  useEffect(() => {
+    if (c.status !== 'ready' || !c.reader) { setN(0); return; }
+    const load = () => { newFeedbackCount().then(setN).catch(() => {}); }; load();
+    const vis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', vis); return () => document.removeEventListener('visibilitychange', vis);
+  }, [c.status, c.reader]);
+  return n;
+}
+export async function newFeedbackCount(): Promise<number> { const c = await sb(); const { count } = await c.from('feedback').select('id', { count: 'exact', head: true }).eq('status', 'new'); return count ?? 0; }
+export async function feedbackReaders(): Promise<string[]> { const c = await sb(); const { data } = await c.from('feedback_readers').select('user_id'); return ((data ?? []) as { user_id: string }[]).map((x) => x.user_id); }
+export async function setFeedbackReader(u: string, keep: boolean) { const c = await sb(); const { error } = await c.rpc('set_feedback_reader', { u, keep }); if (error) throw error; if (u === cs.userId) await onSession((await c.auth.getSession()).data.session); }
 export async function approveMember(u: string, ok: boolean) { const c = await sb(); const { error } = await c.rpc('approve_member', { u, approve: ok }); if (error) throw error; }
 export async function assignStaff(u: string, t: string, head: boolean) { const c = await sb(); const { error } = await c.rpc('assign_staff', { u, t, is_head: head }); if (error) throw error; }
-export interface Member { user_id: string; role: string; status: string; name: string }
+export interface Member { user_id: string; role: string; status: string; name: string; teams: { team_id: string; head: boolean }[] }
 export async function listMembers(): Promise<Member[]> {
   const c = await sb();
-  const [{ data: m }, { data: p }] = await Promise.all([c.from('memberships').select('*'), c.from('profiles').select('id, display_name')]);
+  const [{ data: m }, { data: p }, { data: st }] = await Promise.all([c.from('memberships').select('*'), c.from('profiles').select('id, display_name'), c.from('team_staff').select('team_id, user_id, head')]);
   const names = new Map(((p ?? []) as { id: string; display_name: string }[]).map((x) => [x.id, x.display_name]));
-  return ((m ?? []) as Omit<Member, 'name'>[]).map((x) => ({ ...x, name: names.get(x.user_id) || x.user_id.slice(0, 8) }));
+  const staff = (st ?? []) as { team_id: string; user_id: string; head: boolean }[];
+  return ((m ?? []) as Omit<Member, 'name' | 'teams'>[]).map((x) => ({ ...x, name: names.get(x.user_id) || x.user_id.slice(0, 8), teams: staff.filter((t) => t.user_id === x.user_id) }));
 }
 export async function setConsent(playerId: string, kind: 'data' | 'photo' | 'video' | 'teamphoto', granted: boolean, version: string) {
   const c = await sb(); const { error } = await c.rpc('set_consent', { p: playerId, k: kind, granted, version }); if (error) throw error;
@@ -196,6 +233,7 @@ export async function pushNow() {
 
 export async function pullNow() {
   if (cs.status !== 'ready' || !navigator.onLine) return;
+  let dropped = false;
   try {
     const c = await sb(); const since = cursor ? new Date(Date.parse(cursor) - 5000).toISOString() : '1970-01-01T00:00:00Z';
     const [tm, pl, pv, st] = await Promise.all([c.from('teams').select('*').gt('updated_at', since), c.from('players').select('*').gt('updated_at', since), c.from('player_private').select('*').gt('updated_at', since), c.from('team_staff').select('team_id, head').eq('user_id', cs.userId)]);
@@ -219,7 +257,10 @@ export async function pullNow() {
         snap.set('priv:' + v.player_id, JSON.stringify({ player_id: v.player_id, data: v.data }));
       }
       n = applyRows(n, all);
+      const before = n.myStaff ?? [];
       n.myStaff = ((st.data ?? []) as { team_id: string; head: boolean }[]).map((x) => ({ teamId: x.team_id, head: x.head }));
+      // Taken off a team: forget it on this phone (a fresh fetch follows below).
+      if (cs.role === 'coach' && !st.error && before.some((b) => !n.myStaff!.some((x) => x.teamId === b.teamId))) dropped = true;
       if (cs.role === 'coach') n = adoptServerTeams(n, n.myStaff.map((x) => x.teamId));
       const rowsNow = new Map(toRows(n).map((r) => [r.id, r]));
       for (const a of all) { if (a.deleted_at) snap.delete(a.id); else { const r = rowsNow.get(a.id); if (r) snap.set(a.id, rowJson(r)); } }
@@ -229,6 +270,7 @@ export async function pullNow() {
     const newestOther = [...(tm.data ?? []), ...(pl.data ?? []), ...(pv.data ?? [])].reduce((m: string, r: { updated_at: string }) => (r.updated_at > m ? r.updated_at : m), newest);
     cursor = newestOther || cursor; saveSnap(); set({ lastSync: Date.now(), error: '' });
   } catch (e) { set({ error: (e as Error).message }); }
+  if (dropped) { wipeLocal(); await pullNow(); }
 }
 export async function syncNow() { await pushNow(); await pullNow(); }
 

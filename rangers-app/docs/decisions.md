@@ -64,6 +64,8 @@ Fill in the **Answer** column after talking to Coach James and the coaches. Leav
 | D31 | Values used for recognition | Each programme's own values (Rangers 8, MABU, GILA) | |
 | D32 | Mistake reset signal | Tap the badge, "Play with your heart", next play | |
 | D33 | FC New Mabu and Gila colours | (ask Coach Jabez and Coach Ralph) | |
+| D38 | Handing the club over | Admin invite links (one person, one use, 3 days). The new admin is active at once; the old admin can step down to coach. The club always keeps one admin. | Jan, Oct 2026 |
+| D39 | Feedback | Everyone signed in can send feedback (idea, problem, praise; optional face rating). Admins and chosen readers see it in the app with an alert; email via Apps Script webhook. Kept 2 years, 20 a day per person. | Jan, Oct 2026 |
 | D37 | Tactics board | Free draw (finger pen: Run, Pass or Line, four colours) beside Step by step (moves that play). Players are small human figures: red shirts for us, white for opponents, yellow for keepers. Upright pitch that fits the phone, and a Big (full screen) button. | Jan, Oct 2026 |
 
 ## Data

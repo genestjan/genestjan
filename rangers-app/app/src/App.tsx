@@ -16,6 +16,7 @@ import Recognise from './pages/Recognise';
 import Safety from './pages/Safety';
 import Support from './pages/Support';
 import BoardEditor from './pages/BoardEditor';
+import { FeedbackInbox, SendFeedback } from './pages/Feedback';
 import More, { Help, Motivation, Privacy, Settings, Tips } from './pages/More';
 import { DetailsPage, DocsPage, ParentHome, ProgressPage, TeamDocs } from './pages/Parent';
 import { EligibilityEditor, Pathway } from './pages/School';
@@ -69,6 +70,8 @@ function Shell() {
         <Route path="/progress/:id" element={<ProgressRoute />} />
         <Route path="/tv" element={<Tv />} />
         <Route path="/join/:token" element={<Join />} />
+        <Route path="/feedback" element={<SendFeedback />} />
+        <Route path="/feedback/inbox" element={<FeedbackInbox />} />
         {staff && (<>
           <Route path="/assign" element={<AssignList />} />
           <Route path="/attendance" element={<AttendanceHome />} />

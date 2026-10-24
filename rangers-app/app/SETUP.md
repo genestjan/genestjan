@@ -8,7 +8,8 @@ Never paste a secret (service_role key, database password, SMTP password, VAPID 
 1. Go to supabase.com, sign in with the club Google account, **New project**: name `rangers`, region **Southeast Asia (Singapore)**, Free plan. Save the database password in Bitwarden.
 2. **Database > Extensions**: turn on `pg_cron` first (the SQL below schedules reminders only if it is on).
 3. **SQL Editor > New query**: paste the whole of `supabase/setup.sql`, press **Run**. It ends with a checklist table: every row should say `true` except "Club admin set up" (that becomes true after Part 4). Run `select * from public.rangers_health();` any time to see it again.
-   - Already ran an older `setup.sql`? Run `supabase/update.sql` the same way (new query, paste all, Run). It adds assignments, private photo storage and the fix-ups, and ends with the checklist table. Safe to run again.
+   - Already ran an older `setup.sql`? Run `supabase/update.sql` the same way (new query, paste all, Run). It adds assignments, private photo storage, the fix-ups, admin invite links and the feedback box, and ends with the checklist table. Safe to run again.
+   - Feedback by email (optional): `docs/feedback-email.md` (Google Apps Script plus a Supabase webhook, about 10 minutes).
 4. **Project Settings > API**: copy the **Project URL** and the **anon public** key and send them to me (or put them in `.env.production`, see `.env.example`).
 
 ## 2. Sign-in settings (about 10 minutes, you)

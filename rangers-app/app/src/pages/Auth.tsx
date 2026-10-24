@@ -81,6 +81,7 @@ export function Join() {
         setErr('This invite link has already been used or has expired. Ask your coach for a new one.'); return;
       }
       if (name === 'coach') { setMsg('You are in. The club admin will approve your coach account shortly.'); setTimeout(() => nav('/', { replace: true }), 2500); return; }
+      if (name === 'admin') { setMsg('You are now a club admin. Manage teams, coaches and settings in More, Settings.'); setTimeout(() => nav('/', { replace: true }), 3000); return; }
       setChild(name);
     }).catch((e: Error) => setErr(e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps

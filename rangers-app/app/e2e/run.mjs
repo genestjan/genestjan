@@ -147,7 +147,9 @@ try {
   ok(/Fairest gap: [0-5] min/.test(await text()), 'minutes plan is within one window for the demo squad');
   await p.getByRole('button', { name: 'Go to match' }).click(); await p.getByRole('button', { name: 'Kick off' }).click(); await p.waitForTimeout(800);
   ok((await text()).includes('On the pitch (8)'), 'match kicks off with 8 on the pitch'); await shot('live');
-  for (const r of ['/', '/schedule', '/inbox', '/train', '/squad', '/more', '/match', '/board', '/safety', '/recognise', '/review', '/motivation', '/support', '/settings', '/help', '/drills', '/drills/D04', '/tv']) { await p.goto(B + r); await p.waitForTimeout(150); }
+  for (const r of ['/', '/schedule', '/inbox', '/train', '/squad', '/more', '/match', '/board', '/safety', '/recognise', '/review', '/motivation', '/support', '/settings', '/help', '/drills', '/drills/D04', '/tv', '/feedback', '/feedback/inbox']) { await p.goto(B + r); await p.waitForTimeout(150); }
+  await p.goto(B + '/more'); await p.getByRole('link', { name: /Send feedback about the app/ }).click();
+  ok((await text()).includes('Help us make the app better') && (await text()).includes('signed in'), 'feedback screen opens from More (sending needs the club app online)');
   // tactics board: free drawing with a finger, undo, erase, drag a player, ready set-ups, full screen, a move played step by step
   await p.goto(B + '/board'); const pitch = p.getByRole('img', { name: 'Tactics board' });
   const lines = () => pitch.locator('path[stroke-linejoin="round"]').count();

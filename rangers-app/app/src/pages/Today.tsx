@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, ClubHero, DateBlock, IconChip, Page, Row, SectionHead, Tile, Tone } from '../components/ui';
 import type { ReactNode } from 'react';
-import { Award, CalendarDays, Camera, CheckCircle2, ChevronRight, ClipboardCheck, Dumbbell, FileWarning, IdCard, ListChecks, Medal, Megaphone, MessageCircle, Shapes, Star, TrendingUp, Trophy, Users, type LucideIcon } from 'lucide-react';
+import { Award, CalendarDays, Camera, CheckCircle2, ChevronRight, ClipboardCheck, Dumbbell, FileWarning, IdCard, ListChecks, Medal, Megaphone, MessageCircle, MessageSquareHeart, Shapes, Star, TrendingUp, Trophy, Users, type LucideIcon } from 'lucide-react';
 import { EventWeather } from '../components/Wx';
 import { activeTeam, put, teamPlayers, update, useAppState } from '../lib/store';
 import { fmtDate, fmtTime } from '../lib/util';
@@ -12,6 +12,8 @@ import { statusFor } from './Schedule';
 import { PROGRAMMES } from '../lib/model';
 import { CREST } from '../components/ui';
 import { unreadMessages } from '../lib/inbox';
+import { useNewFeedback } from '../lib/cloud';
+import { FeedbackNudge } from './Feedback';
 import { progress } from '../lib/assignments';
 import { isSchoolTeam } from '../lib/school';
 import { docsMissingFor } from '../components/Docs';
@@ -29,11 +31,13 @@ export default function Today() {
   const toReview = s.assignments.filter((a) => a.teamId === team.id).reduce((n, a) => n + progress(a, s.submissions).toReview, 0);
   const unread = unreadMessages(s, 'coach', 'parent').filter((m) => m.teamId === team.id).length;
   const startMatch = () => { const m = newMatch(kids.filter((k) => !s.blocked.includes(k.id)).map((k) => k.id), team.id, team.defaultFormat); if (next?.type !== 'training' && next) { m.eventId = next.id; m.name = next.title; if (next.opponent) m.name = `${next.title} vs ${next.opponent}`; const ids = kids.filter((k) => statusFor(s, next, k.id) === 'going').map((k) => k.id); if (ids.length) m.availableIds = ids.filter((i) => !s.blocked.includes(i)); } put('matches', m); nav(`/match/${m.id}`); };
+  const newFb = useNewFeedback();
   const news = s.announcements.filter((x) => x.scope === 'club' || x.teamId === team.id).sort((x, y) => y.at.localeCompare(x.at)).slice(0, 3);
   const attention: [LucideIcon, string, ReactNode][] = [
     ...(noDocs > 0 ? [[FileWarning, '/documents', `${noDocs} child(ren) still missing ID papers (student ID or PSA)`] as [LucideIcon, string, ReactNode]] : []),
     ...(toReview > 0 ? [[Camera, '/assign', `${toReview} task photo(s) to review`] as [LucideIcon, string, ReactNode]] : []),
     ...(unread > 0 ? [[MessageCircle, '/inbox', `${unread} unread message(s) from parents`] as [LucideIcon, string, ReactNode]] : []),
+    ...(newFb > 0 ? [[MessageSquareHeart, '/feedback/inbox', `${newFb} new feedback about the app`] as [LucideIcon, string, ReactNode]] : []),
     ...(nudge.length > 0 ? [[Star, '/recognise', `${nudge.length} child(ren) not recognised in 6 weeks: ${nudge.slice(0, 3).map((id) => s.players.find((p) => p.id === id)?.firstName).join(', ')}${nudge.length > 3 ? '...' : ''}`] as [LucideIcon, string, ReactNode]] : []),
     ...(spurts.length > 0 ? [[TrendingUp, '/squad', `Growth spurt: ${spurts.map((p) => p.firstName).join(', ')}. Ease off jumping and sprinting for a few weeks.`] as [LucideIcon, string, ReactNode]] : []),
   ];
@@ -72,6 +76,7 @@ export default function Today() {
       {news.length > 0 && <><SectionHead title="Latest updates" to="/inbox" />
         <div className="grid gap-2">{news.map((n) => <Row key={n.id} to="/inbox" lead={<img src={CREST[team.programme]} alt="" className="h-14 w-14 shrink-0 rounded-xl bg-white object-contain p-1" />} title={n.title} sub={fmtDate(n.at)} />)}</div></>}
       {kids.length === 0 && <Link to="/squad" className="btn mt-4 w-full">Add your squad</Link>}
+      <FeedbackNudge />
     </Page>
   );
 }

@@ -185,6 +185,54 @@ try {
   await coach.goto(APP + '#/player/' + ben.id); await coach.getByRole('button', { name: 'Head coach: record medical clearance' }).click();
   await waitFor(async () => (await svc("records?kind=eq.injury&select=data")).some((r) => r.data.clearedOn), 'head coach clearance saved');
 
+  // 8b. Feedback: a parent sends it, the admin is told and marks it done, the parent sees it was dealt with
+  await parent.goto(APP + '#/more'); await parent.getByRole('link', { name: /Send feedback about the app/ }).click();
+  await parent.getByRole('button', { name: 'Great', exact: true }).click(); await parent.getByRole('button', { name: 'An idea', exact: true }).click();
+  await parent.getByLabel('Your feedback').fill('Pwede po bang may calendar view? Salamat!');
+  if (SHOTS) await parent.screenshot({ path: path.join(SHOTS, 'cloud-feedback-form.png'), fullPage: true });
+  await parent.getByRole('button', { name: 'Send feedback' }).click();
+  await waitFor(async () => (await body(parent)).includes('Salamat! Thank you.'), 'parent sends feedback');
+  ok((await svc('feedback?select=role,kind,rating'))[0]?.role === 'parent', 'feedback saved with who sent it');
+  ok((await svc('notification_queue?url=eq./feedback/inbox&select=user_id')).length >= 1, 'the admin gets an alert for it');
+  await coach.goto(APP + '#/feedback/inbox');
+  await waitFor(async () => (await body(coach)).includes('Only club admins'), 'a coach who is not a reader cannot open the feedback inbox');
+  await admin.goto(APP + '#/'); await admin.reload();
+  await waitFor(async () => (await body(admin)).includes('1 new feedback about the app'), 'admin home shows the new feedback');
+  await admin.goto(APP + '#/feedback/inbox');
+  await waitFor(async () => (await body(admin)).includes('calendar view'), 'admin reads it in the feedback inbox');
+  if (SHOTS) await admin.screenshot({ path: path.join(SHOTS, 'cloud-feedback-inbox.png'), fullPage: true });
+  await admin.getByRole('button', { name: 'Done', exact: true }).click();
+  await waitFor(async () => (await svc('feedback?select=status'))[0]?.status === 'done', 'admin marks it done');
+  await parent.goto(APP + '#/feedback'); await parent.reload();
+  await waitFor(async () => (await body(parent)).includes('Done, thank you'), 'the parent sees their feedback was dealt with');
+  if (SHOTS) await parent.screenshot({ path: path.join(SHOTS, 'cloud-feedback-mine.png'), fullPage: true });
+
+  // 8c. Handing the club over: the first admin keeps getting feedback, invites a new admin, then steps down
+  await admin.goto(APP + '#/feedback/inbox'); await admin.getByRole('button', { name: /Keep sending me feedback/ }).click();
+  await waitFor(async () => (await svc('feedback_readers?select=user_id')).length === 1, 'the first admin chooses to keep getting feedback');
+  await admin.goto(APP + '#/settings'); await admin.getByRole('button', { name: 'Create an admin invite link' }).click();
+  const adminLink = await waitFor(() => admin.getByLabel('Admin invite link').inputValue(), 'admin invite link');
+  if (SHOTS) await admin.getByLabel('Admin invite link').evaluate((el) => el.closest('.card').scrollIntoView()).then(() => admin.screenshot({ path: path.join(SHOTS, 'cloud-admins.png') }));
+  await coach.goto(adminLink);
+  await waitFor(async () => (await body(coach)).includes('You are now a club admin'), 'the coach opens the admin link and is told they are an admin');
+  if (SHOTS) await coach.screenshot({ path: path.join(SHOTS, 'cloud-admin-joined.png') });
+  ok((await svc('memberships?role=eq.admin&select=user_id')).length === 2, 'the club now has two admins');
+  await admin.goto(APP + '#/'); await admin.reload(); await admin.goto(APP + '#/settings');
+  await waitFor(async () => (await body(admin)).includes('Step down as admin'), 'the first admin can now step down');
+  await admin.getByRole('button', { name: 'Step down as admin' }).click();
+  await waitFor(async () => (await svc('memberships?role=eq.admin&select=user_id')).length === 1, 'the first admin stepped down');
+  await admin.goto(APP + '#/squad'); await sleep(1500);
+  ok((await body(admin)).includes('No players yet') && !(await body(admin)).includes('Ben'), 'after stepping down, the old admin\'s phone forgets the children of teams they do not coach');
+  await coach.goto(APP + '#/'); await coach.reload(); await coach.goto(APP + '#/settings');
+  await waitFor(async () => (await body(coach)).includes('Club admins'), 'the new admin manages the club');
+  await parent.goto(APP + '#/feedback'); await parent.getByRole('button', { name: 'Send more feedback' }).click().catch(() => undefined);
+  await parent.getByLabel('Your feedback').fill('Thank you for the app!'); await parent.getByRole('button', { name: 'Send feedback' }).click();
+  await waitFor(async () => (await body(parent)).includes('Salamat! Thank you.'), 'parent sends more feedback');
+  await admin.goto(APP + '#/'); await admin.reload();
+  await waitFor(async () => (await body(admin)).includes('1 new feedback about the app'), 'the first admin still hears from families after stepping down');
+  await coach.goto(APP + '#/'); await coach.reload();
+  await waitFor(async () => (await body(coach)).includes('1 new feedback about the app'), 'and so does the new admin');
+
   // 9. Signing out clears the phone
   await parent.goto(APP + '#/more'); await parent.getByRole('button', { name: /Sign out/ }).click();
   await waitFor(async () => (await body(parent)).includes('Send me a 6-digit code'), 'parent back at sign-in');

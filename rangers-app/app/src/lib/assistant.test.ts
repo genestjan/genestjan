@@ -33,6 +33,10 @@ describe('Help chat', () => {
     expect(top('attendance')).toBe('attendance');   // no "how": the live fact comes first
     expect(top('squad')).toBe('squad');
     expect(top('paano mag draw ng diskarte sa tactics board')).toBe('tactics');
+    expect(top('how do I add another admin')).toBe('admin');
+    expect(top('paano mag hand over ng club')).toBe('admin');
+    expect(top('I have a suggestion for the app', 'parent')).toBe('feedback');
+    expect(top('may puna ako sa app', 'parent')).toBe('feedback');
   });
   it('keeps coach-only answers away from families', () => {
     expect(match('how do I add players', 'parent').some((m) => m.entry.id === 'add-players')).toBe(false);

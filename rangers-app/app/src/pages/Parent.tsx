@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import { FeedbackNudge } from './Feedback';
 import { Avatar, Back, Card, CREST, ClubHero, DateBlock, Empty, H2, IconChip, Page, Row, SectionHead, Tile } from '../components/ui';
 import { CalendarDays, ChevronRight, ListChecks, Medal, MessageCircle, TrendingUp } from 'lucide-react';
 import { unreadMessages } from '../lib/inbox';
@@ -55,6 +56,7 @@ export function ParentHome() {
         <EventWeather e={next} compact /></Card></>)}
       {news.length > 0 && <><SectionHead title="Latest updates" to="/inbox" /><div className="grid gap-2">{news.map((n) => <Row key={n.id} to="/inbox" lead={<img src={CREST[prog]} alt="" className="h-14 w-14 shrink-0 rounded-xl bg-white object-contain p-1" />} title={n.title} sub={fmtDate(n.at)} />)}</div></>}
       <SectionHead title="Tip of the week" /><Card>{tip}</Card>
+      <FeedbackNudge />
     </Page>
   );
 }

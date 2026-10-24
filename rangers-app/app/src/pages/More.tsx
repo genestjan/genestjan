@@ -1,5 +1,5 @@
 import { Avatar, CLUB_PHOTO, CREST, Hero, IconChip, Row } from '../components/ui';
-import { Award, ClipboardCheck, ClipboardList, Dumbbell, HeartHandshake, HeartPulse, HelpCircle, IdCard, Lightbulb, ListChecks, Lock, LogOut, Medal, Megaphone, Settings as SettingsIcon, Shapes, ShieldAlert, Sparkles, TrendingUp, Trophy, type LucideIcon } from 'lucide-react';
+import { Award, ClipboardCheck, Inbox, MessageSquareHeart, ClipboardList, Dumbbell, HeartHandshake, HeartPulse, HelpCircle, IdCard, Lightbulb, ListChecks, Lock, LogOut, Medal, Megaphone, Settings as SettingsIcon, Shapes, ShieldAlert, Sparkles, TrendingUp, Trophy, type LucideIcon } from 'lucide-react';
 import { unreadCount } from '../lib/inbox';
 import { HelpChat } from '../components/HelpChat';
 import { guidesFor } from '../content/guides';
@@ -13,7 +13,7 @@ import { activeTeam, put, uid, update, useAppState, exportBackup } from '../lib/
 import { AGE_BANDS, PROGRAMMES, type Programme } from '../lib/model';
 import { FORMATS, type FormatId } from '../lib/types';
 import { isStaff, useMyChildren, useRole } from '../lib/role';
-import { approveMember, assignStaff, cloudEnabled, createCoachInvite, enablePush, inviteLink, listMembers, setConsent, signOut, syncNow, useCloud, type Member } from '../lib/cloud';
+import { approveMember, assignStaff, cloudEnabled, createAdminInvite, createCoachInvite, enablePush, inviteLink, listMembers, removeAdmin, removeMember, removeStaff, setConsent, signOut, syncNow, useCloud, useNewFeedback, type Member } from '../lib/cloud';
 import { NOTICE_VERSION, PrivacyText } from './Auth';
 import { EmergencyEditor } from '../components/Emergency';
 import { download, fmtDateTime, share } from '../lib/util';
@@ -25,6 +25,7 @@ const R = ({ to, icon, title, badge }: { to: string; icon: LucideIcon; title: st
 export default function More() {
   const role = useRole(); const staff = isStaff(role); const s = useAppState(); const cloud = useCloud(); const nav = useNavigate(); const myKids = useMyChildren();
   const team = activeTeam(s); const unread = unreadCount(s, staff ? 'staff' : 'parent', staff ? 'coach' : 'parent');
+  const newFb = useNewFeedback();
   const roleName = role === 'admin' ? 'Club admin' : role === 'coach' ? 'Coach' : 'Parent or guardian';
   return (
     <Page title="More">
@@ -45,6 +46,7 @@ export default function More() {
           <R to="/support" icon={HeartHandshake} title="Club support: fund, boots, contributions" />
           <R to="/settings" icon={SettingsIcon} title="Settings and club admin" />
           <R to="/help" icon={HelpCircle} title="Help and Show me how" />
+          <R to="/feedback?from=More" icon={MessageSquareHeart} title="Send feedback about the app" />
         </>) : (<>
           <R to="/inbox" icon={Megaphone} title="Announcements and messages" badge={unread} />
           <R to="/tasks" icon={ListChecks} title="Tasks from the coach" />
@@ -56,7 +58,9 @@ export default function More() {
           <R to="/privacy" icon={Lock} title="Privacy and my child's information" />
           <R to="/tips" icon={Lightbulb} title="Tips for parents" />
           <R to="/help" icon={HelpCircle} title="Help and Show me how" />
+          <R to="/feedback?from=More" icon={MessageSquareHeart} title="Send feedback about the app" />
         </>)}
+        {cloud.reader && <R to="/feedback/inbox" icon={Inbox} title="Feedback inbox" badge={newFb} />}
         {!cloudEnabled && staff && <button className="btn ghost" onClick={() => { update((x) => ({ ...x, previewChildId: x.players[0]?.id })); nav('/'); }}>Preview the parent app</button>}
         {!cloudEnabled && s.previewChildId && <button className="btn" onClick={() => { update((x) => ({ ...x, previewChildId: undefined })); nav('/'); }}>Back to the coach app</button>}
         {cloudEnabled && <button className="btn ghost" onClick={() => signOut()}><LogOut size={18} />Sign out ({cloud.email})</button>}
@@ -81,6 +85,7 @@ export function Help() {
       <H2>Show me how</H2>
       <p className="muted mb-2 text-sm">Each guide opens the right screen and points at the button to tap.</p>
       <div className="grid gap-2">{guidesFor(r).map((g) => <button key={g.id} className="btn ghost justify-start text-left" onClick={() => startGuide(g.id)}>{g.title}</button>)}</div>
+      <Card className="mt-4 grid gap-2"><p className="font-bold">Something missing, confusing or not working?</p><p className="muted text-sm">Tell us. Your feedback decides what we improve next.</p><Link className="btn" to="/feedback?from=Help">Send feedback</Link></Card>
       {r === 'coach' && <><H2>More help</H2>
       <Card className="grid gap-3"><h2 className="text-2xl">Match day in five steps</h2>
         <ol className="list-decimal pl-5"><li>Matches, New match: pick the format, periods and how often you sub.</li><li>Tick who is here. Check the minutes plan. Lock a keeper if you want.</li><li>Show the kids: lineup, our 3 keys, the move, values. Swipe through.</li><li>Kick off. The phone buzzes before each sub. Tap a child on the pitch, then a child on the bench to swap.</li><li>Half-time: ask them first what is working. After the match, celebrate, win or lose.</li></ol>
@@ -93,7 +98,8 @@ export function Help() {
 export function Settings() {
   const s = useAppState(); const cloud = useCloud(); const role = useRole(); const team = activeTeam(s);
   const [tn, setTn] = useState(''); const [prog, setProg] = useState<Programme>('rangers'); const [band, setBand] = useState<(typeof AGE_BANDS)[number]>('U10'); const [fmt, setFmt] = useState<FormatId>('8v8');
-  const [token, setToken] = useState(''); const [msg, setMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
+  const [token, setToken] = useState(''); const [adminLink, setAdminLink] = useState(''); const [msg, setMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
+  const admins = members.filter((m) => m.role === 'admin'); const teamName = (id: string) => s.teams.find((t) => t.id === id)?.name ?? 'another team';
   useEffect(() => { if (cloud.status === 'ready' && role === 'admin') listMembers().then(setMembers).catch(() => {}); }, [cloud.status, role, token]);
   const st = s.settings; const set = (p: Partial<typeof st>) => update((x) => ({ ...x, settings: { ...x.settings, ...p } }));
   /** Runs an admin action, then refreshes the list and says what happened (or what went wrong). */
@@ -120,14 +126,37 @@ export function Settings() {
 
       {cloudEnabled && cloud.status === 'ready' && (<>
         <H2>Reminders on this phone</H2><Card className="grid gap-2"><button className="btn" onClick={async () => setMsg(await enablePush())}>Turn on reminders</button>{msg && <p role="status">{msg}</p>}<p className="muted text-sm">On iPhone, add the app to the Home Screen first.</p></Card>
-        {role === 'admin' && (<><H2>Coaches</H2><Card className="grid gap-2">
+        {role === 'admin' && (<><H2>Club admins</H2><Card className="grid gap-2" data-tour="admins">
+          <p className="text-sm">Admins run the whole club in the app: teams, coaches, settings and every child's information. Only invite someone you trust.</p>
+          <button className="btn" onClick={async () => { try { setAdminLink(inviteLink(await createAdminInvite())); } catch (e) { setMsg((e as Error).message); } }}>Create an admin invite link</button>
+          {adminLink && <><input className="field" readOnly value={adminLink} onFocus={(e) => e.target.select()} aria-label="Admin invite link" />
+            <button className="btn ghost" onClick={() => share(`You are invited to be an admin of the Rangers app. Open this link in Chrome and sign in with Google. It works once, for 3 days: ${adminLink}`)}>Send it</button>
+            <p className="muted text-sm">Send it to one person, privately (not in a group chat). It works once, for 3 days. They become an admin as soon as they open it and sign in.</p></>}
+          {admins.map((m) => <div key={m.user_id} className="flex flex-wrap items-center gap-2 text-sm"><span className="flex-1 truncate"><b>{m.name}</b>{m.user_id === cloud.userId ? ' (you)' : ''} · admin</span>
+            {m.user_id === cloud.userId
+              ? admins.length > 1 && <button className="btn ghost min-h-[44px]" onClick={() => { if (confirm('Step down as admin? You stay in the app as a coach.')) void act(() => removeAdmin(m.user_id), 'You stepped down. You are now a coach.'); }}>Step down as admin</button>
+              : <button className="btn ghost min-h-[44px]" onClick={() => { if (confirm(`Take admin rights away from ${m.name}? They stay in the app as a coach.`)) void act(() => removeAdmin(m.user_id), `${m.name} is now a coach.`); }}>Remove admin</button>}
+          </div>)}
+          {admins.length === 1 && <p className="muted text-sm">Handing the club over? Invite the new admin first. Once they are in, you can step down. The club always keeps at least one admin.</p>}
+        </Card>
+        <H2>Coaches</H2><Card className="grid gap-2">
           <button className="btn" onClick={async () => { try { setToken(inviteLink(await createCoachInvite())); } catch (e) { setMsg((e as Error).message); } }}>Create a coach invite link</button>
           {token && <><input className="field" readOnly value={token} onFocus={(e) => e.target.select()} aria-label="Coach invite link" /><button className="btn ghost" onClick={() => share(`Join the Rangers coaching app: ${token}`)}>Send it</button></>}
-          {members.filter((m) => m.role !== 'parent').map((m) => <div key={m.user_id} className="flex flex-wrap items-center gap-2 text-sm"><span className="flex-1 truncate"><b>{m.name}</b> · {m.role}{m.status === 'pending' ? ' (waiting)' : ''}</span>
-            {m.status === 'pending' && <><button className="btn min-h-[44px]" onClick={() => act(() => approveMember(m.user_id, true), `${m.name} approved. Now add them to a team.`)}>Approve</button><button className="btn ghost min-h-[44px]" onClick={() => act(() => approveMember(m.user_id, false), `${m.name} declined.`)}>Decline</button></>}
-            {m.status === 'active' && m.role === 'coach' && <><button className="btn ghost min-h-[44px]" onClick={() => act(() => assignStaff(m.user_id, team.id, false), `${m.name} added to ${team.name}.`)}>Add to {team.name}</button><button className="btn ghost min-h-[44px]" onClick={() => act(() => assignStaff(m.user_id, team.id, true), `${m.name} is now head coach of ${team.name}.`)}>Head coach of {team.name}</button></>}</div>)}
+          {members.filter((m) => m.role === 'coach').map((m) => { const here = m.teams.find((t) => t.team_id === team.id); return (
+            <div key={m.user_id} className="grid gap-1.5 border-t pt-2 text-sm" style={{ borderColor: 'var(--line)' }}>
+              <span><b>{m.name}</b>{m.status === 'pending' ? ' · waiting for you' : m.teams.length ? ` · ${m.teams.map((t) => teamName(t.team_id) + (t.head ? ' (head coach)' : '')).join(', ')}` : ' · no team yet'}</span>
+              <div className="flex flex-wrap gap-2">
+                {m.status === 'pending' && <><button className="btn min-h-[44px]" onClick={() => act(() => approveMember(m.user_id, true), `${m.name} approved. Now add them to a team.`)}>Approve</button><button className="btn ghost min-h-[44px]" onClick={() => act(() => approveMember(m.user_id, false), `${m.name} declined.`)}>Decline</button></>}
+                {m.status === 'active' && <>
+                  {!here && <button className="btn ghost min-h-[44px]" onClick={() => act(() => assignStaff(m.user_id, team.id, false), `${m.name} added to ${team.name}.`)}>Add to {team.name}</button>}
+                  {!here?.head && <button className="btn ghost min-h-[44px]" onClick={() => act(() => assignStaff(m.user_id, team.id, true), `${m.name} is now head coach of ${team.name}.`)}>Head coach of {team.name}</button>}
+                  {here && <button className="btn ghost min-h-[44px]" onClick={() => act(() => removeStaff(m.user_id, team.id), `${m.name} is off ${team.name}.`)}>Take off {team.name}</button>}
+                  <button className="btn danger min-h-[44px]" onClick={() => { if (confirm(`Remove ${m.name} from the club? They lose every team. If they are also a parent, they keep their own child.`)) void act(() => removeMember(m.user_id), `${m.name} removed from the club.`); }}>Remove from club</button>
+                </>}
+              </div>
+            </div>); })}
           {msg && <p role="status" className="font-semibold">{msg}</p>}
-          <p className="muted text-sm">Only head coaches (and you) can clear a child after a head injury. Coaches see only the teams you add them to.</p>
+          <p className="muted text-sm">Only head coaches (and admins) can clear a child after a head injury. Coaches see only the teams you add them to. The buttons work on the active team ({team.name}); switch team above for another.</p>
         </Card></>)}</>)}
       <H2>Your data</H2>
       <Card className="grid gap-2"><button className="btn ghost" onClick={() => download(`rangers-backup-${new Date().toISOString().slice(0, 10)}.json`, exportBackup())}>Back up everything to a file</button>

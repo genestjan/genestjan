@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { shouldAsk } from './feedback';
 
 /** Per-phone flags: has this phone seen the welcome screen, and the tour for each role? */
 const key = (k: string) => `rangers-${k}`;
@@ -15,4 +16,17 @@ export function useWelcome() { use(); return { seen: read('welcome'), done: () =
 export function useTour(role: TourRole) {
   use();
   return { open: !read(`tour-${role}`), done: () => { write(`tour-${role}`, true); bump(); }, replay: () => { write(`tour-${role}`, false); bump(); } };
+}
+
+/** The once-a-month "How is the app for you?" card on the home screen (per phone). */
+const num = (k: string) => { try { return Number(localStorage.getItem(key(k))) || 0; } catch { return 0; } };
+const setNum = (k: string, v: number) => { try { localStorage.setItem(key(k), String(v)); } catch { /* private mode */ } };
+export function useFeedbackAsk(now = Date.now()) {
+  use();
+  let first = num('first-seen'); if (!first) { first = now; setNum('first-seen', now); }
+  return {
+    show: shouldAsk(first, num('feedback-asked'), now, read('feedback-never')),
+    later: () => { setNum('feedback-asked', Date.now()); bump(); },
+    never: () => { write('feedback-never', true); bump(); },
+  };
 }
