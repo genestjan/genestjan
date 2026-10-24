@@ -37,7 +37,7 @@ const watch = (p, who) => {
 };
 
 console.log('building with the local stack settings...');
-execSync('npx vite build --outDir dist-cloud', { stdio: 'ignore', env: { ...process.env, APP_BASE: BASE, VITE_SUPABASE_URL: API, VITE_SUPABASE_ANON_KEY: ANON_KEY } });
+execSync('npx vite build --outDir dist-cloud', { stdio: 'ignore', env: { ...process.env, APP_BASE: BASE, VITE_SUPABASE_URL: API, VITE_SUPABASE_ANON_KEY: ANON_KEY, VITE_EMAIL_CODES: "1" } });
 const server = spawn('npx', ['vite', 'preview', '--outDir', 'dist-cloud', '--port', String(PORT), '--strictPort'], { stdio: 'ignore', env: { ...process.env, APP_BASE: BASE } });
 let browser;
 try {

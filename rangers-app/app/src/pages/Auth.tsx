@@ -5,6 +5,8 @@ import { claimAdmin, getCloud, redeemInvite, sendCode, setConsent, signInGoogle,
 import { useAppState } from '../lib/store';
 
 /** Facebook, Messenger and Instagram open links in their own browser, where Google refuses to sign in. */
+/** Email codes need a verified sender (see SETUP.md). Off until VITE_EMAIL_CODES=1 is set at build time. */
+const EMAIL_CODES = import.meta.env.VITE_EMAIL_CODES === '1';
 const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\//i.test(navigator.userAgent);
 
 export function Login({ joining }: { joining?: boolean }) {
@@ -24,6 +26,7 @@ export function Login({ joining }: { joining?: boolean }) {
       <p className="mb-4 text-lg">{joining ? 'Sign in first, then your invite is linked to your account.' : 'Coaches and parents sign in here. Each person has their own login.'}</p>
       <Card className="grid gap-3">
         <button className="btn h-14" disabled={busy} onClick={() => run(signInGoogle)}>Continue with Google</button>
+        {EMAIL_CODES && (<>
         <div className="muted text-center">or use your email</div>
         {!sent ? (<>
           <input className="field" type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -33,6 +36,7 @@ export function Login({ joining }: { joining?: boolean }) {
           <input className="field text-center text-3xl tracking-widest" inputMode="numeric" autoComplete="one-time-code" maxLength={6} aria-label="6-digit code" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
           <button className="btn h-14" disabled={busy || code.length < 6} onClick={() => run(() => verifyCode(email, code))}>Sign in</button>
           <button className="btn ghost" onClick={() => setSent(false)}>Use a different email</button>
+        </>)}
         </>)}
         {err && <p role="alert" className="text-red">{err}</p>}
       </Card>
