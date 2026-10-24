@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Back, Card, Empty, H2, Page } from '../components/ui';
+import { Back, Card, CREST, Empty, H2, Page } from '../components/ui';
 import { EventWeather } from '../components/Wx';
 import { useAppState } from '../lib/store';
 import { LEVEL_WORDS } from '../lib/model';
@@ -20,7 +20,7 @@ export function ParentHome() {
   const news = s.announcements.filter((a) => a.scope === 'club' || kids.some((k) => k.teamId === a.teamId)).sort((a, b) => b.at.localeCompare(a.at))[0];
   return (
     <Page title="Rangers FC">
-      <p className="display mb-3 text-2xl text-red">Play with your heart</p>
+      <div className="mb-3 flex items-center gap-3"><img src={CREST.rangers} alt="Rangers FC crest" width={44} height={44} className="h-11 w-11 object-contain" /><p className="display text-2xl text-red">Play with your heart</p></div>
       {kids.length === 0 && <Empty>No child is linked to this account yet. Open the private link your coach sent you.</Empty>}
       {kids.map((k) => { const team = s.teams.find((t) => t.id === k.teamId); return (
         <Card key={k.id} className="mb-3"><div className="flex items-center justify-between"><div><div className="text-2xl font-semibold">{k.firstName}</div><div className="muted text-sm">{team?.name}{k.number ? ` · #${k.number}` : ''}</div></div><Link to={`/progress/${k.id}`} className="btn px-4">Progress</Link></div></Card>); })}

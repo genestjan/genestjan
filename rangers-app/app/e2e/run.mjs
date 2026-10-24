@@ -14,12 +14,13 @@ const exe = process.env.CHROMIUM_PATH || (() => {
 })();
 
 const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' });
-const B = `http://localhost:${PORT}/#`;
+const BASE = process.env.APP_BASE || '/';   // set APP_BASE=/app/ to test the published layout
+const B = `http://localhost:${PORT}${BASE}#`;
 const fails = []; const errors = [];
 const ok = (c, m) => { if (!c) { fails.push(m); console.log('FAIL', m); } else console.log('ok  ', m); };
 let browser;
 try {
-  for (let i = 0; i < 50; i++) { try { await fetch(`http://localhost:${PORT}/`); break; } catch { await new Promise((r) => setTimeout(r, 200)); } }
+  for (let i = 0; i < 50; i++) { try { await fetch(`http://localhost:${PORT}${BASE}`); break; } catch { await new Promise((r) => setTimeout(r, 200)); } }
   browser = await chromium.launch({ executablePath: exe });
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const p = await ctx.newPage();
@@ -92,7 +93,7 @@ try {
   const tv = await ctx.newPage(); await tv.setViewportSize({ width: 1920, height: 1080 });
   const matchUrl = (await p.evaluate(() => location.href));
   await p.goto(B + '/match'); const live = await p.getByRole('link', { name: /Match day/ }).first().getAttribute('href');
-  await tv.goto(`http://localhost:${PORT}/${live.replace('/live', '/present')}`); await tv.waitForTimeout(400);
+  await tv.goto(`http://localhost:${PORT}${BASE}${live.replace('/live', '/present')}`); await tv.waitForTimeout(400);
   ok((await tv.textContent('body')).includes('Bench'), 'Match Day Board renders at TV size'); if (SHOTS) await tv.screenshot({ path: path.join(SHOTS, 'e2e-tv.png') });
   void matchUrl;
 } catch (e) { fails.push('crashed: ' + e.message.split('\n')[0]); console.log(e); }

@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
+    "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:e2e": "npm run build && node e2e/run.mjs",
-    "test:db": "bash supabase/run-tests.sh"
+    "test:db": "bash supabase/run-tests.sh",
+    "db:bundle": "(echo \"-- Rangers App database setup: paste into Supabase SQL Editor and Run, once, on a new project.\"; cat supabase/migrations/*.sql) > supabase/setup.sql"
   },
   "dependencies": {
     "@fontsource/barlow": "5.1.0",

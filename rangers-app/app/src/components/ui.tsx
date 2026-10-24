@@ -21,6 +21,8 @@ export function Page({ title, children, back, actions }: { title: string; childr
     </div>
   );
 }
+/** Club crests, served next to the app (relative paths work under /app/). */
+export const CREST = { rangers: 'crest.png', newmabu: 'new-mabu-mark.png', gila: 'gila-mark.png' } as const;
 export const Back = ({ to = '/' }: { to?: string }) => <Link to={to} className="btn ghost px-4" aria-label="Back">Back</Link>;
 export const Card = ({ children, className = '' }: { children: ReactNode; className?: string }) => <div className={`card p-4 ${className}`}>{children}</div>;
 export const H2 = ({ children }: { children: ReactNode }) => <h2 className="mb-2 mt-5 text-3xl">{children}</h2>;

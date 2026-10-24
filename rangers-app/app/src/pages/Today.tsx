@@ -8,6 +8,7 @@ import { growthVelocity } from '../lib/growth';
 import { newMatch } from './Home';
 import { statusFor } from './Schedule';
 import { PROGRAMMES } from '../lib/model';
+import { CREST } from '../components/ui';
 import { unreadMessages } from '../lib/inbox';
 
 export default function Today() {
@@ -24,7 +25,7 @@ export default function Today() {
   return (
     <Page title={PROGRAMMES[team.programme].short}>
       {s.teams.length > 1 && <div className="mb-3 flex flex-wrap gap-2">{s.teams.map((t) => <button key={t.id} className={`btn px-4 ${t.id === team.id ? '' : 'ghost'}`} onClick={() => update((x) => ({ ...x, activeTeamId: t.id }))}>{t.name}</button>)}</div>}
-      <p className="display mb-3 text-2xl text-red">Play with your heart</p>
+      <div className="mb-3 flex items-center gap-3"><img src={CREST[team.programme]} alt={`${PROGRAMMES[team.programme].name} crest`} width={44} height={44} className="h-11 w-11 object-contain" /><p className="display text-2xl text-red">Play with your heart</p></div>
       {s.blocked.length > 0 && <Tone tone="bad">{s.blocked.length} child(ren) out after a head knock: {s.players.filter((p) => s.blocked.includes(p.id)).map((p) => p.firstName).join(', ')}. <Link to="/safety" className="underline">Open safety</Link></Tone>}
       <H2>Next up</H2>
       {next ? (
