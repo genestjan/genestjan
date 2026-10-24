@@ -37,7 +37,7 @@ describe('media rules', () => {
   it('accepts photos, refuses videos and other files with a helpful reason', () => {
     expect(checkMedia({ type: 'image/jpeg', size: 5e6 }).ok).toBe(true);
     expect(checkMedia({ type: 'image/png', size: 5e6 }).ok).toBe(true);
-    const v = checkMedia({ type: 'video/mp4', size: 1e6 }); expect(v.ok).toBe(false); expect(!v.ok && v.reason).toMatch(/Videos cannot be sent/);
+    const v = checkMedia({ type: 'video/mp4', size: 1e6 }); expect(v.ok).toBe(false); expect(!v.ok && v.reason).toMatch(/Add a video/);
     expect(checkMedia({ type: 'application/pdf', size: 10 }).ok).toBe(false);
     expect(checkMedia({ type: '', size: 10 }).ok).toBe(false);
   });

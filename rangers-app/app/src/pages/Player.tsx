@@ -52,6 +52,8 @@ export default function PlayerProfile() {
         {p.birthDate && <p className="muted text-sm">Age {ageOf(p.birthDate)}</p>}
         <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={p.gkWilling} onChange={(e) => set({ gkWilling: e.target.checked })} />Happy to play in goal</label>
         <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={p.photoConsent} onChange={(e) => set({ photoConsent: e.target.checked })} />Parent agreed to photo on team screens</label>
+        {cloudEnabled ? <p className="text-sm">{p.videoConsent ? `Family agreed: ${p.firstName} may be in the club's how-to videos.` : `No video permission: do not film ${p.firstName} for how-to videos.`} <span className="muted">(The family changes this in their app.)</span></p>
+          : <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={!!p.videoConsent} onChange={(e) => set({ videoConsent: e.target.checked })} />Parent agreed to videos (how-to videos and the drill library)</label>}
         <label className="grid gap-1 text-sm font-semibold">Team<select className="field" value={p.teamId} onChange={(e) => set({ teamId: e.target.value })}>{s.teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
       </Card>
 

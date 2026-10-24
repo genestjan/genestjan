@@ -66,6 +66,7 @@ Fill in the **Answer** column after talking to Coach James and the coaches. Leav
 | D33 | FC New Mabu and Gila colours | (ask Coach Jabez and Coach Ralph) | |
 | D38 | Handing the club over | Admin invite links (one person, one use, 3 days). The new admin is active at once; the old admin can step down to coach. The club always keeps one admin. | Jan, Oct 2026 |
 | D39 | Feedback | Everyone signed in can send feedback (idea, problem, praise; optional face rating). Admins and chosen readers see it in the app with an alert; email via Apps Script webhook. Kept 2 years, 20 a day per person. | Jan, Oct 2026 |
+| D40 | Videos (free) | Long and how-we-work videos: Unlisted YouTube links in the in-app Video library (coaches only, one team, or the whole club). Short videos (up to 30 s, made small on the phone) for task proofs and coach demos, in a private bucket with a 600 MB club cap: when full, new ones are refused, nothing is deleted. Children's task videos are deleted 14 days after the coach checks them. Coaches' videos never expire and are removed only by a coach or admin, with a confirm. Children appear in coach videos only with the family's video permission, which coaches can now see. | Jan, Oct 2026 |
 | D37 | Tactics board | Free draw (finger pen: Run, Pass or Line, four colours) beside Step by step (moves that play). Players are small human figures: red shirts for us, white for opponents, yellow for keepers. Upright pitch that fits the phone, and a Big (full screen) button. | Jan, Oct 2026 |
 
 ## Data

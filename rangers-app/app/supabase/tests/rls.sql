@@ -268,8 +268,65 @@ select t.ok(not has_function_privilege('anon', 'public.team_guardians(uuid)', 'e
 select t.ok(not has_function_privilege('anon', 'public.team_coaches(uuid)', 'execute') and not has_function_privilege('authenticated', 'public.team_coaches(uuid)', 'execute'), 'nobody outside the database can list a team''s coaches');
 select t.ok(not has_function_privilege('anon', 'public.enqueue_event_reminders()', 'execute') and not has_function_privilege('authenticated', 'public.purge_old_data()', 'execute'), 'reminders and clean-up cannot be triggered from outside');
 select t.ok(not has_function_privilege('authenticated', 'public.rangers_health()', 'execute'), 'the health checklist is for the SQL Editor only');
-select t.ok((select count(*) from public.rangers_health()) = 11 and (select ok from public.rangers_health() where item like 'Assignments rules%'), 'health checklist runs and sees the assignments rules');
+select t.ok((select count(*) from public.rangers_health()) = 12 and (select ok from public.rangers_health() where item like 'Assignments rules%'), 'health checklist runs and sees the assignments rules');
 reset role;
+
+-- ========== short videos (0007) ==========
+select t.ok((select file_size_limit from storage.buckets where id='clips') = 5242880 and not (select public from storage.buckets where id='clips')
+  and (select allowed_mime_types from storage.buckets where id='clips') = array['video/mp4','video/webm','video/quicktime'], 'videos have their own private bucket, 5 MB each, video files only');
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name,metadata) values ('clips','p/20000000-0000-0000-0000-000000000001/proof.mp4','{"size": 3000000}')$q$) = '00000', 'a parent sends a video for their own child');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('clips','p/20000000-0000-0000-0000-000000000003/x.mp4')$q$) = '42501', 'never into another family''s child');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('clips','t/10000000-0000-0000-0000-000000000001/how.mp4')$q$) = '42501', 'parents cannot add a team how-to video');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name,metadata) values ('clips','t/10000000-0000-0000-0000-000000000001/how.mp4','{"size": 2000000}')$q$) = '00000', 'a coach adds a how-to video for their team');
+select t.ok(t.count($q$select count(*) from storage.objects where bucket_id='clips'$q$) = 2, 'the coach sees the child''s video and the team video');
+select t.login('00000000-0000-0000-0000-0000000000c2');
+select t.ok(t.count($q$select count(*) from storage.objects where bucket_id='clips'$q$) = 0, 'a coach of another team sees none of them');
+delete from storage.objects where bucket_id = 'clips';
+select t.login('00000000-0000-0000-0000-0000000000b3');
+select t.ok(t.count($q$select count(*) from storage.objects where bucket_id='clips'$q$) = 0, 'a family in another team sees none of them');
+select t.login('00000000-0000-0000-0000-0000000000b2');
+select t.ok(t.count($q$select count(*) from storage.objects where bucket_id='clips'$q$) = 1, 'a family in the team sees the team video, not another child''s video');
+select t.ok(public.clips_used() = 5000000 and public.clips_room() = 600 * 1024 * 1024 - 5000000, 'the app can see how much video space is left');
+reset role;
+select t.ok((select count(*) from storage.objects where bucket_id='clips') = 2, 'a coach of another team cannot delete them');
+insert into storage.objects (bucket_id,name,metadata) values ('clips','p/20000000-0000-0000-0000-000000000001/old.mp4','{"size": 629145600}');
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(public.clips_room() = 0 and t.state($q$insert into storage.objects (bucket_id,name) values ('clips','p/20000000-0000-0000-0000-000000000001/more.mp4')$q$) = '42501', 'when the club video space is full, new videos are refused');
+delete from storage.objects where bucket_id = 'clips' and name = 'p/20000000-0000-0000-0000-000000000001/old.mp4';
+reset role;
+select t.ok((select count(*) from storage.objects where bucket_id='clips') = 2, 'nothing else is deleted to make room; a family can delete their own child''s video');
+select t.ok((select count(*) from storage.objects where name = 't/10000000-0000-0000-0000-000000000001/how.mp4') = 1, 'the coach''s video stays until a coach removes it');
+delete from storage.objects where bucket_id = 'clips';
+select t.ok(not has_function_privilege('anon', 'public.clips_room()', 'execute'), 'video space is for signed-in people only');
+-- video permission: set by the family, seen by the coach
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select public.set_consent('20000000-0000-0000-0000-000000000001', 'video', true, 'v1');
+select t.ok(t.state($q$select public.set_consent('20000000-0000-0000-0000-000000000003', 'video', true, 'v1')$q$) = '42501', 'a parent cannot give video permission for another child');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(t.count($q$select count(*) from public.players where video_consent$q$) = 1, 'the coach sees which child may be filmed');
+reset role;
+-- the video library (YouTube links): coaches only, one team, or the whole club
+insert into public.records (id,kind,team_id,visibility,data) values
+ ('30000000-0000-0000-0000-0000000000f1','video',null,'staff','{"title":"Our match day routine"}'),
+ ('30000000-0000-0000-0000-0000000000f2','video','10000000-0000-0000-0000-000000000001','team','{"title":"Ball mastery"}'),
+ ('30000000-0000-0000-0000-0000000000f3','video',null,'club','{"title":"Warm-up"}');
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.count($q$select count(*) from public.records where kind='video'$q$) = 2 and t.count($q$select count(*) from public.records where kind='video' and visibility='staff'$q$) = 0, 'a family sees their team''s and the club''s videos, never the coaches-only ones');
+select t.ok(t.state($q$insert into public.records (id,kind,visibility,data,author) values (gen_random_uuid(),'video','club','{}','00000000-0000-0000-0000-0000000000b1')$q$) = '42501', 'a parent cannot add a video to the library');
+select t.login('00000000-0000-0000-0000-0000000000b3');
+select t.ok(t.count($q$select count(*) from public.records where kind='video'$q$) = 1, 'a family in another team sees only the club video');
+select t.login('00000000-0000-0000-0000-0000000000c2');
+select t.ok(t.count($q$select count(*) from public.records where kind='video'$q$) = 2, 'a coach of another team sees the coaches-only and club videos, not the other team''s');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(t.state($q$insert into public.records (id,kind,visibility,data,author) values (gen_random_uuid(),'video','staff','{}','00000000-0000-0000-0000-0000000000c1')$q$) = '00000', 'a coach adds a coaches-only video');
+reset role;
+delete from public.records where kind = 'video';
 
 -- ========== feedback (0006) ==========
 set role authenticated;

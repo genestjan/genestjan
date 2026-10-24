@@ -1,5 +1,5 @@
 import { Avatar, CLUB_PHOTO, CREST, Hero, IconChip, Row } from '../components/ui';
-import { Award, ClipboardCheck, Inbox, MessageSquareHeart, ClipboardList, Dumbbell, HeartHandshake, HeartPulse, HelpCircle, IdCard, Lightbulb, ListChecks, Lock, LogOut, Medal, Megaphone, Settings as SettingsIcon, Shapes, ShieldAlert, Sparkles, TrendingUp, Trophy, type LucideIcon } from 'lucide-react';
+import { Award, ClipboardCheck, Inbox, MessageSquareHeart, Clapperboard, ClipboardList, Dumbbell, HeartHandshake, HeartPulse, HelpCircle, IdCard, Lightbulb, ListChecks, Lock, LogOut, Medal, Megaphone, Settings as SettingsIcon, Shapes, ShieldAlert, Sparkles, TrendingUp, Trophy, type LucideIcon } from 'lucide-react';
 import { unreadCount } from '../lib/inbox';
 import { HelpChat } from '../components/HelpChat';
 import { guidesFor } from '../content/guides';
@@ -39,6 +39,7 @@ export default function More() {
           <R to="/match" icon={Trophy} title="Matches" />
           <R to="/train" icon={Dumbbell} title="Training" />
           <R to="/board" icon={Shapes} title="Tactics board" />
+          <R to="/videos" icon={Clapperboard} title="Video library" />
           <R to="/safety" icon={ShieldAlert} title="Safety: head knock, heat, thunder" />
           <R to="/recognise" icon={Award} title="Recognise a child" />
           <R to="/review" icon={ClipboardList} title="Term reviews" />
@@ -51,6 +52,7 @@ export default function More() {
           <R to="/inbox" icon={Megaphone} title="Announcements and messages" badge={unread} />
           <R to="/tasks" icon={ListChecks} title="Tasks from the coach" />
           <R to="/progress" icon={TrendingUp} title="Progress" />
+          <R to="/videos" icon={Clapperboard} title="Videos from the coaches" />
           {myKids.map((k) => <R key={k.id} to={`/details/${k.id}`} icon={HeartPulse} title={`${k.firstName}'s details and health information`} />)}
           {myKids.map((k) => <R key={'d' + k.id} to={`/docs/${k.id}`} icon={IdCard} title={`${k.firstName}'s ID papers`} />)}
           {myKids.some((k) => isSchoolTeam(s.teamInfo, k.teamId)) && <R to="/pathway" icon={Medal} title="Road to Palaro" />}
@@ -168,17 +170,19 @@ export function Settings() {
 
 export function Privacy() {
   const s = useAppState(); const kids = useMyChildren(); const [err, setErr] = useState('');
-  const setPhoto = async (id: string, v: boolean) => {
-    setErr('');
-    if (cloudEnabled) { try { await setConsent(id, 'photo', v, NOTICE_VERSION); await syncNow(); } catch (e) { setErr((e as Error).message); } }
-    else update((x) => ({ ...x, players: x.players.map((p) => (p.id === id ? { ...p, photoConsent: v } : p)) }));
+  /** Photo or video permission: shown at once on this phone, put back if the server does not take it. */
+  const setOk = async (id: string, k: 'photo' | 'video', v: boolean) => {
+    setErr(''); const mark = (on: boolean) => update((x) => ({ ...x, players: x.players.map((p) => (p.id === id ? { ...p, [k === 'photo' ? 'photoConsent' : 'videoConsent']: on } : p)) }));
+    mark(v);
+    if (cloudEnabled) { try { await setConsent(id, k, v, NOTICE_VERSION); await syncNow(); } catch (e) { mark(!v); setErr(`Not saved: ${(e as Error).message}`); } }
   };
   return (
     <Page title="Privacy" back={<Back to="/more" />}>
       <Card className="mb-3 grid gap-2"><PrivacyText /><p className="muted text-sm">Notice version {NOTICE_VERSION}.</p></Card>
       {kids.map((k) => (
         <Card key={k.id} className="mb-3 grid gap-3"><h3 className="text-2xl">{k.firstName}</h3>
-          <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={k.photoConsent} onChange={(e) => void setPhoto(k.id, e.target.checked)} />Show {k.firstName}'s photo on team screens</label>
+          <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={k.photoConsent} onChange={(e) => void setOk(k.id, 'photo', e.target.checked)} />Show {k.firstName}'s photo on team screens</label>
+          <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={!!k.videoConsent} onChange={(e) => void setOk(k.id, 'video', e.target.checked)} />Coaches may film {k.firstName} for the club's how-to videos</label>
           <h4 className="text-xl">Emergency contacts</h4>
           <EmergencyEditor p={k} />
           <button className="btn ghost" onClick={() => download(`${k.firstName}-data.json`, JSON.stringify({ child: k, reviews: s.assessments.filter((a) => a.playerId === k.id), goals: s.goals.filter((g) => g.playerId === k.id), badges: s.badges.filter((b) => b.playerId === k.id), growth: s.growth.filter((g) => g.playerId === k.id), injuries: s.injuries.filter((i) => i.playerId === k.id), minutes: s.minutes.filter((m) => m.playerId === k.id), messages: s.messages.filter((m) => m.playerId === k.id) }, null, 2))}>Download everything about {k.firstName}</button>

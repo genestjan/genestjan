@@ -21,8 +21,8 @@ const ok = (c, m) => { if (!c) { fails.push(m); console.log('FAIL', m); } else c
 let browser;
 try {
   for (let i = 0; i < 50; i++) { try { await fetch(`http://localhost:${PORT}${BASE}`); break; } catch { await new Promise((r) => setTimeout(r, 200)); } }
-  browser = await chromium.launch({ executablePath: exe });
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  browser = await chromium.launch({ executablePath: exe, args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] });   // a fake camera for the video recorder
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['camera', 'microphone'] });
   // Most checks skip the welcome screen and tours (they are tested on a fresh phone below).
   await ctx.addInitScript(() => { try { for (const k of ['welcome', 'tour-coach', 'tour-parent']) localStorage.setItem('rangers-' + k, '1'); } catch { /* ignore */ } });
   const p = await ctx.newPage();
@@ -80,16 +80,28 @@ try {
   ok(await p.locator('iframe[src^="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"]').count() === 1, 'coach added a YouTube how-to video (privacy-friendly player)');
   await p.getByLabel(/^Add a photo \(for example/).setInputFiles(photo); await p.waitForTimeout(400);
   ok((await text()).includes('Remove the photo'), 'coach attached a how-to photo');
+  // a short how-to video recorded with the (fake) camera
+  await p.getByRole('button', { name: 'Record a video' }).click(); await p.getByRole('button', { name: 'Start recording' }).click({ timeout: 8000 });
+  await p.waitForTimeout(1600); await p.getByRole('button', { name: 'Stop' }).click();
+  await p.getByRole('button', { name: 'Send this video' }).click({ timeout: 8000 }); await p.getByRole('button', { name: 'Remove the video' }).waitFor({ timeout: 8000 }).catch(() => undefined);
+  ok(await p.getByRole('button', { name: 'Remove the video' }).count() === 1 && await p.locator('video[aria-label="Video sent in"]').count() === 1, 'coach recorded a short how-to video in the app');
   ok(await p.getByRole('button', { name: /^Send to 0 players/ }).isDisabled(), 'cannot send to nobody');
   await p.getByLabel(/^Ana/).check(); await p.getByLabel(/^Ben/).check(); await p.getByRole('button', { name: 'Send to 2 players' }).click(); await p.waitForURL(/#\/assign\/[0-9a-f-]{36}/);
   ok((await text()).includes('Ball mastery at home') && (await text()).includes('Ben') && (await text()).includes('0 of 3 sent'), 'assignment sent to two players');
+  ok(await p.locator('video').count() === 1, 'the assignment shows the coach\'s video');
   await p.goto(B + '/player/' + ANA); await p.getByRole('button', { name: /Preview as this child/ }).click(); await p.waitForTimeout(300);
   ok((await text()).includes('1 task from your coach') && (await text()).includes('Please finish Ana'), 'parent home shows the task and the details reminder');
   await p.getByRole('link', { name: /Tasks/ }).first().click(); ok((await text()).includes('Ball mastery at home'), 'parent sees the assignment');
   await p.getByRole('link', { name: /Ball mastery at home/ }).click(); ok((await text()).includes('0 of 3 done') && (await text()).includes('How to do it') && await p.locator('iframe[src*="youtube-nocookie.com/embed/dQw4w9WgXcQ"]').count() === 1, 'task list shows the how-to video and 0 of 3');
+  await p.locator('video[aria-label="Video sent in"]').first().waitFor({ timeout: 5000 }).catch(() => undefined);
+  ok(await p.locator('video[aria-label="Video sent in"]').count() === 1, 'the child sees the coach\'s how-to video at home');
   await p.getByLabel('Add a photo').first().setInputFiles({ name: 'clip.mp4', mimeType: 'video/mp4', buffer: Buffer.alloc(4096, 1) }); await p.waitForTimeout(300);
-  ok((await text()).includes('Videos cannot be sent') && (await text()).includes('0 of 3 done'), 'a video is refused with a clear message');
-  for (let i = 1; i <= 3; i++) {
+  ok((await text()).includes('Tap "Add a video"') && (await text()).includes('0 of 3 done'), 'a video chosen as a photo points to the video button');
+  // first task: a short video chosen from the phone (small enough to send as it is)
+  await p.getByLabel('Choose a video: Add a video').first().setInputFiles(path.join(path.dirname(new URL(import.meta.url).pathname), 'fixtures', 'clip.webm'));
+  for (let t = 0; t < 60 && await p.getByLabel('Add a photo', { exact: true }).count() > 2; t++) await p.waitForTimeout(250);
+  ok((await text()).includes('1 of 3 done') && (await text()).includes('Videos are deleted 14 days after the coach checks them'), 'the child sent a video for a task');
+  for (let i = 2; i <= 3; i++) {
     await p.getByLabel('Add a photo', { exact: true }).first().setInputFiles(photo);
     // wait until the screen shows the task as sent (one picker fewer) before choosing the next file, as a person would
     for (let t = 0; t < 60 && await p.getByLabel('Add a photo', { exact: true }).count() > 3 - i; t++) await p.waitForTimeout(250);
@@ -102,14 +114,30 @@ try {
   await p.getByLabel(/^Medication/).fill('inhaler before exercise'); await p.getByLabel(/^Anything else/).fill('Speaks Cebuano at home');
   await p.goto(B + '/'); ok(!(await text()).includes('Please finish Ana'), 'details reminder goes away once filled in');
   await p.goto(B + '/more'); await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
-  await p.goto(B + '/'); ok((await text()).includes('3 task photo(s) to review'), 'coach dashboard shows proofs to review');
+  await p.goto(B + '/'); ok((await text()).includes('3 task proof(s) to check'), 'coach dashboard shows proofs to review');
   await p.goto(B + '/assign'); await p.getByRole('link', { name: /Ball mastery at home/ }).click(); await p.waitForTimeout(300);
   ok((await text()).includes('List cleared'), 'coach sees the cleared list');
+  ok(await p.locator('video[aria-label="Video sent in"]').count() >= 2, 'coach can watch the child\'s video to check it');
   await p.getByRole('button', { name: 'Approve' }).first().click(); await p.getByRole('button', { name: 'Try again' }).nth(1).click(); await p.waitForTimeout(300);
   ok((await text()).includes('Approved') && (await text()).includes('Sent back for another try'), 'coach approves one proof and sends one back');
   await p.goto(B + '/player/' + ANA); ok(await p.getByLabel('Home address').inputValue() === 'Purok 1, Mabuhay, General Santos' && await p.getByLabel(/^Medication/).inputValue() === 'inhaler before exercise', 'coach sees the details the family entered');
   await p.getByRole('button', { name: /Preview as this child/ }).click(); await p.goto(B + '/tasks'); await p.getByRole('link', { name: /Ball mastery at home/ }).click();
   ok((await text()).includes('Try again') && (await text()).includes('Send a new photo'), 'child can resend a task that was sent back');
+  await p.goto(B + '/more'); await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
+
+  // the video library: YouTube links for coaches only, or for the team's families
+  await p.goto(B + '/more'); await p.getByRole('link', { name: /Video library/ }).click(); await p.getByRole('link', { name: 'Add a video' }).click();
+  await p.getByLabel('YouTube link', { exact: true }).fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ'); await p.getByLabel('Title').fill('Our match day routine');
+  await p.getByRole('button', { name: 'Coaches only' }).click(); await p.getByRole('button', { name: 'Save to the library' }).click(); await p.waitForURL(/#\/videos$/);
+  ok(!(await text()).includes('Our match day routine'), 'a coaches-only video is not on the families tab');
+  await p.getByRole('button', { name: 'For coaches' }).click(); ok((await text()).includes('Our match day routine') && (await text()).includes('Coaches only'), 'coach added a coaches-only how-we-work video');
+  await p.getByRole('link', { name: 'Add a video' }).click(); await p.getByLabel('YouTube link', { exact: true }).fill('https://youtu.be/aqz-KE-bpKQ'); await p.getByLabel('Title').fill('Toe taps at home');
+  await p.getByLabel('Topic').selectOption('ball-skills'); await p.getByRole('button', { name: 'Save to the library' }).click(); await p.waitForURL(/#\/videos$/);
+  ok((await text()).includes('Toe taps at home') && (await text()).includes('Ball skills'), 'coach added a video for the team');
+  await p.goto(B + '/player/' + ANA); await p.getByRole('button', { name: /Preview as this child/ }).click(); await p.waitForTimeout(300);
+  await p.goto(B + '/more'); await p.getByRole('link', { name: /Videos from the coaches/ }).click();
+  ok((await text()).includes('Toe taps at home') && !(await text()).includes('Our match day routine') && await p.getByRole('link', { name: 'Add a video' }).count() === 0, 'the family sees the team video, not the coaches-only one, and cannot add videos');
+  await p.getByRole('button', { name: 'Play video' }).click(); ok(await p.locator('iframe[src*="youtube-nocookie.com/embed/aqz-KE-bpKQ"]').count() === 1, 'the video plays only when tapped (saves data)');
   await p.goto(B + '/more'); await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
 
   // a brand new phone: welcome screen, then the "getting started" guide on the real screens, once only

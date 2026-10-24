@@ -28,6 +28,11 @@ describe('sync mapping', () => {
     const s = base(); s.goals = [{ id: 'not-a-uuid', playerId: P, text: 'x', status: 'active', at: '' }];
     expect(toRows(s).some((r) => r.kind === 'goal')).toBe(false);
   });
+  it('library videos: coaches-only and club videos sync with no team; team videos carry the team', () => {
+    const s = base(); const v = (id: string, audience: 'coaches' | 'team' | 'club', teamId?: string) => ({ id, title: 'V', youtubeId: 'dQw4w9WgXcQ', audience, teamId, topic: 'drills' as const, notes: '', at: '', by: '' });
+    s.videos = [v('30000000-0000-4000-8000-0000000000a1', 'coaches'), v('30000000-0000-4000-8000-0000000000a2', 'team', T), v('30000000-0000-4000-8000-0000000000a3', 'club'), v('30000000-0000-4000-8000-0000000000a4', 'team')];
+    expect(toRows(s).filter((r) => r.kind === 'video').map((r) => [r.visibility, r.team_id])).toEqual([['staff', null], ['team', T], ['club', null]]);
+  });
   it('announcements: club scope is club-visible with no team', () => {
     const s = base(); s.announcements = [{ id: E, scope: 'club', title: 'Hi', body: '', at: '', by: '', seenBy: [] }];
     expect(toRows(s).find((r) => r.kind === 'announcement')).toMatchObject({ visibility: 'club', team_id: null });

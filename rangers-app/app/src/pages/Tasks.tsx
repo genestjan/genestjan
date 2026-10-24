@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Back, Card, Empty, H2, Page } from '../components/ui';
 import { MediaPicker, MediaView, YouTube } from '../components/MediaView';
+import { ClipPicker, ClipView } from '../components/Clip';
 import { put, useAppState } from '../lib/store';
 import { derivedId } from '../lib/syncMap';
 import { latestByTask, openAssignments, progress } from '../lib/assignments';
-import { proofPath } from '../lib/mediaRules';
+import { CLIP, clipPath, proofPath } from '../lib/mediaRules';
+import { removeMedia } from '../lib/media';
 import { useMyChildren } from '../lib/role';
 import { fmtDate } from '../lib/util';
 import type { Assignment, Submission } from '../lib/model';
@@ -54,7 +56,7 @@ export function TaskDetail() {
       {pr.cleared ? <Card className="mb-3 text-lg font-semibold">Well done{kid ? `, ${kid.firstName}` : ''}! You sent a photo for every task.</Card> : <p className="muted mb-2">{pr.sent} of {pr.total} done. Send a photo for each task to clear the list.</p>}
       {a.why && <p className="mb-3 text-lg">{a.why}</p>}
       {a.dueOn && <p className="muted mb-3">Due {fmtDate(a.dueOn)}</p>}
-      {(a.youtubeId || a.photoPath) && <><H2>How to do it</H2><div className="grid gap-3">{a.youtubeId && <YouTube id={a.youtubeId} />}{a.photoPath && <MediaView path={a.photoPath} />}</div></>}
+      {(a.youtubeId || a.photoPath || a.clipPath) && <><H2>How to do it</H2><div className="grid gap-3">{a.youtubeId && <YouTube id={a.youtubeId} />}{a.clipPath && <ClipView path={a.clipPath} />}{a.photoPath && <MediaView path={a.photoPath} />}</div></>}
       <H2>Your tasks</H2>
       <div className="grid gap-3">{a.tasks.map((t, i) => <TaskRow key={t.id} a={a} n={i + 1} taskId={t.id} text={t.text} sub={by.get(t.id)} />)}</div>
     </Page>
@@ -63,8 +65,10 @@ export function TaskDetail() {
 
 function TaskRow({ a, n, taskId, text, sub }: { a: Assignment; n: number; taskId: string; text: string; sub?: Submission }) {
   const [open, setOpen] = useState(false);
-  const send = (mediaPath: string) => {
-    put('submissions', { id: derivedId(a.id, taskId), assignmentId: a.id, taskId, playerId: a.playerId, teamId: a.teamId, mediaPath, mediaType: 'image', at: new Date().toISOString(), status: 'submitted', feedback: '' });
+  const send = (mediaPath: string, mediaType: 'image' | 'video') => {
+    // a new video replaces the old file (photos keep the same file name; a video may change format)
+    if (sub?.mediaPath && sub.mediaPath !== mediaPath) void removeMedia([sub.mediaPath]).catch(() => undefined);
+    put('submissions', { id: derivedId(a.id, taskId), assignmentId: a.id, taskId, playerId: a.playerId, teamId: a.teamId, mediaPath, mediaType, at: new Date().toISOString(), status: 'submitted', feedback: '' });
     setOpen(false);
   };
   const state = !sub ? 'To do' : sub.status === 'approved' ? 'Approved' : sub.status === 'redo' ? 'Try again' : 'Sent';
@@ -72,10 +76,14 @@ function TaskRow({ a, n, taskId, text, sub }: { a: Assignment; n: number; taskId
     <Card className="grid gap-2" tour={n === 1 ? 'add-photo' : undefined}>
       <div className="flex items-start justify-between gap-3"><div className="text-lg font-semibold">{n}. {text}</div><span className={`shrink-0 rounded-full border px-3 py-1 text-sm ${sub && sub.status !== 'redo' ? 'font-semibold text-red' : ''}`} style={{ borderColor: 'var(--line)' }}>{state}</span></div>
       {sub?.feedback && <p className="rounded-xl p-2" style={{ background: 'var(--line)' }}>Coach: {sub.feedback}</p>}
-      {sub && <MediaView path={sub.mediaPath} version={sub.at} />}
+      {sub && (sub.mediaType === 'video' ? <ClipView path={sub.mediaPath} version={sub.at} gone="Your video was deleted after the coach checked it. Thank you!" /> : <MediaView path={sub.mediaPath} version={sub.at} />)}
       {sub?.status === 'approved' ? null : (!sub || open || sub.status === 'redo')
-        ? <MediaPicker label={sub ? 'Send a new photo' : 'Add a photo'} pathFor={() => proofPath(a.playerId, derivedId(a.id, taskId))} onSaved={send} />
+        ? <div className="grid gap-2">
+            <MediaPicker label={sub ? 'Send a new photo' : 'Add a photo'} pathFor={() => proofPath(a.playerId, derivedId(a.id, taskId))} onSaved={(p) => send(p, 'image')} />
+            <ClipPicker label={sub ? 'Send a new video' : 'Add a video'} pathFor={(p) => clipPath(a.playerId, derivedId(a.id, taskId), p.ext)} onSaved={(p) => send(p, 'video')} />
+          </div>
         : <button className="btn ghost" onClick={() => setOpen(true)}>Replace it</button>}
+      {sub?.mediaType === 'video' && sub.mediaPath && <p className="muted text-xs">Videos are deleted {CLIP.keepDays} days after the coach checks them.</p>}
     </Card>
   );
 }

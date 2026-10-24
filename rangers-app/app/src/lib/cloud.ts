@@ -156,6 +156,11 @@ export function useNewFeedback(): number {
   }, [c.status, c.reader]);
   return n;
 }
+/** The club's space for short videos in the app (bytes used and left), or null if it cannot be checked (offline, or update.sql not run yet). */
+export async function videoSpace(): Promise<{ used: number; room: number } | null> {
+  const c = await sb(); const [u, r] = await Promise.all([c.rpc('clips_used'), c.rpc('clips_room')]);
+  return u.error || r.error ? null : { used: Number(u.data), room: Number(r.data) };
+}
 export async function newFeedbackCount(): Promise<number> { const c = await sb(); const { count } = await c.from('feedback').select('id', { count: 'exact', head: true }).eq('status', 'new'); return count ?? 0; }
 export async function feedbackReaders(): Promise<string[]> { const c = await sb(); const { data } = await c.from('feedback_readers').select('user_id'); return ((data ?? []) as { user_id: string }[]).map((x) => x.user_id); }
 export async function setFeedbackReader(u: string, keep: boolean) { const c = await sb(); const { error } = await c.rpc('set_feedback_reader', { u, keep }); if (error) throw notYet(error, 'Choosing feedback readers'); if (u === cs.userId) await onSession((await c.auth.getSession()).data.session); }
@@ -249,7 +254,7 @@ export async function pullNow() {
         snap.set('team:' + t.id, JSON.stringify({ id: t.id, name: t.name, programme: t.programme, age_band: t.age_band, default_format: t.default_format }));
       }
       for (const p of (pl.data ?? []) as Record<string, unknown>[]) {
-        const item = { id: p.id as string, teamId: p.team_id as string, firstName: p.first_name as string, lastName: (p.last_name as string) ?? undefined, number: (p.shirt_number as number) ?? undefined, birthDate: (p.birth_date as string) ?? undefined, gkWilling: p.gk_willing as boolean, photoConsent: p.photo_consent as boolean, left: Boolean(p.left_at), leftAt: (p.left_at as string) ?? undefined } as Player;
+        const item = { id: p.id as string, teamId: p.team_id as string, firstName: p.first_name as string, lastName: (p.last_name as string) ?? undefined, number: (p.shirt_number as number) ?? undefined, birthDate: (p.birth_date as string) ?? undefined, gkWilling: p.gk_willing as boolean, photoConsent: p.photo_consent as boolean, videoConsent: p.video_consent === true, left: Boolean(p.left_at), leftAt: (p.left_at as string) ?? undefined } as Player;
         const old = n.players.find((x) => x.id === item.id);
         n.players = old ? n.players.map((x) => (x.id === item.id ? { ...old, ...item } : x)) : [...n.players, item];
         snap.set('player:' + item.id, JSON.stringify(playerRow(item)));

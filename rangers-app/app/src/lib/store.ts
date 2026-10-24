@@ -28,7 +28,7 @@ export interface AppState {
   announcements: M.Announcement[]; messages: M.Message[]; sessions: M.TrainingSession[]; assessments: M.Assessment[]; goals: M.Goal[];
   recognitions: M.Recognition[]; badges: M.BadgeAward[]; growth: M.Growth[]; injuries: M.Injury[]; wellness: M.Wellness[];
   funds: M.FundCampaign[]; equipment: M.EquipmentItem[]; bootRequests: M.BootRequest[]; charges: M.Charge[]; chargeRefs: ChargeRef[];
-  seen: { id: string; playerId: string; ref: string; by: string }[]; assignments: M.Assignment[]; submissions: M.Submission[]; teamInfo: M.TeamInfo[]; eligibility: M.Eligibility[]; minutes: M.MinutesLog[]; strategies: M.CustomStrategy[]; stories: { id: string; text: string }[];
+  seen: { id: string; playerId: string; ref: string; by: string }[]; assignments: M.Assignment[]; submissions: M.Submission[]; videos: M.ClubVideo[]; teamInfo: M.TeamInfo[]; eligibility: M.Eligibility[]; minutes: M.MinutesLog[]; strategies: M.CustomStrategy[]; stories: { id: string; text: string }[];
   settings: M.ClubSettings; blocked: string[];
   myStaff: { teamId: string; head: boolean }[];   // cloud only: teams this login coaches
 }
@@ -40,7 +40,7 @@ const defaultTeam: M.Team = { id: '10000000-0000-4000-8000-000000000001', name: 
 const emptyState = (): AppState => ({
   v: 2, mode: 'club', me: { name: 'Coach' }, activeTeamId: defaultTeam.id, teams: [defaultTeam], players: [], matches: [], events: [], availability: [], attendance: [],
   announcements: [], messages: [], sessions: [], assessments: [], goals: [], recognitions: [], badges: [], growth: [], injuries: [], wellness: [], funds: [],
-  equipment: [], bootRequests: [], charges: [], chargeRefs: [], seen: [], assignments: [], submissions: [], teamInfo: [], eligibility: [], minutes: [], strategies: [], stories: [],
+  equipment: [], bootRequests: [], charges: [], chargeRefs: [], seen: [], assignments: [], submissions: [], videos: [], teamInfo: [], eligibility: [], minutes: [], strategies: [], stories: [],
   settings: { gcashNumber: '', contributionsOn: false, heatAction: true, concussionMinDays: 21, goingDefaultTraining: true, headCoachPin: '' }, blocked: [], myStaff: [],
 });
 

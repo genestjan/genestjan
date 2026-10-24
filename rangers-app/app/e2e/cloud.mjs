@@ -139,6 +139,26 @@ try {
   await admin.goto(APP + '#/player/' + ana.id); await admin.reload();
   await waitFor(async () => (await admin.getByLabel('Home address').inputValue().catch(() => '')) === 'Purok 1, Mabuhay', 'coach sees the address the parent entered');
 
+  // 5c. The video library and the club's video space, through the real database rules
+  for (const [title, who] of [['Our match day routine', 'Coaches only'], ['Toe taps at home', /^Players and families of/]]) {
+    await admin.goto(APP + '#/videos/new'); await admin.getByLabel('YouTube link', { exact: true }).fill('https://youtu.be/aqz-KE-bpKQ'); await admin.getByLabel('Title').fill(title);
+    await admin.getByRole('button', { name: who }).click(); await admin.getByRole('button', { name: 'Save to the library' }).click(); await admin.waitForURL(/#\/videos$/);
+  }
+  await waitFor(async () => { const v = await svc('records?kind=eq.video&select=visibility,team_id'); return v.length === 2 && v.some((x) => x.visibility === 'staff' && !x.team_id) && v.some((x) => x.visibility === 'team' && x.team_id === anaTeam); }, 'library videos saved as coaches-only and team');
+  await parent.goto(APP + '#/videos'); await parent.reload();
+  await waitFor(async () => (await body(parent)).includes('Toe taps at home'), 'parent sees the team video');
+  ok(!(await body(parent)).includes('Our match day routine'), 'parent never sees the coaches-only video');
+  ok((await (await asParent('records?kind=eq.video&select=id')).json()).length === 1, 'API: parent can read only the team video');
+  const room = await (await asParent('rpc/clips_room', { method: 'POST', body: '{}' })).json();
+  ok(room === 600 * 1024 * 1024, 'API: the app can check the club\'s video space before sending a video');
+  await admin.goto(APP + '#/videos'); await waitFor(async () => (await body(admin)).includes("MB of the club's 600 MB"), 'coaches see how full the video space is');
+  await admin.goto(APP + '#/assign/new'); await admin.getByRole('button', { name: 'Ball mastery at home' }).click();
+  ok((await body(admin)).includes('No family in this team has agreed to videos yet'), 'before any family agrees, coaches are told not to film the children');
+  await parent.goto(APP + '#/privacy'); await parent.getByLabel(/^Coaches may film Ana/).check();
+  await waitFor(async () => (await svc('players?first_name=eq.Ana&select=video_consent'))[0]?.video_consent === true, 'the family\'s video permission reached the child\'s record');
+  await admin.goto(APP + '#/'); await admin.reload(); await sleep(1500); await admin.goto(APP + '#/assign/new'); await admin.getByRole('button', { name: 'Ball mastery at home' }).click();
+  await waitFor(async () => (await body(admin)).includes('Children whose families agreed to videos: Ana'), 'the coach sees which children may be filmed');
+
   // 6. Review published to the family without the private note, then taken back
   await admin.goto(APP + '#/review/' + ana.id); await admin.getByRole('group', { name: 'First touch' }).getByRole('button', { name: 'Got it' }).click();
   await admin.getByRole('group', { name: 'Inside-foot passing' }).getByRole('button', { name: 'Getting it' }).click();

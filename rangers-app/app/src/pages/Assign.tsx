@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Back, Card, Empty, H2, Page } from '../components/ui';
 import { MediaPicker, MediaView, YouTube } from '../components/MediaView';
+import { ClipPicker, ClipView, WhoMayBeFilmed } from '../components/Clip';
 import { activeTeam, del, put, teamPlayers, uid, useAppState } from '../lib/store';
 import { ASSIGNMENT_TEMPLATES, templatesFor } from '../content/assignments';
 import { groups, latestByTask, progress } from '../lib/assignments';
-import { teamPhotoPath, youtubeId } from '../lib/mediaRules';
+import { teamPhotoPath, youtubeId, teamClipPath } from '../lib/mediaRules';
 import { removeMedia } from '../lib/media';
 import { BAND_AGE } from '../lib/sessionBuilder';
 import { fmtDate, today } from '../lib/util';
@@ -40,8 +41,11 @@ export function AssignNew() {
   const s = useAppState(); const nav = useNavigate(); const team = activeTeam(s); const kids = teamPlayers(s);
   const [title, setTitle] = useState(''); const [why, setWhy] = useState(''); const [tasks, setTasks] = useState<string[]>(['']);
   const [templateId, setTemplateId] = useState<string | undefined>(); const [due, setDue] = useState('');
-  const [photo, setPhoto] = useState(''); const [yt, setYt] = useState(''); const ytId = youtubeId(yt);
+  const [photo, setPhoto] = useState(''); const [clip, setClip] = useState(''); const [yt, setYt] = useState(''); const ytId = youtubeId(yt);
   const [chosen, setChosen] = useState<string[]>([]); const [all, setAll] = useState(false);
+  // a photo or video added but never sent is deleted on leaving, so it does not use the club's storage for ever
+  const files = useRef<string[]>([]); files.current = [photo, clip].filter(Boolean); const sent = useRef(false);
+  useEffect(() => () => { if (!sent.current && files.current.length) void removeMedia(files.current).catch(() => undefined); }, []);
   const age = BAND_AGE[team.ageBand]; const templates = all ? ASSIGNMENT_TEMPLATES : templatesFor(age);
   const clean = tasks.map((t) => t.trim()).filter(Boolean);
   const ready = title.trim() && clean.length > 0 && chosen.length > 0;
@@ -49,10 +53,10 @@ export function AssignNew() {
   const send = () => {
     const groupId = uid(); const at = new Date().toISOString();
     for (const playerId of chosen) {
-      const a: Assignment = { id: uid(), groupId, playerId, teamId: team.id, title: title.trim(), why: why.trim(), tasks: clean.map((text, i) => ({ id: `t${i + 1}`, text })), photoPath: photo || undefined, youtubeId: ytId || undefined, templateId, dueOn: due || undefined, at, by: s.me.name };
+      const a: Assignment = { id: uid(), groupId, playerId, teamId: team.id, title: title.trim(), why: why.trim(), tasks: clean.map((text, i) => ({ id: `t${i + 1}`, text })), photoPath: photo || undefined, clipPath: clip || undefined, youtubeId: ytId || undefined, templateId, dueOn: due || undefined, at, by: s.me.name };
       put('assignments', a);
     }
-    nav(`/assign/${groupId}`, { replace: true });
+    sent.current = true; nav(`/assign/${groupId}`, { replace: true });
   };
   return (
     <Page title="New assignment" back={<Back to="/assign" />}>
@@ -79,7 +83,10 @@ export function AssignNew() {
           <input className="field" inputMode="url" placeholder="https://youtu.be/..." value={yt} onChange={(e) => setYt(e.target.value)} /></label>
         {yt.trim() && !ytId && <p className="text-sm text-red" role="alert">That is not a YouTube video link. Copy it from YouTube's Share button.</p>}
         {ytId && <YouTube id={ytId} />}
-        <p className="muted text-sm">Upload the video to YouTube with the club account and choose <b>Unlisted</b>, so only people with the link can watch. It costs nothing and uses none of the club's storage.</p>
+        <p className="muted text-sm">Longer videos: upload to YouTube with the club account and choose <b>Unlisted</b>, so only people with the link can watch. It costs nothing and uses none of the club's storage.</p>
+        <div className="grid gap-2"><p className="text-sm font-semibold">Or a short video of you showing it (up to 30 seconds)</p>
+          {clip ? (<><ClipView path={clip} /><button className="btn ghost" onClick={() => { if (!confirm('Remove this video?')) return; void removeMedia([clip]).catch(() => undefined); setClip(''); }}>Remove the video</button></>)
+            : <><ClipPicker pathFor={(p) => teamClipPath(team.id, uid(), p.ext)} onSaved={setClip} /><WhoMayBeFilmed teamId={team.id} /></>}</div>
         {photo ? (<><MediaView path={photo} /><button className="btn ghost" onClick={() => { void removeMedia([photo]).catch(() => undefined); setPhoto(''); }}>Remove the photo</button></>)
           : <MediaPicker label="Add a photo (for example a drawing of the drill)" pathFor={() => teamPhotoPath(team.id, uid())} onSaved={setPhoto} />}
       </Card>
@@ -96,16 +103,16 @@ export function AssignNew() {
   );
 }
 
-/** Coach: how each player is getting on, with their photos to approve or send back. */
+/** Coach: how each player is getting on, with their photos and videos to approve or send back. */
 export function AssignDetail() {
   const { groupId } = useParams(); const s = useAppState(); const nav = useNavigate();
   const items = s.assignments.filter((a) => a.groupId === groupId);
   if (items.length === 0) return <Page title="Assignment" back={<Back to="/assign" />}><Empty>This assignment is no longer there.</Empty></Page>;
   const a0 = items[0];
   const remove = () => {
-    if (!confirm('Delete this assignment for every player, with their photos?')) return;
+    if (!confirm('Delete this assignment for every player, with their photos and videos?')) return;
     const subs = s.submissions.filter((x) => items.some((a) => a.id === x.assignmentId));
-    const files = [...new Set([...items.map((a) => a.photoPath ?? ''), ...subs.map((x) => x.mediaPath)].filter(Boolean))];
+    const files = [...new Set([...items.flatMap((a) => [a.photoPath ?? '', a.clipPath ?? '']), ...subs.map((x) => x.mediaPath)].filter(Boolean))];
     void removeMedia(files).catch(() => undefined);   // best effort: the records go either way
     items.forEach((a) => del('assignments', a.id)); subs.forEach((x) => del('submissions', x.id)); nav('/assign', { replace: true });
   };
@@ -115,6 +122,7 @@ export function AssignDetail() {
       {a0.dueOn && <p className="muted mb-2">Due {fmtDate(a0.dueOn)}</p>}
       {a0.youtubeId && <div className="mb-3"><YouTube id={a0.youtubeId} /></div>}
       {a0.photoPath && <div className="mb-3"><MediaView path={a0.photoPath} /></div>}
+      {a0.clipPath && <div className="mb-3"><ClipView path={a0.clipPath} /></div>}
       {items.map((a) => <PlayerReview key={a.id} a={a} />)}
       <button className="btn ghost mt-4 w-full" onClick={remove}>Delete this assignment</button>
     </Page>
@@ -139,7 +147,7 @@ function TaskReview({ text, sub }: { text: string; sub?: Submission }) {
       <div className="font-semibold">{text}</div>
       {!sub && <div className="muted">Not sent yet</div>}
       {sub && (<>
-        <MediaView path={sub.mediaPath} version={sub.at} />
+        {sub.mediaType === 'video' ? <ClipView path={sub.mediaPath} version={sub.at} gone="The video was deleted 14 days after it was checked, to keep the club's storage free." /> : <MediaView path={sub.mediaPath} version={sub.at} />}
         <div className="muted text-sm">{sub.status === 'approved' ? 'Approved' : sub.status === 'redo' ? 'Sent back for another try' : 'Waiting for you'}</div>
         <input className="field" placeholder="A short comment for the player (optional)" aria-label="Comment for the player" value={fb} onChange={(e) => setFb(e.target.value)} />
         <div className="flex gap-2"><button className="btn flex-1" disabled={sub.status === 'approved'} onClick={() => set('approved')}>Approve</button><button className="btn ghost flex-1" disabled={sub.status === 'redo'} onClick={() => set('redo')}>Try again</button></div>

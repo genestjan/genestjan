@@ -36,6 +36,7 @@ export const CONFIG: Cfg[] = [
   { key: 'stories', kind: 'story', vis: () => 'club', team: () => null, player: () => null },
   fam('bootRequests', 'boot'), fam('minutes', 'minutes'), fam('charges', 'charge'), fam('chargeRefs', 'charge_ref'), fam('seen', 'seen'), fam('assignments', 'assignment'), fam('submissions', 'submission'), fam('eligibility', 'eligibility'),
   { key: 'teamInfo', kind: 'team_info', vis: () => 'team', team: (i) => i.teamId, player: () => null },
+  { key: 'videos', kind: 'video', vis: (i) => (i.audience === 'coaches' ? 'staff' : i.audience === 'club' ? 'club' : 'team'), team: (i) => (i.audience === 'team' ? i.teamId ?? null : null), player: () => null },
 ];
 const BY_KIND = new Map(CONFIG.map((c) => [c.kind, c]));
 
@@ -46,9 +47,10 @@ export function toRows(s: AppState): RowOut[] {
     if (!isUuid(item.id)) continue;
     const team = c.team(item, s);
     const player = c.player(item);
-    if (c.kind !== 'strategy' && c.kind !== 'fund' && c.kind !== 'equipment' && c.kind !== 'story' && c.kind !== 'announcement' && !team) continue; // orphaned
+    const vis = c.vis(item);
+    if (vis !== 'club' && vis !== 'staff' && !team) continue; // orphaned (club-wide and coaches-only rows have no team)
     if (player && (!isUuid(player) || isDemoId(player))) continue;
-    out.push({ id: item.id, kind: c.kind, team_id: team, player_id: player, visibility: c.vis(item), data: item as unknown as Record<string, unknown> });
+    out.push({ id: item.id, kind: c.kind, team_id: team, player_id: player, visibility: vis, data: item as unknown as Record<string, unknown> });
   }
   for (const a of s.assessments) {
     if (a.fromPub || !isUuid(a.id) || !isUuid(a.playerId) || !isUuid(a.teamId) || isDemoId(a.playerId)) continue;

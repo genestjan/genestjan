@@ -35,7 +35,7 @@ export default function Today() {
   const news = s.announcements.filter((x) => x.scope === 'club' || x.teamId === team.id).sort((x, y) => y.at.localeCompare(x.at)).slice(0, 3);
   const attention: [LucideIcon, string, ReactNode][] = [
     ...(noDocs > 0 ? [[FileWarning, '/documents', `${noDocs} child(ren) still missing ID papers (student ID or PSA)`] as [LucideIcon, string, ReactNode]] : []),
-    ...(toReview > 0 ? [[Camera, '/assign', `${toReview} task photo(s) to review`] as [LucideIcon, string, ReactNode]] : []),
+    ...(toReview > 0 ? [[Camera, '/assign', `${toReview} task proof(s) to check`] as [LucideIcon, string, ReactNode]] : []),
     ...(unread > 0 ? [[MessageCircle, '/inbox', `${unread} unread message(s) from parents`] as [LucideIcon, string, ReactNode]] : []),
     ...(newFb > 0 ? [[MessageSquareHeart, '/feedback/inbox', `${newFb} new feedback about the app`] as [LucideIcon, string, ReactNode]] : []),
     ...(nudge.length > 0 ? [[Star, '/recognise', `${nudge.length} child(ren) not recognised in 6 weeks: ${nudge.slice(0, 3).map((id) => s.players.find((p) => p.id === id)?.firstName).join(', ')}${nudge.length > 3 ? '...' : ''}`] as [LucideIcon, string, ReactNode]] : []),

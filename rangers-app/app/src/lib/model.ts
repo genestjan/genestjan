@@ -45,10 +45,14 @@ export interface TrainingSession { id: string; teamId: string; eventId?: string;
 export interface Assessment { id: string; playerId: string; teamId: string; term: string; ratings: Record<string, number>; strength: string; working: string; familyComment: string; coachNote: string; publishedAt?: string; selfRatings?: Record<string, number>; fromPub?: boolean }
 /** One assignment for one child. A group of children sent the same assignment share a groupId. */
 export interface AssignTask { id: string; text: string }
-export interface Assignment { id: string; groupId: string; playerId: string; teamId: string; title: string; why: string; tasks: AssignTask[]; photoPath?: string; youtubeId?: string; templateId?: string; dueOn?: string; at: string; by: string }
+export interface Assignment { id: string; groupId: string; playerId: string; teamId: string; title: string; why: string; tasks: AssignTask[]; photoPath?: string; youtubeId?: string; /** a coach's short how-to video (stored in the club's video space) */ clipPath?: string; templateId?: string; dueOn?: string; at: string; by: string }
 export type SubmissionStatus = 'submitted' | 'approved' | 'redo';
-/** A child's proof (a photo) for one task. */
-export interface Submission { id: string; assignmentId: string; taskId: string; playerId: string; teamId: string; mediaPath: string; mediaType: 'image'; at: string; status: SubmissionStatus; feedback: string; reviewedAt?: string }
+/** A child's proof (a photo or a short video) for one task. A video's file is deleted 14 days after the coach checks it (mediaPath then empty). */
+export interface Submission { id: string; assignmentId: string; taskId: string; playerId: string; teamId: string; mediaPath: string; mediaType: 'image' | 'video'; at: string; status: SubmissionStatus; feedback: string; reviewedAt?: string }
+/** The video library: a YouTube link (any length, free, no club storage) for coaches only, one team, or the whole club. */
+export type VideoAudience = 'coaches' | 'team' | 'club';
+export type VideoTopic = 'how-we-work' | 'warm-up' | 'ball-skills' | 'drills' | 'goalkeeping' | 'fitness' | 'match-day' | 'safety';
+export interface ClubVideo { id: string; title: string; youtubeId: string; audience: VideoAudience; teamId?: string; topic: VideoTopic; notes: string; at: string; by: string }
 export interface Goal { id: string; playerId: string; text: string; status: 'active' | 'done'; at: string }
 export interface Recognition { id: string; playerId: string; valueKey: string; note: string; at: string }
 export interface BadgeAward { id: string; playerId: string; badgeKey: string; at: string }

@@ -17,6 +17,8 @@ import Safety from './pages/Safety';
 import Support from './pages/Support';
 import BoardEditor from './pages/BoardEditor';
 import { FeedbackInbox, SendFeedback } from './pages/Feedback';
+import { VideoLibrary, VideoNew } from './pages/Videos';
+import { useClipCleanup } from './lib/media';
 import More, { Help, Motivation, Privacy, Settings, Tips } from './pages/More';
 import { DetailsPage, DocsPage, ParentHome, ProgressPage, TeamDocs } from './pages/Parent';
 import { EligibilityEditor, Pathway } from './pages/School';
@@ -43,6 +45,7 @@ function Shell() {
   const tour = useTour(tourRole(role));
   // A new screen starts at the top (the page used to keep the last screen's scroll, so Team opened half way down)
   useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
+  useClipCleanup(staff);
   // First time on this phone: walk through the real screens once (replay any time from Help).
   useEffect(() => { if (tour.open && !fullscreen) { tour.done(); startGuide(tourRole(role) === 'parent' ? 'start-parent' : 'start-coach'); } }, [tour.open, fullscreen, role]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
@@ -71,6 +74,7 @@ function Shell() {
         <Route path="/tv" element={<Tv />} />
         <Route path="/join/:token" element={<Join />} />
         <Route path="/feedback" element={<SendFeedback />} />
+        <Route path="/videos" element={<VideoLibrary />} />
         <Route path="/feedback/inbox" element={<FeedbackInbox />} />
         {staff && (<>
           <Route path="/assign" element={<AssignList />} />
@@ -97,6 +101,7 @@ function Shell() {
           <Route path="/recognise" element={<Recognise />} />
           <Route path="/safety" element={<Safety />} />
           <Route path="/board" element={<BoardEditor />} />
+          <Route path="/videos/new" element={<VideoNew />} />
           <Route path="/motivation" element={<Motivation />} />
           <Route path="/settings" element={<Settings />} />
         </>)}

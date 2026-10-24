@@ -34,7 +34,7 @@ export function teamFacts(s: AppState, role: 'coach' | 'parent', kids: Player[],
       }
       case 'tasks': {
         if (role === 'parent') { const open = openAssignments(s.assignments.filter((a) => kids.some((k) => k.id === a.playerId)), s.submissions); return open.length ? `${open.length} task list${open.length === 1 ? '' : 's'} to do: ${open.map((a) => a.title).join(', ')}. Open Tasks and send a photo for each task.` : 'No tasks waiting. Well done!'; }
-        const review = s.assignments.filter((a) => a.teamId === team.id).reduce((n, a) => n + progress(a, s.submissions).toReview, 0); return review ? `${review} task photo(s) waiting for you in Assign.` : 'No task photos waiting. Send a new task from Today, Assign tasks.';
+        const review = s.assignments.filter((a) => a.teamId === team.id).reduce((n, a) => n + progress(a, s.submissions).toReview, 0); return review ? `${review} task proof(s) waiting for you in Assign.` : 'No task proofs waiting. Send a new task from Today, Assign tasks.';
       }
       case 'palaro': {
         const tid = role === 'parent' ? kids.find((k) => isSchoolTeam(s.teamInfo, k.teamId))?.teamId : isSchoolTeam(s.teamInfo, team.id) ? team.id : undefined;
