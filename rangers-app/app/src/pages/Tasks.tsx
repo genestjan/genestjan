@@ -72,9 +72,9 @@ function TaskRow({ a, n, taskId, text, sub }: { a: Assignment; n: number; taskId
     <Card className="grid gap-2">
       <div className="flex items-start justify-between gap-3"><div className="text-lg font-semibold">{n}. {text}</div><span className={`shrink-0 rounded-full border px-3 py-1 text-sm ${sub && sub.status !== 'redo' ? 'font-semibold text-red' : ''}`} style={{ borderColor: 'var(--line)' }}>{state}</span></div>
       {sub?.feedback && <p className="rounded-xl p-2" style={{ background: 'var(--line)' }}>Coach: {sub.feedback}</p>}
-      {sub && <MediaView path={sub.mediaPath} kind={sub.mediaType} />}
+      {sub && <MediaView path={sub.mediaPath} kind={sub.mediaType} version={sub.at} />}
       {sub?.status === 'approved' ? null : (!sub || open || sub.status === 'redo')
-        ? <MediaPicker label={sub ? 'Send a new photo or video' : 'Add a photo or video'} pathFor={(p) => proofPath(a.playerId, crypto.randomUUID(), p.ext)} onSaved={send} />
+        ? <MediaPicker label={sub ? 'Send a new photo or video' : 'Add a photo or video'} pathFor={(p) => proofPath(a.playerId, derivedId(a.id, taskId), p.ext)} onSaved={send} />
         : <button className="btn ghost" onClick={() => setOpen(true)}>Replace it</button>}
     </Card>
   );

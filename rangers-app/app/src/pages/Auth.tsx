@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Page } from '../components/ui';
-import { claimAdmin, getCloud, redeemInvite, sendCode, setConsent, signInGoogle, signOut, syncNow, useCloud, verifyCode } from '../lib/cloud';
+import { claimAdmin, getCloud, googleButtonEnabled, redeemInvite, renderGoogleButton, resolveLocalChoice, sendCode, setConsent, signInGoogle, signOut, syncNow, useCloud, verifyCode } from '../lib/cloud';
+import { isDemoId } from '../lib/syncMap';
 import { useAppState } from '../lib/store';
 
 /** Facebook, Messenger and Instagram open links in their own browser, where Google refuses to sign in. */
@@ -21,6 +22,9 @@ const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\//i.test(n
 export function Login({ joining }: { joining?: boolean }) {
   const [email, setEmail] = useState(''); const [code, setCode] = useState(''); const [sent, setSent] = useState(false); const [err, setErr] = useState(takeAuthError); const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const gRef = useRef<HTMLDivElement>(null); const [gState, setGState] = useState<'loading' | 'ready' | 'failed'>('loading');
+  // Google's own button (shows rangersfc.net). If it cannot load, the redirect button below is used instead.
+  useEffect(() => { if (googleButtonEnabled && gRef.current) renderGoogleButton(gRef.current, setErr).then(() => setGState('ready'), () => setGState('failed')); }, []);
   const run = async (f: () => Promise<void>) => { setBusy(true); setErr(''); try { await f(); } catch (e) { setErr((e as Error).message); } setBusy(false); };
   const copyLink = async () => { try { await navigator.clipboard.writeText(location.href); setCopied(true); } catch { setErr('Could not copy. Tap the three dots at the top and choose "Open in browser".'); } };
   return (
@@ -34,7 +38,8 @@ export function Login({ joining }: { joining?: boolean }) {
       )}
       <p className="mb-4 text-lg">{joining ? 'Sign in first, then your invite is linked to your account.' : 'Coaches and parents sign in here. Each person has their own login.'}</p>
       <Card className="grid gap-3">
-        <button className="btn h-14" disabled={busy} onClick={() => run(signInGoogle)}>Continue with Google</button>
+        {googleButtonEnabled && <div ref={gRef} className="flex min-h-[44px] justify-center" />}
+        {(!googleButtonEnabled || gState === 'failed') && <button className="btn h-14" disabled={busy} onClick={() => run(signInGoogle)}>Continue with Google</button>}
         {EMAIL_CODES && (<>
         <div className="muted text-center">or use your email</div>
         {!sent ? (<>
@@ -135,6 +140,24 @@ export function Gate() {
         <button className="btn ghost" onClick={() => claimAdmin().catch((e: Error) => setErr(e.message))}>Set up the club (admin)</button>
         {err && <p className="text-red" role="alert">{err}</p>}
         <button className="btn ghost" onClick={() => signOut()}>Sign out</button>
+      </Card>
+    </Page>
+  );
+}
+
+/** First sign-in on a phone that was used without an account: upload that work to the club, or start fresh. */
+export function LocalChoice() {
+  const s = useAppState(); const [busy, setBusy] = useState(false);
+  const players = s.players.filter((p) => !isDemoId(p.id)).length;
+  const parts = [[players, 'player'], [s.events.length, 'event'], [s.matches.length, 'match'], [s.messages.length + s.announcements.length, 'message']].filter(([n]) => n) as [number, string][];
+  const go = (keep: boolean) => { setBusy(true); void resolveLocalChoice(keep); };
+  return (
+    <Page title="Before you start">
+      <Card className="grid gap-3">
+        <p className="text-lg">This phone already has things made before you signed in: <b>{parts.map(([n, w]) => `${n} ${w}${n === 1 ? '' : w === 'match' ? 'es' : 's'}`).join(', ')}</b>.</p>
+        <p>If they were real, upload them so the other coaches see them. If you were only trying the app, start fresh so test data does not reach the club. Practice players from the demo team are never uploaded.</p>
+        <button className="btn h-14" disabled={busy} onClick={() => go(true)}>Upload them to the club</button>
+        <button className="btn ghost h-14" disabled={busy} onClick={() => go(false)}>Start fresh (delete them from this phone)</button>
       </Card>
     </Page>
   );

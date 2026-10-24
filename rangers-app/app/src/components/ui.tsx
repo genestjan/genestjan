@@ -11,7 +11,7 @@ export function Page({ title, children, back, actions }: { title: string; childr
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-4" style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}>
       <header className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">{back}<h1 className="truncate text-4xl leading-none">{title}</h1></div>
+        <div className="flex min-w-0 items-center gap-3">{back}<h1 className={`line-clamp-2 break-words leading-none ${title.length > 14 ? 'text-3xl' : 'text-4xl'}`}>{title}</h1></div>
         <div className="flex shrink-0 items-center gap-2">{actions}
           <button className="btn ghost px-3" aria-label="Toggle sun mode" onClick={() => update((s) => ({ ...s, mode: s.mode === 'club' ? 'sun' : 'club' }))}>{mode === 'club' ? 'Sun' : 'Club'}</button>
         </div>

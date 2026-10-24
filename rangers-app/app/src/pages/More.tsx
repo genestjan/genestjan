@@ -33,13 +33,13 @@ export function Tips() {
   return <Page title="Tips" back={<Back to="/more" />}><Card><ul className="grid gap-3 text-lg">{TIPS_PARENTS.map((t) => <li key={t}>{t}</li>)}</ul></Card></Page>;
 }
 export function Help() {
-  const role = useRole(); const tour = useTour(tourRole(role));
+  const role = useRole(); const tour = useTour(tourRole(role)); const nav = useNavigate();
   return (
     <Page title="Help" back={<Back to="/more" />}>
       <Card className="grid gap-3"><h2 className="text-2xl">Match day in five steps</h2>
         <ol className="list-decimal pl-5"><li>Matches, New match: pick the format, periods and how often you sub.</li><li>Tick who is here. Check the minutes plan. Lock a keeper if you want.</li><li>Show the kids: lineup, our 3 keys, the move, values. Swipe through.</li><li>Kick off. The phone buzzes before each sub. Tap a child on the pitch, then a child on the bench to swap.</li><li>Half-time: ask them first what is working. After the match, celebrate, win or lose.</li></ol>
         <h2 className="text-2xl">Showing the board on a TV</h2><ul className="list-disc pl-5"><li>Hold the tablet up: simplest for small groups. Use Sun mode outdoors.</li><li>HDMI: USB-C to HDMI adapter and cable. Most reliable, no internet needed.</li><li>Screen mirroring to a smart TV or casting stick on the same Wi-Fi.</li><li>TV link: open this app's address followed by /tv on the TV, then type the code shown on your phone.</li></ul>
-        <h2 className="text-2xl">Tour</h2><button className="btn ghost" onClick={() => { tour.replay(); history.back(); }}>Replay the app tour</button>
+        <h2 className="text-2xl">Tour</h2><button className="btn ghost" onClick={() => { tour.replay(); nav('/'); }}>Replay the app tour</button>
         <h2 className="text-2xl">Add to the home screen</h2><p>Android Chrome: three dots, Add to Home screen. iPhone: open in Safari (not inside Messenger), Share, Add to Home Screen. Reminders on iPhone only work after this.</p></Card>
     </Page>
   );

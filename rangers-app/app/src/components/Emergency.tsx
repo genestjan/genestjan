@@ -38,11 +38,11 @@ export function EmergencyEditor({ p }: { p: Player }) {
         </div>))}
       {em.contacts.length < 3 && <button className="btn ghost" onClick={() => setEm({ contacts: [...em.contacts, { name: '', phone: '' }] })}>Add another contact</button>}
       <h4 className="mt-2 text-xl font-semibold">Health</h4>
-      <input className="field" placeholder="Allergies (or none)" aria-label="Allergies" value={em.allergies} onChange={(e) => setEm({ allergies: e.target.value })} />
+      <label className="grid gap-1 text-sm font-semibold">Allergies (write "none" if there are none)<input className="field" aria-label="Allergies" placeholder="e.g. peanuts, none" value={em.allergies} onChange={(e) => setEm({ allergies: e.target.value })} /></label>
       <label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={em.inhaler} onChange={(e) => setEm({ inhaler: e.target.checked })} />Uses an inhaler (asthma)</label>
-      <input className="field" placeholder="Health condition a coach should know (or none)" aria-label="Condition" value={em.note} onChange={(e) => setEm({ note: e.target.value })} />
+      <label className="grid gap-1 text-sm font-semibold">Health condition a coach should know (or none)<input className="field" aria-label="Condition" placeholder="e.g. asthma, none" value={em.note} onChange={(e) => setEm({ note: e.target.value })} /></label>
       {txt('Medication, and when it is taken (or none)', 'medication')}
-      {txt('Anything else important', 'other', 'For example: fear of water, speaks Cebuano only')}
+      {txt('Anything else important', 'other', 'e.g. speaks Cebuano best')}
       <p className="muted text-sm">Only the child's coaches and the family can see this. It is used in an emergency and to look after your child at training. Please do not add medical reports or diagnoses.</p>
     </div>
   );

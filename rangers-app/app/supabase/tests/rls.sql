@@ -202,6 +202,18 @@ select t.ok(t.state($q$insert into public.records (id,kind,team_id,player_id,vis
 select t.ok(t.state($q$insert into public.records (id,kind,team_id,player_id,visibility,data) values (gen_random_uuid(),'submission','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','family','{"status":"approved","feedback":""}')$q$) = '42501', 'a parent cannot send a proof already marked approved');
 select t.ok(t.state($q$update public.records set data = '{"status":"approved","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/x.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '42501', 'a parent cannot approve their own proof');
 select t.ok(t.state($q$update public.records set data = '{"status":"submitted","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/y.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '00000', 'a parent can replace their own proof');
+reset role;
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000b4','b4@x');
+insert into public.memberships values ('00000000-0000-0000-0000-0000000000b4','parent','active');
+insert into public.player_guardians (player_id,user_id) values ('20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-0000000000b4');
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000b4');
+select t.ok(t.state($q$update public.records set data = '{"status":"submitted","feedback":"","mediaPath":"p/20000000-0000-0000-0000-000000000001/w.jpg"}' where id='50000000-0000-0000-0000-000000000002'$q$) = '00000'
+  and t.count($q$select count(*) from public.records where id='50000000-0000-0000-0000-000000000002' and data->>'mediaPath' like '%w.jpg'$q$) = 1, 'the other parent of the same child can re-send the proof');
+select t.login('00000000-0000-0000-0000-0000000000b2');
+select t.state($q$update public.records set data = '{"status":"submitted","feedback":"","mediaPath":"hack"}' where id='50000000-0000-0000-0000-000000000002'$q$);
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(t.count($q$select count(*) from public.records where id='50000000-0000-0000-0000-000000000002' and data->>'mediaPath' like '%w.jpg'$q$) = 1, 'a parent from another family cannot change the proof');
 select t.login('00000000-0000-0000-0000-0000000000b2');
 select t.ok(t.count($q$select count(*) from public.records where kind in ('assignment','submission')$q$) = 0, 'another family sees no assignments or proofs');
 select t.login('00000000-0000-0000-0000-0000000000c1');
@@ -233,6 +245,12 @@ select t.login('00000000-0000-0000-0000-0000000000b2');
 select t.ok(t.count($q$select count(*) from storage.objects where name like 'p/20000000-0000-0000-0000-000000000001/%'$q$) = 0, 'another family cannot see the proof file');
 select t.login('00000000-0000-0000-0000-0000000000c2');
 select t.ok(t.count($q$select count(*) from storage.objects$q$) = 0, 'a coach of another team sees none of these files');
+reset role;
+select t.ok(not has_function_privilege('anon', 'public.team_guardians(uuid)', 'execute') and not has_function_privilege('authenticated', 'public.team_guardians(uuid)', 'execute'), 'nobody outside the database can list a team''s parents');
+select t.ok(not has_function_privilege('anon', 'public.team_coaches(uuid)', 'execute') and not has_function_privilege('authenticated', 'public.team_coaches(uuid)', 'execute'), 'nobody outside the database can list a team''s coaches');
+select t.ok(not has_function_privilege('anon', 'public.enqueue_event_reminders()', 'execute') and not has_function_privilege('authenticated', 'public.purge_old_data()', 'execute'), 'reminders and clean-up cannot be triggered from outside');
+select t.ok(not has_function_privilege('authenticated', 'public.rangers_health()', 'execute'), 'the health checklist is for the SQL Editor only');
+select t.ok((select count(*) from public.rangers_health()) = 9 and (select ok from public.rangers_health() where item like 'Assignments rules%'), 'health checklist runs and sees the assignments rules');
 reset role;
 
 select name, case when ok then 'PASS' else 'FAIL' end as result from t.results order by ok, name;

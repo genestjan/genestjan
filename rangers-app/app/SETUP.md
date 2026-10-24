@@ -6,9 +6,10 @@ Never paste a secret (service_role key, database password, SMTP password, VAPID 
 
 ## 1. Supabase project (about 15 minutes, you)
 1. Go to supabase.com, sign in with the club Google account, **New project**: name `rangers`, region **Southeast Asia (Singapore)**, Free plan. Save the database password in Bitwarden.
-2. **Database > Extensions**: turn on `pg_cron`.
-3. **SQL Editor > New query**: paste the whole of `supabase/setup.sql`, press **Run**. It should say "Success. No rows returned".
-   - Already ran an older `setup.sql`? Then run only `supabase/migrations/0003_assignments.sql` the same way (new query, paste, Run). It adds assignments and a private `media` storage bucket for photos and videos (40 MB limit). Safe to run once.
+2. **Database > Extensions**: turn on `pg_cron` first (the SQL below schedules reminders only if it is on).
+3. **SQL Editor > New query**: paste the whole of `supabase/setup.sql`, press **Run**. It ends with a checklist table: every row should say `true` except "Club admin set up" (that becomes true after Part 4). Run `select * from public.rangers_health();` any time to see it again.
+   - Already ran an older `setup.sql`? Run `supabase/migrations/0003_assignments.sql` (if you have not yet) and then `supabase/migrations/0004_fixups.sql`, each in its own new query. Both are safe to run again. 0004 ends with the checklist table.
+   - (0003 alone:) the same way (new query, paste, Run). It adds assignments and a private `media` storage bucket for photos and videos (40 MB limit). Safe to run once.
 4. **Project Settings > API**: copy the **Project URL** and the **anon public** key and send them to me (or put them in `.env.production`, see `.env.example`).
 
 ## 2. Sign-in settings (about 10 minutes, you)
@@ -17,6 +18,10 @@ Never paste a secret (service_role key, database password, SMTP password, VAPID 
    - **Google (recommended first, no email setup needed)**: console.cloud.google.com with the club Google account, new project "Rangers App", **OAuth consent screen**: External, app name "Rangers FC", then **Publish app** (basic profile and email need no review; leaving it in Testing caps users and logs people out weekly). **Credentials > Create OAuth client ID > Web application**, authorised redirect URI: `https://YOUR-PROJECT.supabase.co/auth/v1/callback`. Paste the client ID and secret into Supabase's Google provider and enable it.
    - **Email code**: Supabase's built-in sender only reaches your own team's addresses and a couple of emails an hour, so parents would not get codes. Before relying on email: create a free Resend account, add domain `rangersfc.net` (it shows SPF and DKIM records; add them at Onamae.com DNS), then **Authentication > SMTP Settings**: host `smtp.resend.com`, port 465, user `resend`, password = your Resend API key, sender `no-reply@rangersfc.net`, name `Rangers FC`. Then **Authentication > Email Templates > Magic Link**: make the body show the code, for example `Your Rangers FC sign-in code is {{ .Token }}`.
 3. **Authentication > Rate Limits**: leave the defaults.
+4. **Show rangersfc.net instead of the database address (recommended).** Google's normal sign-in page names the Supabase address (`xxxx.supabase.co`), which can worry parents. The app can use Google's own button instead, which names rangersfc.net:
+   - In Google Cloud > Google Auth Platform > Clients > your web client, add **Authorised JavaScript origins**: `https://rangersfc.net`. Save.
+   - Send me the **Client ID** (it ends in `.apps.googleusercontent.com`; it is public, unlike the client secret). It goes into `.env.production` as `VITE_GOOGLE_CLIENT_ID`.
+   - If Google's button cannot load (for example inside Messenger), the app falls back to the normal button by itself.
 
 ## 3. Publish
 The website deploys from the `main` branch of `ayakent/RangersFc` with no build step, so publishing is adding the built `app/` folder there.

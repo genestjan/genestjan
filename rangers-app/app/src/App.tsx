@@ -18,7 +18,7 @@ import Support from './pages/Support';
 import BoardEditor from './pages/BoardEditor';
 import More, { Help, Motivation, Privacy, Settings, Tips } from './pages/More';
 import { DetailsPage, ParentHome, ProgressPage } from './pages/Parent';
-import { Gate, Join, Login, pendingInvite } from './pages/Auth';
+import { Gate, Join, LocalChoice, Login, pendingInvite } from './pages/Auth';
 import { TabBar } from './components/ui';
 import { Tour, Welcome } from './components/Onboarding';
 import { tourRole, useTour, useWelcome } from './lib/onboarding';
@@ -97,6 +97,7 @@ function Gatekeeper() {
   if (c.status === 'signed-out') return <Login />;
   // Back from Google sign-in with an invite still waiting: finish joining first.
   if (pendingInvite() && (c.status === 'ready' || c.status === 'no-role')) return <Join />;
+  if (c.status === 'local-choice') return <LocalChoice />;
   if (c.status !== 'ready') return <Gate />;
   return <Shell />;
 }

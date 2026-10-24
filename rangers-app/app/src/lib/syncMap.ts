@@ -7,6 +7,9 @@ export interface RowIn extends RowOut { updated_at: string; deleted_at: string |
 export const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
 export const isUuid = (s: unknown): s is string => typeof s === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
+/** Practice players from 'Load demo team' (fixed ids). They stay on the phone and are never sent to the club. */
+export const isDemoId = (id: unknown) => typeof id === 'string' && id.startsWith('20000000-0000-4000-8000-');
+
 /** Deterministic uuid derived from another id (for the family-safe copy of a review). */
 export function derivedId(id: string, salt: string): string {
   let h1 = 0xdeadbeef, h2 = 0x41c6ce57; const str = id + ':' + salt;
@@ -43,11 +46,11 @@ export function toRows(s: AppState): RowOut[] {
     const team = c.team(item, s);
     const player = c.player(item);
     if (c.kind !== 'strategy' && c.kind !== 'fund' && c.kind !== 'equipment' && c.kind !== 'story' && c.kind !== 'announcement' && !team) continue; // orphaned
-    if (player && !isUuid(player)) continue;
+    if (player && (!isUuid(player) || isDemoId(player))) continue;
     out.push({ id: item.id, kind: c.kind, team_id: team, player_id: player, visibility: c.vis(item), data: item as unknown as Record<string, unknown> });
   }
   for (const a of s.assessments) {
-    if (a.fromPub || !isUuid(a.id) || !isUuid(a.playerId) || !isUuid(a.teamId)) continue;
+    if (a.fromPub || !isUuid(a.id) || !isUuid(a.playerId) || !isUuid(a.teamId) || isDemoId(a.playerId)) continue;
     out.push({ id: a.id, kind: 'assessment', team_id: a.teamId, player_id: a.playerId, visibility: 'coach', data: a as unknown as Record<string, unknown> });
     if (a.publishedAt) out.push({ id: derivedId(a.id, 'pub'), kind: 'assessment_pub', team_id: a.teamId, player_id: a.playerId, visibility: 'family', data: { ...a, coachNote: '' } as unknown as Record<string, unknown> });
   }

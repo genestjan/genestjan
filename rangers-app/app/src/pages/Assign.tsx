@@ -1,18 +1,32 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Back, Card, Empty, H2, Page } from '../components/ui';
 import { MediaPicker, MediaView } from '../components/MediaView';
 import { activeTeam, del, put, teamPlayers, uid, useAppState } from '../lib/store';
 import { ASSIGNMENT_TEMPLATES, templatesFor } from '../content/assignments';
 import { groups, latestByTask, progress } from '../lib/assignments';
-import { teamVideoPath } from '../lib/mediaRules';
+import { MAX_COACH_VIDEO_BYTES, teamVideoPath, videosToRemove } from '../lib/mediaRules';
+import { removeMedia } from '../lib/media';
+import { cloudEnabled, useCloud } from '../lib/cloud';
 import { BAND_AGE } from '../lib/sessionBuilder';
 import { fmtDate, today } from '../lib/util';
 import type { Assignment, Submission } from '../lib/model';
 
 /** Coach: all assignments sent, newest first. */
+let cleanedThisSession = false;
+/** Removes approved proof videos older than 30 days (coaches only; the storage rules allow nobody else). Photos are kept. */
+function useVideoCleanup() {
+  const s = useAppState(); const c = useCloud();
+  useEffect(() => {
+    if (cleanedThisSession || !cloudEnabled || c.status !== 'ready' || (c.role !== 'coach' && c.role !== 'admin')) return;
+    cleanedThisSession = true;
+    const old = videosToRemove(s.submissions, Date.now()).slice(0, 50);
+    if (old.length) void removeMedia(old.map((x) => x.mediaPath)).then(() => old.forEach((x) => put('submissions', { ...x, mediaPath: '', removed: true }))).catch(() => { cleanedThisSession = false; });
+  }, [c.status, c.role, s.submissions]);
+}
+
 export function AssignList() {
-  const s = useAppState(); const team = activeTeam(s);
+  const s = useAppState(); const team = activeTeam(s); useVideoCleanup();
   const list = groups(s.assignments.filter((a) => a.teamId === team.id));
   return (
     <Page title="Assign" back={<Back to="/" />}>
@@ -44,7 +58,7 @@ export function AssignNew() {
   const age = BAND_AGE[team.ageBand]; const templates = all ? ASSIGNMENT_TEMPLATES : templatesFor(age);
   const clean = tasks.map((t) => t.trim()).filter(Boolean);
   const ready = title.trim() && clean.length > 0 && chosen.length > 0;
-  const useTemplate = (id: string) => { const t = ASSIGNMENT_TEMPLATES.find((x) => x.id === id)!; setTemplateId(id); setTitle(t.title); setWhy(t.why); setTasks(t.tasks); };
+  const applyTemplate = (id: string) => { const t = ASSIGNMENT_TEMPLATES.find((x) => x.id === id)!; setTemplateId(id); setTitle(t.title); setWhy(t.why); setTasks(t.tasks); };
   const send = () => {
     const groupId = uid(); const at = new Date().toISOString();
     for (const playerId of chosen) {
@@ -57,7 +71,7 @@ export function AssignNew() {
     <Page title="New assignment" back={<Back to="/assign" />}>
       <H2>1. Start from a ready-made one</H2>
       <div className="grid gap-2">
-        {templates.map((t) => <button key={t.id} className={`btn ${templateId === t.id ? '' : 'ghost'} justify-start text-left`} aria-pressed={templateId === t.id} onClick={() => useTemplate(t.id)}>{t.title}</button>)}
+        {templates.map((t) => <button key={t.id} className={`btn ${templateId === t.id ? '' : 'ghost'} justify-start text-left`} aria-pressed={templateId === t.id} onClick={() => applyTemplate(t.id)}>{t.title}</button>)}
         <button className="btn ghost" onClick={() => setAll(!all)}>{all ? `Only show ones for ${team.ageBand}` : 'Show all ready-made assignments'}</button>
       </div>
       <H2>2. Check or write the tasks</H2>
@@ -74,9 +88,9 @@ export function AssignNew() {
       </Card>
       <H2>3. Add a video to show them how (optional)</H2>
       <Card className="grid gap-3">
-        {video ? (<><MediaView path={video.path} kind={video.kind} /><button className="btn ghost" onClick={() => setVideo(null)}>Remove the video</button></>)
-          : <MediaPicker label="Upload a video or photo" pathFor={(p) => teamVideoPath(team.id, uid(), p.ext)} onSaved={(path, kind) => setVideo({ path, kind })} />}
-        <p className="muted text-sm">Keep it under 40 MB (about 30 seconds on most phones). The players on this team can watch it with their assignment.</p>
+        {video ? (<><MediaView path={video.path} kind={video.kind} /><button className="btn ghost" onClick={() => { void removeMedia([video.path]).catch(() => undefined); setVideo(null); }}>Remove the video</button></>)
+          : <MediaPicker label="Upload a video or photo" pathFor={(p) => teamVideoPath(team.id, uid(), p.ext)} onSaved={(path, kind) => setVideo({ path, kind })} maxVideoBytes={MAX_COACH_VIDEO_BYTES} />}
+        <p className="muted text-sm">Up to 40 MB (about 30 seconds on most phones). The players on this team can watch it with their assignment. Players send photos, or clips of up to 20 MB (about 15 seconds). Approved videos are removed after 30 days to save space; photos are kept.</p>
       </Card>
       <H2>4. Choose the players</H2>
       <Card className="grid gap-2">
@@ -97,7 +111,13 @@ export function AssignDetail() {
   const items = s.assignments.filter((a) => a.groupId === groupId);
   if (items.length === 0) return <Page title="Assignment" back={<Back to="/assign" />}><Empty>This assignment is no longer there.</Empty></Page>;
   const a0 = items[0];
-  const remove = () => { if (confirm('Delete this assignment for every player? Their photos and videos stay in storage but will no longer show.')) { items.forEach((a) => del('assignments', a.id)); s.submissions.filter((x) => items.some((a) => a.id === x.assignmentId)).forEach((x) => del('submissions', x.id)); nav('/assign', { replace: true }); } };
+  const remove = () => {
+    if (!confirm('Delete this assignment for every player, with their photos and videos?')) return;
+    const subs = s.submissions.filter((x) => items.some((a) => a.id === x.assignmentId));
+    const files = [...new Set([...items.map((a) => a.videoPath ?? ''), ...subs.map((x) => x.mediaPath)].filter(Boolean))];
+    void removeMedia(files).catch(() => undefined);   // best effort: the records go either way
+    items.forEach((a) => del('assignments', a.id)); subs.forEach((x) => del('submissions', x.id)); nav('/assign', { replace: true });
+  };
   return (
     <Page title={a0.title} back={<Back to="/assign" />}>
       {a0.why && <p className="mb-2">{a0.why}</p>}
@@ -114,20 +134,20 @@ function PlayerReview({ a }: { a: Assignment }) {
   return (
     <Card className="mb-3 grid gap-3">
       <div className="flex items-center justify-between"><div className="text-2xl font-semibold">{kid?.firstName ?? 'Player'}</div><div className={pr.cleared ? 'font-semibold text-red' : 'muted'}>{pr.cleared ? 'List cleared' : `${pr.sent} of ${pr.total} sent`}</div></div>
-      {a.tasks.map((t) => <TaskReview key={t.id} text={t.text} sub={by.get(t.id)} />)}
+      {a.tasks.map((t) => { const x = by.get(t.id); return <TaskReview key={`${t.id}:${x?.at ?? ''}`} text={t.text} sub={x} />; })}
     </Card>
   );
 }
 
 function TaskReview({ text, sub }: { text: string; sub?: Submission }) {
   const [fb, setFb] = useState(sub?.feedback ?? '');
-  const set = (status: Submission['status']) => sub && put('submissions', { ...sub, status, feedback: fb.trim() });
+  const set = (status: Submission['status']) => sub && put('submissions', { ...sub, status, feedback: fb.trim(), reviewedAt: new Date().toISOString() });
   return (
     <div className="grid gap-2 border-t pt-3" style={{ borderColor: 'var(--line)' }}>
       <div className="font-semibold">{text}</div>
       {!sub && <div className="muted">Not sent yet</div>}
       {sub && (<>
-        <MediaView path={sub.mediaPath} kind={sub.mediaType} />
+        <MediaView path={sub.mediaPath} kind={sub.mediaType} version={sub.at} />
         <div className="muted text-sm">{sub.status === 'approved' ? 'Approved' : sub.status === 'redo' ? 'Sent back for another try' : 'Waiting for you'}</div>
         <input className="field" placeholder="A short comment for the player (optional)" aria-label="Comment for the player" value={fb} onChange={(e) => setFb(e.target.value)} />
         <div className="flex gap-2"><button className="btn flex-1" disabled={sub.status === 'approved'} onClick={() => set('approved')}>Approve</button><button className="btn ghost flex-1" disabled={sub.status === 'redo'} onClick={() => set('redo')}>Try again</button></div>

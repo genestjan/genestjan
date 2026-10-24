@@ -4,16 +4,16 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 /** The page may only talk to its own Supabase project (and the weather API): the exact origin goes into the CSP. */
-function cspSupabase(url: string | undefined): Plugin {
+function cspSupabase(url: string | undefined, googleId: string | undefined): Plugin {
   let allow = ''; let origin = '';
   if (url) { const u = new URL(url); allow = ` ${u.origin} ${u.origin.replace(/^http/, 'ws')}`; origin = ` ${u.origin}`; }
-  return { name: 'csp-supabase', transformIndexHtml: (html) => html.replace(' __SUPABASE__', allow).replace(/ __SUPABASE_HTTP__/g, origin) };
+  return { name: 'csp-supabase', transformIndexHtml: (html) => html.replace(' __SUPABASE__', allow).replace(/ __SUPABASE_HTTP__/g, origin).replace(/ __GSI__/g, googleId ? ' https://accounts.google.com/gsi/' : '') };
 }
 
 export default defineConfig(({ mode }) => ({
   base: process.env.APP_BASE ?? '/',
   plugins: [
-    cspSupabase(loadEnv(mode, process.cwd(), '').VITE_SUPABASE_URL),
+    cspSupabase(loadEnv(mode, process.cwd(), '').VITE_SUPABASE_URL, loadEnv(mode, process.cwd(), '').VITE_GOOGLE_CLIENT_ID),
     react(),
     VitePWA({
       registerType: 'autoUpdate',

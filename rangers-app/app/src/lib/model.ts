@@ -31,7 +31,7 @@ export interface AssignTask { id: string; text: string }
 export interface Assignment { id: string; groupId: string; playerId: string; teamId: string; title: string; why: string; tasks: AssignTask[]; videoPath?: string; videoKind?: 'image' | 'video'; templateId?: string; dueOn?: string; at: string; by: string }
 export type SubmissionStatus = 'submitted' | 'approved' | 'redo';
 /** A child's proof (photo or video) for one task. */
-export interface Submission { id: string; assignmentId: string; taskId: string; playerId: string; teamId: string; mediaPath: string; mediaType: 'image' | 'video'; at: string; status: SubmissionStatus; feedback: string }
+export interface Submission { id: string; assignmentId: string; taskId: string; playerId: string; teamId: string; mediaPath: string; mediaType: 'image' | 'video'; at: string; status: SubmissionStatus; feedback: string; reviewedAt?: string; removed?: boolean }
 export interface Goal { id: string; playerId: string; text: string; status: 'active' | 'done'; at: string }
 export interface Recognition { id: string; playerId: string; valueKey: string; note: string; at: string }
 export interface BadgeAward { id: string; playerId: string; badgeKey: string; at: string }

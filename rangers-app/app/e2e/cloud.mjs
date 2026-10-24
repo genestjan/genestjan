@@ -37,13 +37,13 @@ const watch = (p, who) => {
 };
 
 console.log('building with the local stack settings...');
-execSync('npx vite build --outDir dist-cloud', { stdio: 'ignore', env: { ...process.env, APP_BASE: BASE, VITE_SUPABASE_URL: API, VITE_SUPABASE_ANON_KEY: ANON_KEY, VITE_EMAIL_CODES: "1" } });
+execSync('npx vite build --outDir dist-cloud', { stdio: 'ignore', env: { ...process.env, APP_BASE: BASE, VITE_SUPABASE_URL: API, VITE_SUPABASE_ANON_KEY: ANON_KEY, VITE_EMAIL_CODES: "1", VITE_GOOGLE_CLIENT_ID: "test-client.apps.googleusercontent.com" } });
 const server = spawn('npx', ['vite', 'preview', '--outDir', 'dist-cloud', '--port', String(PORT), '--strictPort'], { stdio: 'ignore', env: { ...process.env, APP_BASE: BASE } });
 let browser;
 try {
   await waitFor(() => fetch(APP).then((r) => r.ok), 'preview server');
   browser = await chromium.launch({ executablePath: exe });
-  const mk = async (who) => { const c = await browser.newContext({ viewport: { width: 390, height: 844 } }); await c.addInitScript(() => { try { for (const k of ['welcome', 'tour-coach', 'tour-parent']) localStorage.setItem('rangers-' + k, '1'); } catch { /* ignore */ } }); const p = await c.newPage(); watch(p, who); return p; };
+  const mk = async (who) => { const c = await browser.newContext({ viewport: { width: 390, height: 844 } }); await c.addInitScript(() => { try { for (const k of ['welcome', 'tour-coach', 'tour-parent']) localStorage.setItem('rangers-' + k, '1'); } catch { /* ignore */ } }); await c.route('https://accounts.google.com/**', (r) => r.abort()); const p = await c.newPage(); watch(p, who); return p; };
   const admin = await mk('admin'), parent = await mk('parent'), coach = await mk('coach');
   const body = (p) => p.textContent('body');
 
@@ -51,6 +51,9 @@ try {
   await admin.goto(APP + '?error=server_error&error_description=Unable+to+exchange+external+code#/'); await sleep(1200);
   ok((await body(admin)).includes('Unable to exchange external code'), 'a failed sign-in shows its reason on the sign-in page');
   ok(!(await admin.url()).includes('error='), 'and the error is cleaned from the address');
+
+  // Google's own button cannot load here (blocked), so the normal Google button must take its place
+  await admin.goto(APP); await waitFor(async () => (await admin.getByRole('button', { name: 'Continue with Google' }).count()) === 1, 'falls back to the normal Google button when Google\'s script is blocked');
 
   // 1. Club admin signs in and sets up the club
   await admin.goto(APP); await signIn(admin, 'admin@test.local');
@@ -151,8 +154,14 @@ try {
   await admin.getByRole('button', { name: /Head coach of/ }).first().click();
   await waitFor(async () => (await body(admin)).includes('is now head coach'), 'admin sees head coach confirmed');
   await waitFor(async () => (await svc('team_staff?select=head')).some((x) => x.head), 'coach made head coach');
+  // Leftover work from using the app without an account on this phone: the coach is asked before it is uploaded
+  await coach.evaluate(() => new Promise((done) => { const q = indexedDB.open('rangers-app'); q.onsuccess = () => { const st = q.result.transaction('kv', 'readwrite').objectStore('kv'); const g = st.get('state');
+    g.onsuccess = () => { const v = g.result?.v ?? {}; v.players = [...(v.players ?? []), { id: '9a9a9a9a-0000-4000-8000-000000000001', firstName: 'Zed', teamId: (v.teams ?? [{}])[0].id ?? '10000000-0000-4000-8000-000000000001', gkWilling: false, photoConsent: false }]; st.put({ k: 'state', v }).onsuccess = () => done(); }; }; }));
   await coach.reload();
+  await waitFor(async () => (await body(coach)).includes('Before you start'), 'coach is asked about work made before signing in');
+  await coach.getByRole('button', { name: /Start fresh/ }).click();
   await waitFor(async () => (await body(coach)).includes('Next up'), 'approved coach reaches the dashboard');
+  ok((await svc('players?first_name=eq.Zed&select=id')).length === 0, 'start fresh keeps test data off the server');
   await coach.goto(APP + '#/squad'); await waitFor(async () => (await body(coach)).includes('Ben'), 'coach sees the team squad');
 
   // 8. Head injury: coach records it, the block reaches every coach, only a head coach clears it

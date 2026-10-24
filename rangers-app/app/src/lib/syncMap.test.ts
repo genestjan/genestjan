@@ -1,8 +1,9 @@
+import { DEMO_PLAYERS } from './store';
 import { describe, expect, it } from 'vitest';
-import { applyRows, derivedId, isUuid, rowJson, SETTINGS_ID, toRows, type RowIn } from './syncMap';
+import { applyRows, derivedId, isDemoId, isUuid, rowJson, SETTINGS_ID, toRows, type RowIn } from './syncMap';
 import { migrate } from './store';
 
-const T = '10000000-0000-4000-8000-000000000001', P = '20000000-0000-4000-8000-000000000001', E = '30000000-0000-4000-8000-000000000001';
+const T = '10000000-0000-4000-8000-000000000001', P = '21000000-0000-4000-8000-000000000001', E = '30000000-0000-4000-8000-000000000001';
 const base = () => { const s = migrate({}); s.players = [{ id: P, teamId: T, firstName: 'Ana', gkWilling: false, photoConsent: false }]; return s; };
 
 describe('sync mapping', () => {
@@ -72,5 +73,13 @@ describe('state migration', () => {
   it('upgrades Phase 1 data: players get a team, blocked becomes a head-injury record', () => {
     const s = migrate({ players: [{ id: 'a', firstName: 'Ana', gkWilling: false }], matches: [{ id: 'm', name: 'x', log: [] }], blocked: ['a'] });
     expect(s.players[0].teamId).toBe(s.teams[0].id); expect(s.matches[0].teamId).toBe(s.teams[0].id); expect(s.blocked).toEqual(['a']);
+  });
+  it('never sends practice players from the demo team, or anything about them', () => {
+    const st = migrate({}); const demo = DEMO_PLAYERS[0];
+    st.players = [demo]; st.goals = [{ id: '11111111-1111-4111-8111-111111111111', playerId: demo.id, text: 'x', status: 'active', at: '' }];
+    st.assessments = [{ id: '22222222-2222-4222-8222-222222222222', playerId: demo.id, teamId: st.teams[0].id, term: 't', ratings: {}, strength: '', working: '', familyComment: '', coachNote: '' } as never];
+    const rows = toRows(st);
+    expect(rows.some((r) => r.player_id === demo.id)).toBe(false);
+    expect(isDemoId(demo.id)).toBe(true); expect(isDemoId('9a9a9a9a-0000-4000-8000-000000000001')).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
-import { applyRows, isUuid, rowJson, toRows, type RowIn } from './syncMap';
+import { applyRows, isDemoId, isUuid, rowJson, toRows, type RowIn } from './syncMap';
 import { db, getState, migrate, onChange, update, type AppState } from './store';
 import type { Player } from './model';
 
@@ -8,7 +8,7 @@ const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const cloudEnabled = Boolean(URL && KEY);
 
-export type CloudStatus = 'off' | 'loading' | 'signed-out' | 'no-role' | 'pending' | 'ready';
+export type CloudStatus = 'off' | 'loading' | 'signed-out' | 'no-role' | 'pending' | 'local-choice' | 'ready';
 export interface CloudState { status: CloudStatus; role: 'admin' | 'coach' | 'parent' | null; email: string; userId: string; error: string; syncing: boolean; lastSync: number; offline: boolean }
 let cs: CloudState = { status: cloudEnabled ? 'loading' : 'off', role: null, email: '', userId: '', error: '', syncing: false, lastSync: 0, offline: false };
 const subs = new Set<() => void>();
@@ -53,6 +53,23 @@ async function onSession(session: Session | null) {
   // on a phone that still holds coach data from local-only mode, starts from an empty device.
   const prev = getState().me.userId;
   if ((prev && prev !== session.user.id) || (!prev && role === 'parent')) wipeLocal();
+  // First sign-in on a phone that was used without an account: ask before sending that work to the club.
+  if (!prev && hasLocalWork(getState())) { waiting = session; set({ ...base, status: 'local-choice', role: role as CloudState['role'] }); return; }
+  await finishSignIn(session, role, base);
+}
+
+let waiting: Session | null = null;
+/** Anything made on this phone before signing in (practice players from the demo team do not count). */
+export function hasLocalWork(s: AppState) {
+  return s.players.some((p) => !isDemoId(p.id)) || s.events.length + s.matches.length + s.messages.length + s.announcements.length + s.sessions.length + s.assessments.length > 0;
+}
+/** keep = upload what is on this phone to the club; otherwise start this phone fresh. */
+export async function resolveLocalChoice(keep: boolean) {
+  const session = waiting; if (!session) return; waiting = null;
+  if (!keep) wipeLocal();
+  await finishSignIn(session, cs.role ?? 'coach', { email: cs.email, userId: cs.userId, error: '' });
+}
+async function finishSignIn(session: Session, role: string, base: { email: string; userId: string; error: string }) {
   set({ ...base, status: 'ready', role: role as CloudState['role'] });
   const fallback = (session.user.user_metadata?.full_name as string | undefined) ?? (session.user.email ?? 'Me').split('@')[0];
   update((s) => ({ ...s, me: { ...s.me, userId: session.user.id, name: s.me.name === 'Coach' || !s.me.userId ? fallback : s.me.name } }), 'remote');
@@ -60,6 +77,35 @@ async function onSession(session: Session | null) {
 }
 
 /* ---------- auth ---------- */
+const GOOGLE_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+/** True when the build has the club's Google client ID: then Google's own button is used and shows rangersfc.net, not the database address. */
+export const googleButtonEnabled = Boolean(GOOGLE_ID);
+let gsi: Promise<void> | null = null;
+function loadGoogleScript(): Promise<void> {
+  gsi ??= new Promise<void>((ok, bad) => {
+    const el = document.createElement('script'); el.src = 'https://accounts.google.com/gsi/client'; el.async = true;
+    const fail = () => { gsi = null; bad(new Error('Google sign-in could not load')); };
+    el.onload = () => ok(); el.onerror = fail; setTimeout(fail, 8000); document.head.appendChild(el);
+  });
+  return gsi;
+}
+export async function sha256Hex(text: string) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+interface GoogleId { initialize(o: object): void; renderButton(el: HTMLElement, o: object): void }
+/** Draws Google's sign-in button into el. Google hands back a signed token, which Supabase checks (with a one-time nonce). */
+export async function renderGoogleButton(el: HTMLElement, onError: (message: string) => void): Promise<void> {
+  await loadGoogleScript();
+  const g = (window as unknown as { google?: { accounts?: { id?: GoogleId } } }).google?.accounts?.id;
+  if (!g || !GOOGLE_ID) throw new Error('Google sign-in did not start');
+  const raw = crypto.randomUUID() + crypto.randomUUID();
+  g.initialize({ client_id: GOOGLE_ID, nonce: await sha256Hex(raw), callback: async (r: { credential: string }) => {
+    const c = await sb(); const { error } = await c.auth.signInWithIdToken({ provider: 'google', token: r.credential, nonce: raw });
+    if (error) onError(error.message);
+  } });
+  g.renderButton(el, { type: 'standard', theme: 'filled_black', size: 'large', shape: 'pill', text: 'continue_with', width: Math.min(Math.max(el.clientWidth, 220), 400) });
+}
 export async function signInGoogle() { const c = await sb(); await c.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + (import.meta.env.BASE_URL ?? '/') } }); }
 export async function sendCode(email: string) { const c = await sb(); const { error } = await c.auth.signInWithOtp({ email, options: { shouldCreateUser: true } }); if (error) throw error; }
 export async function verifyCode(email: string, token: string) { const c = await sb(); const { error } = await c.auth.verifyOtp({ email, token, type: 'email' }); if (error) throw error; }
@@ -118,11 +164,11 @@ export async function pushNow() {
       if (changed.length) { const { error } = await c.from('teams').upsert(changed); if (error) throw error; changed.forEach((t) => snap.set('team:' + t.id, JSON.stringify(t))); }
     }
     if (isCoach) {
-      const players = s.players.filter((p) => isUuid(p.id) && isUuid(p.teamId)).map(playerRow);
+      const players = s.players.filter((p) => isUuid(p.id) && isUuid(p.teamId) && !isDemoId(p.id)).map(playerRow);
       const ch = players.filter((p) => snap.get('player:' + p.id) !== JSON.stringify(p));
       if (ch.length) { const { error } = await c.from('players').upsert(ch); if (error) throw error; ch.forEach((p) => snap.set('player:' + p.id, JSON.stringify(p))); }
     }
-    const priv = s.players.filter((p) => isUuid(p.id) && p.emergency).map((p) => ({ player_id: p.id, data: p.emergency }));
+    const priv = s.players.filter((p) => isUuid(p.id) && !isDemoId(p.id) && p.emergency).map((p) => ({ player_id: p.id, data: p.emergency }));
     const chp = priv.filter((p) => snap.get('priv:' + p.player_id) !== JSON.stringify(p));
     for (const p of chp) { const { error } = await c.from('player_private').upsert(p); if (!error) snap.set('priv:' + p.player_id, JSON.stringify(p)); }
     // records
