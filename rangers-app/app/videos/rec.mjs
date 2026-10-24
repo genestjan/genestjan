@@ -82,7 +82,7 @@ export async function stage(ctx, name) {
     async step(html, fn, min = 0) { await r.say(html, min); if (fn) await fn(); await settle(); await wait(250); },
     async clearCap() { await settle(); closeCap(); await page.evaluate(() => window.S.cap(null)); },
     async chip(t) { await r.clearCap(); await page.evaluate((x) => window.S.chip(x), t); },
-    async card(html, ms = 2600) { await settle(); closeCap(); await page.evaluate(() => window.S.cap(null)); await page.evaluate((h) => window.S.card(h), html); const plain = html.replace(/<img[^>]*>/g, '').replace(/<\/(h1|p|div)>/g, '\n').replace(/<[^>]+>/g, '').replace(/\n+/g, '\n').trim(); caps.push({ start: now(), end: now() + ms / 1000, text: plain }); await wait(ms); },
+    async card(html, ms = 2600, cls = '') { await settle(); closeCap(); await page.evaluate(() => window.S.cap(null)); await page.evaluate(([h, c]) => window.S.card(h, c), [html, cls]); const plain = html.replace(/<img[^>]*>/g, '').replace(/<\/(h1|p|div|li)>/g, '\n').replace(/<[^>]+>/g, '').replace(/\n+/g, '\n').trim(); caps.push({ start: now(), end: now() + ms / 1000, text: plain }); await wait(ms); },
     async uncard() { await page.evaluate(() => window.S.card(null)); await wait(500); },
     /** Scroll a target into view inside the app, if it is near or behind the edges. */
     async show(loc, block = 'center') {

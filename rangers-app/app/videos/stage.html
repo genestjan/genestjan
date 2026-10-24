@@ -33,6 +33,13 @@ html, body { margin: 0; width: 540px; height: 960px; overflow: hidden; backgroun
 #card .pill { margin-top: 6px; background: #f6c431; color: #0a1f44; font-weight: 700; font-size: 26px; padding: 12px 26px; border-radius: 999px; }
 #card.pop h1, #card.pop p, #card.pop .pill, #card.pop img, #card.pop .k { animation: up .6s cubic-bezier(.2,.8,.2,1) both; }
 #card.pop p { animation-delay: .12s; } #card.pop .pill { animation-delay: .24s; } #card.pop img { animation-delay: 0s; }
+#card ul.feat { list-style: none; margin: 4px 0 0; padding: 0; width: 100%; display: grid; gap: 8px; text-align: left; }
+#card ul.feat li { display: flex; gap: 12px; align-items: center; font-size: 20px; font-weight: 600; line-height: 1.22; color: #eef3fb; background: rgba(255,255,255,.07); border-radius: 12px; padding: 8px 12px; }
+#card ul.feat li::before { content: '\2713'; font-family: 'DejaVu Sans', sans-serif; flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #f6c431; color: #0a1f44; font-size: 14px; font-weight: 700; }
+#card ul.feat li b { color: #f6c431; }
+#card.pop ul.feat li { animation: up .5s cubic-bezier(.2,.8,.2,1) both; }
+#card.list { gap: 12px; padding: 0 30px; }
+#card.list h1 { font-size: 36px; }
 @keyframes up { from { transform: translateY(26px); opacity: 0; } to { transform: none; opacity: 1; } }
 </style></head>
 <body>
@@ -51,7 +58,7 @@ window.S = {
   press(x, y) { const p = document.getElementById('ptr'); p.classList.add('down'); const r = document.createElement('div'); r.className = 'rip'; r.style.left = x + 'px'; r.style.top = y + 'px'; document.body.appendChild(r); setTimeout(() => r.remove(), 800); setTimeout(() => p.classList.remove('down'), 180); },
   load(u) { const old = document.getElementById('app'); const f = document.createElement('iframe'); f.id = 'app'; f.name = 'app'; f.src = u; old.replaceWith(f); },
   hidePtr() { document.getElementById('ptr').classList.remove('on'); },
-  card(html) { const c = document.getElementById('card'); if (html) { c.classList.remove('pop'); c.innerHTML = html; void c.offsetWidth; c.classList.add('on', 'pop'); } else c.classList.remove('on'); },
+  card(html, cls) { const c = document.getElementById('card'); if (html) { c.classList.remove('pop', 'list'); if (cls) c.classList.add(cls); c.innerHTML = html; void c.offsetWidth; c.classList.add('on', 'pop'); } else c.classList.remove('on'); },
 };
 </script>
 </body></html>
