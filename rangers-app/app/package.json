@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:e2e": "tsc -b && vite build --mode e2e && node e2e/run.mjs",
     "test:db": "bash supabase/run-tests.sh",
-    "db:bundle": "(echo \"-- Rangers App database setup: paste into Supabase SQL Editor and Run, once, on a new project.\"; cat supabase/migrations/*.sql) > supabase/setup.sql && (echo \"-- Rangers App update: for a project set up with an older setup.sql. Paste into Supabase SQL Editor and Run. Safe to run again.\"; cat supabase/migrations/0003_assignments.sql supabase/migrations/0004_fixups.sql supabase/migrations/0005_admins.sql supabase/migrations/0006_feedback.sql supabase/migrations/0007_videos.sql) > supabase/update.sql"
+    "db:bundle": "(echo \"-- Rangers App database setup: paste into Supabase SQL Editor and Run, once, on a new project.\"; cat supabase/migrations/*.sql) > supabase/setup.sql && (echo \"-- Rangers App update: for a project set up with an older setup.sql. Paste into Supabase SQL Editor and Run. Safe to run again.\"; cat supabase/migrations/0003_assignments.sql supabase/migrations/0004_fixups.sql supabase/migrations/0005_admins.sql supabase/migrations/0006_feedback.sql supabase/migrations/0007_videos.sql supabase/migrations/0008_drills_drive_alerts.sql) > supabase/update.sql"
   },
   "dependencies": {
     "@fontsource/barlow": "5.1.0",

@@ -16,6 +16,20 @@ const ok = (c, m) => { if (!c) { fails.push(m); console.log('FAIL', m); } else c
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function waitFor(fn, what, ms = 15000) { const t = Date.now(); for (;;) { try { const v = await fn(); if (v) { console.log('ok  ', what); return v; } } catch { /* retry */ } if (Date.now() - t > ms) { fails.push('timed out: ' + what); console.log('FAIL timed out:', what); return null; } await sleep(300); } }
 const svc = (q) => fetch(`${API}/rest/v1/${q}`, { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }).then((r) => r.json());
+// A stand-in for the club's Google Apps Script (the real script is tested in src/lib/drive.test.ts). It asks the real
+// local database, with the person's own sign-in, whether they may upload or remove, exactly as the script does.
+const drive = { files: new Map(), sessions: new Map() };
+const driveOk = async (token, action, file) => { const r = await fetch(`${API}/rest/v1/rpc/drive_ok`, { method: 'POST', headers: { apikey: ANON_KEY, Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify({ action, file_id: file ?? null }) }); return r.ok && (await r.text()).trim() === 'true'; };
+async function fakeScript(route) {
+  const req = route.request(); const cors = { 'access-control-allow-origin': '*' };
+  if (req.method() === 'GET') return route.fulfill({ json: { ok: true, app: 'rangers-videos', v: 1 }, headers: cors });
+  const b = JSON.parse(req.postData() || '{}'); let out = { error: 'unknown' };
+  if (b.a === 'start') { if (await driveOk(b.token, 'upload')) { const id = 'up' + drive.sessions.size; drive.sessions.set(id, { size: b.size, got: 0 }); out = { upload: id }; } else out = { error: 'not-allowed' }; }
+  if (b.a === 'chunk') { const ss = drive.sessions.get(b.upload); ss.got += Buffer.from(b.data, 'base64').length; if (ss.got >= ss.size) { const id = 'Drive' + 'x'.repeat(24) + drive.files.size; drive.files.set(id, { size: ss.got, trashed: false }); out = { file: id }; } else out = { next: ss.got }; }
+  if (b.a === 'space') out = (await driveOk(b.token, 'upload')) ? { used: 1e9, free: 14 * 1073741824 } : { error: 'not-allowed' };
+  if (b.a === 'delete') { if (await driveOk(b.token, 'delete', b.file)) { drive.files.get(b.file).trashed = true; out = { ok: true }; } else out = { error: 'not-allowed' }; }
+  return route.fulfill({ json: out, headers: cors });
+}
 async function code(email) {
   return waitFor(async () => {
     const r = await (await fetch(`${MAIL}/api/v1/search?query=${encodeURIComponent('to:' + email)}`)).json();
@@ -141,7 +155,7 @@ try {
 
   // 5c. The video library and the club's video space, through the real database rules
   for (const [title, who] of [['Our match day routine', 'Coaches only'], ['Toe taps at home', /^Players and families of/]]) {
-    await admin.goto(APP + '#/videos/new'); await admin.getByLabel('YouTube link', { exact: true }).fill('https://youtu.be/aqz-KE-bpKQ'); await admin.getByLabel('Title').fill(title);
+    await admin.goto(APP + '#/videos/new'); await admin.getByLabel('Or paste a YouTube link').fill('https://youtu.be/aqz-KE-bpKQ'); await admin.getByLabel('Title').fill(title);
     await admin.getByRole('button', { name: who }).click(); await admin.getByRole('button', { name: 'Save to the library' }).click(); await admin.waitForURL(/#\/videos$/);
   }
   await waitFor(async () => { const v = await svc('records?kind=eq.video&select=visibility,team_id'); return v.length === 2 && v.some((x) => x.visibility === 'staff' && !x.team_id) && v.some((x) => x.visibility === 'team' && x.team_id === anaTeam); }, 'library videos saved as coaches-only and team');
@@ -151,13 +165,61 @@ try {
   ok((await (await asParent('records?kind=eq.video&select=id')).json()).length === 1, 'API: parent can read only the team video');
   const room = await (await asParent('rpc/clips_room', { method: 'POST', body: '{}' })).json();
   ok(room === 600 * 1024 * 1024, 'API: the app can check the club\'s video space before sending a video');
-  await admin.goto(APP + '#/videos'); await waitFor(async () => (await body(admin)).includes("MB of the club's 600 MB"), 'coaches see how full the video space is');
+  await admin.goto(APP + '#/videos'); await waitFor(async () => (await body(admin)).includes('MB of 600 MB'), 'coaches see how full the video space is');
   await admin.goto(APP + '#/assign/new'); await admin.getByRole('button', { name: 'Ball mastery at home' }).click();
   ok((await body(admin)).includes('No family in this team has agreed to videos yet'), 'before any family agrees, coaches are told not to film the children');
   await parent.goto(APP + '#/privacy'); await parent.getByLabel(/^Coaches may film Ana/).check();
   await waitFor(async () => (await svc('players?first_name=eq.Ana&select=video_consent'))[0]?.video_consent === true, 'the family\'s video permission reached the child\'s record');
   await admin.goto(APP + '#/'); await admin.reload(); await sleep(1500); await admin.goto(APP + '#/assign/new'); await admin.getByRole('button', { name: 'Ball mastery at home' }).click();
   await waitFor(async () => (await body(admin)).includes('Children whose families agreed to videos: Ana'), 'the coach sees which children may be filmed');
+
+  // 5d. Coaches upload videos in the app; they go to the club's Google Drive (stand-in script, real database rules)
+  const SCRIPT = 'https://script.google.com/macros/s/AKfycbTestRangersVideos1234567890/exec';
+  for (const pg of [admin, parent]) { await pg.context().route('https://script.google.com/**', fakeScript); await pg.context().route('https://drive.google.com/**', (r) => r.fulfill({ contentType: 'text/html', body: '<p>drive video</p>' })); }
+  await admin.goto(APP + '#/settings'); await admin.getByRole('link', { name: /Coaches' videos in Google Drive/ }).click();
+  const tpl = await admin.getByLabel('The script (Code.gs)').inputValue();
+  ok(tpl.includes(`const SUPABASE_URL = '${API}'`) && tpl.includes(ANON_KEY) && !tpl.includes('__SUPABASE'), 'the admin gets the Drive script with the club\'s values filled in');
+  await admin.getByLabel('Web app URL').fill('https://example.com/not-it'); await admin.getByRole('button', { name: 'Check and save' }).click();
+  ok((await body(admin)).includes('That is not a web app link'), 'a wrong link is pointed out');
+  await admin.getByLabel('Web app URL').fill(SCRIPT); await admin.getByRole('button', { name: 'Check and save' }).click();
+  await waitFor(async () => (await body(admin)).includes('Connected. Coaches can now upload videos in the app. 14.0 GB free'), 'admin connected the club\'s Google Drive');
+  await waitFor(async () => (await svc('records?kind=eq.settings&select=data'))[0]?.data?.driveUrl === SCRIPT, 'the Drive link reached every coach\'s phone (club settings)');
+  await admin.goto(APP + '#/videos/new'); await admin.getByLabel('Upload a video from this phone').setInputFiles(path.join(path.dirname(new URL(import.meta.url).pathname), 'fixtures', 'clip.webm'));
+  await waitFor(async () => (await admin.locator('iframe[src*="drive.google.com/file/d/Drive"]').count()) === 1, 'coach uploaded a video inside the app');
+  await admin.getByLabel('Title').fill('Our warm-up (from Drive)'); await admin.getByRole('button', { name: /^Players and families of/ }).click(); await admin.getByRole('button', { name: 'Save to the library' }).click();
+  const driveRec = await waitFor(async () => (await svc('records?kind=eq.video&deleted_at=is.null&select=data')).find((r) => r.data.driveId)?.data, 'the video is saved in the library with its Drive id');
+  ok(drive.files.get(driveRec.driveId)?.size === fs.statSync(path.join(path.dirname(new URL(import.meta.url).pathname), 'fixtures', 'clip.webm')).size, 'the whole video reached the club\'s Drive');
+  await parent.goto(APP + '#/videos'); await parent.reload();
+  await waitFor(async () => (await body(parent)).includes('Our warm-up (from Drive)'), 'the family sees the uploaded video');
+  await parent.locator('li', { hasText: 'Our warm-up (from Drive)' }).getByRole('button', { name: 'Play video' }).click();
+  ok(await parent.locator(`iframe[src*="drive.google.com/file/d/${driveRec.driveId}/preview"]`).count() === 1, 'the family watches it inside the app');
+  const parentToken = await parent.evaluate(() => { const k = Object.keys(localStorage).find((x) => x.endsWith('-auth-token')); return k && JSON.parse(localStorage.getItem(k)).access_token; });
+  ok(!(await driveOk(parentToken, 'upload')) && !(await driveOk(parentToken, 'delete', driveRec.driveId)), 'API: families cannot upload to or remove from the club\'s Drive');
+  await admin.goto(APP + '#/videos'); await admin.locator('li', { hasText: 'Our warm-up (from Drive)' }).getByRole('button', { name: 'Remove' }).click();
+  await waitFor(async () => drive.files.get(driveRec.driveId).trashed && (await svc('records?kind=eq.video&deleted_at=is.null&select=data')).every((r) => !r.data.driveId), 'removing it moves the file to the Drive bin and takes it out of the library');
+
+  // 5e. A coach's drill is for every coach, never for families
+  await admin.goto(APP + '#/drills/new'); await admin.getByLabel('Name of the drill').fill('Rondo 4 v 1'); await admin.getByLabel('How it works (instructions)').fill('Four keep the ball from one.');
+  await admin.getByLabel('Or paste a YouTube link').fill('https://youtu.be/aqz-KE-bpKQ'); await admin.getByRole('button', { name: 'Save the drill for all coaches' }).click();
+  await waitFor(async () => (await svc('records?kind=eq.drill&select=visibility,team_id,data')).some((r) => r.visibility === 'staff' && !r.team_id && r.data.video?.youtube === 'aqz-KE-bpKQ'), 'the drill is saved for every coach');
+  ok((await (await asParent('records?kind=eq.drill&select=id')).json()).length === 0, 'API: families cannot read coaches\' drills');
+
+  // 5f. Push alert set-up: keys made on the admin's phone, the private key never saved; a test alert is queued
+  await admin.goto(APP + '#/settings/push'); await admin.getByRole('button', { name: 'Make the keys' }).click();
+  const pubKey = await admin.getByLabel('Public key', { exact: true }).inputValue(); const privKey = await admin.getByLabel('Private key (secret)').inputValue();
+  ok(pubKey.length === 87 && privKey.length === 43, 'admin made the push alert keys');
+  await waitFor(async () => (await svc('records?kind=eq.settings&select=data'))[0]?.data?.vapidPublic === pubKey, 'the public key reached the club settings');
+  ok(!JSON.stringify(await svc('records?select=data')).includes(privKey) && !(await admin.evaluate(() => JSON.stringify(localStorage))).includes(privKey), 'the private key is not saved anywhere by the app');
+  ok((await admin.getByLabel('SQL').inputValue()).includes(`'${API}/functions/v1/send-push'`), 'the schedule SQL is filled in for this project');
+  await admin.getByRole('button', { name: 'Send me a test alert' }).click();
+  await waitFor(async () => (await svc('notification_queue?dedupe_key=like.test:*&select=title')).length === 1, 'a test alert is queued for the admin');
+
+  // 5g. The club song plays when a new message comes in
+  await parent.goto(APP + '#/inbox'); await parent.getByRole('button', { name: 'Messages' }).click(); await parent.getByRole('link', { name: /Message the coach about Ana/ }).click();
+  await parent.getByLabel('Message').fill('Can Ana bring a friend?'); await parent.getByRole('button', { name: 'Send' }).click();
+  await waitFor(async () => (await svc("records?kind=eq.message&select=data")).some((r) => r.data.body === 'Can Ana bring a friend?'), 'parent message saved');
+  await admin.goto(APP + '#/'); await admin.reload();
+  await waitFor(async () => (await admin.evaluate(() => window.__rangersAlerts ?? 0)) >= 1, 'the coach\'s phone plays the club song for the new message', 20000);
 
   // 6. Review published to the family without the private note, then taken back
   await admin.goto(APP + '#/review/' + ana.id); await admin.getByRole('group', { name: 'First touch' }).getByRole('button', { name: 'Got it' }).click();

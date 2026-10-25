@@ -64,6 +64,9 @@ export const isClipPath = (path: string) => /\.(mp4|webm|mov)$/i.test(path);
 /** A child's video proof (same folder as photos, so the same people may see it) and a coach's how-to clip for a team. */
 export const clipPath = (playerId: string, id: string, ext: string) => `p/${playerId}/${id}.${ext}`;
 export const teamClipPath = (teamId: string, id: string, ext: string) => `t/${teamId}/${id}.${ext}`;
+/** Photos and short videos of a coach's drill: coaches only. */
+export const drillPhotoPath = (drillId: string, id: string) => `d/${drillId}/${id}.jpg`;
+export const drillClipPath = (drillId: string, id: string, ext: string) => `d/${drillId}/${id}.${ext}`;
 /** Children's videos whose time is up: checked by the coach (approved or sent back) more than CLIP.keepDays ago. */
 export function clipsToDelete<T extends { mediaType: string; mediaPath: string; status: string; reviewedAt?: string }>(subs: T[], now: number): T[] {
   return subs.filter((x) => x.mediaType === 'video' && x.mediaPath && x.status !== 'submitted' && x.reviewedAt && now - Date.parse(x.reviewedAt) > CLIP.keepDays * 864e5);

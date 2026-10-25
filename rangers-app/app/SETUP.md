@@ -32,7 +32,7 @@ The website deploys from the `main` branch of `ayakent/RangersFc` with no build 
 
 Logins switch on when the build includes your Supabase Project URL and anon key: send them to me and I produce a new upload (or run `VITE_SUPABASE_URL=... VITE_SUPABASE_ANON_KEY=... scripts/publish-to-site.sh <site>`). Until then the published app runs in on-device mode: everything works on each phone, with no logins or syncing.
 
-Children's proofs are **photos or short videos**. Photos are shrunk on the phone to about 350 KB (bucket `media`, 2 MB limit). Videos are up to 30 seconds, recorded in the app or shrunk on the phone to about 3 MB (bucket `clips`, private, 5 MB limit). Videos have a **600 MB cap for the whole club**, so the free 1 GB never fills: when the cap is reached, new videos are refused with a clear message and nothing is deleted to make room. Children's task videos are deleted 14 days after a coach checks them. Coaches' short how-to videos never expire: they stay until a coach or admin removes them (with a confirm). Long videos and "how we do things" videos for coaches go in the **Video library** as **Unlisted YouTube links** (free, any length, no club storage used). Coaches see how full the video space is at the top of the Video library. Uploads have been tested against a local stand-in, not yet against the live project, so send one test photo and one test video early.
+Children's proofs are **photos or short videos**. Photos are shrunk on the phone to about 350 KB (bucket `media`, 2 MB limit). Videos are up to 30 seconds, recorded in the app or shrunk on the phone to about 3 MB (bucket `clips`, private, 5 MB limit). Videos have a **600 MB cap for the whole club**, so the free 1 GB never fills: when the cap is reached, new videos are refused with a clear message and nothing is deleted to make room. Children's task videos are deleted 14 days after a coach checks them. Coaches' short how-to videos never expire: they stay until a coach or admin removes them (with a confirm). Long videos and "how we do things" videos go in the **Video library**: uploaded inside the app to the club's Google Drive once that is set up (Part 5), or as **Unlisted YouTube links**. Coaches' own **drills** (Train, Drills, Create a drill) can have photos, a video and a saved board; they are for coaches only. Coaches see how full the video space is at the top of the Video library. Uploads have been tested against a local stand-in, not yet against the live project, so send one test photo and one test video early.
 
 ## 4. First sign-in (you, 5 minutes)
 1. Open https://rangersfc.net/app/ and sign in.
@@ -41,17 +41,11 @@ Children's proofs are **photos or short videos**. Photos are shrunk on the phone
 4. **Settings > Coaches > Create a coach invite link** for each coach; when they sign in, **Approve**, then **Add to team** or **Head coach of** the team. Only head coaches (and you) can clear a child after a head injury.
 5. Coaches add their players (Squad), open a child, **Create invite link**, and send it privately to that child's parent. The parent signs in, reads the privacy notice and gives consent, then sees only their own child.
 
-## 5. Push alerts (optional, 20 minutes)
-1. On a computer: `npx web-push generate-vapid-keys`. Send me the **public** key (it goes into the app). Keep the private key secret.
-2. Install the Supabase CLI, then `supabase functions deploy send-push --project-ref YOUR-REF` and `supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:you@rangersfc.net`.
-3. SQL Editor, run once (replace the two values):
-   ```sql
-   select cron.schedule('rangers-send-push', '*/10 * * * *', $$
-     select net.http_post(url := 'https://YOUR-PROJECT.supabase.co/functions/v1/send-push',
-                          headers := '{"Authorization": "Bearer YOUR-ANON-KEY"}'::jsonb) $$);
-   ```
-   (Turn on the `pg_net` extension first if it is off.)
-4. Test on a real Android phone and an iPhone (iPhone only after **Add to Home Screen**). If the function errors on `npm:web-push`, tell me: it is the only part not yet run against a live project.
+## 5. Push alerts and coaches' videos (optional, free, about 25 minutes, best on a computer)
+Both are set up from inside the app, with every value filled in and Copy buttons. Sign in as the club admin, then **Settings, Club set-up (once)**.
+- **Push alerts on phones**: the app makes the alert keys on your own computer (the private key is shown once, for Supabase only), then you add three Supabase secrets, paste the `send-push` function in Supabase (Edge Functions, Deploy a new function, Via Editor) and run one SQL query that sends alerts every minute. Finish with **Send me a test alert**. Tested on Deno with a pretend push service, not yet on the live project, so send the test alert to an Android phone and an iPhone (iPhone only after Add to Home Screen).
+- **Coaches' videos in Google Drive**: a small Google Apps Script on the **club's** Google account (not a personal one) stores coaches' videos in that account's Drive (15 GB free) and plays them in the app. The script can only open the files it makes. Every upload and removal is checked with the person's Rangers sign-in (coaches only). Tested against a stand-in for Google, not yet against real Google Drive, so upload one short test video first.
+- Everyone then taps **More, Alerts and sound, Turn on alerts**. While the app is open it plays the club song for new messages and announcements; Android phones can also use it as the alert sound (steps on that page). iPhones always use their own sound for web apps.
 
 ## 6. Keep it healthy
 - The free plan pauses a project after a week with no use. During the season, normal use keeps it awake. For breaks, `github-workflows/keepalive.yml` pings it twice a week (copy it into a repository's `.github/workflows/` and set the two repository variables).

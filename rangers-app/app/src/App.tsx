@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Today from './pages/Today';
+import Alerts from './pages/Alerts';
+import { useAlertSounds } from './lib/sound';
+const DriveSetup = lazy(() => import('./pages/Setup').then((m) => ({ default: m.DriveSetup })));
+const PushSetup = lazy(() => import('./pages/Setup').then((m) => ({ default: m.PushSetup })));
 import Squad from './pages/Squad';
 import PlayerProfile from './pages/Player';
 import MatchList from './pages/Home';
@@ -10,7 +14,8 @@ import Present from './pages/Present';
 import Tv from './pages/Tv';
 import Schedule, { EventDetail, EventForm } from './pages/Schedule';
 import Inbox, { Thread } from './pages/Inbox';
-import Train, { DrillDetail, Drills, RunSession } from './pages/Train';
+import Train, { RunSession } from './pages/Train';
+import { DrillDetail, DrillEditor, Drills } from './pages/Drills';
 import { Review, ReviewList } from './pages/Review';
 import Recognise from './pages/Recognise';
 import Safety from './pages/Safety';
@@ -46,6 +51,7 @@ function Shell() {
   // A new screen starts at the top (the page used to keep the last screen's scroll, so Team opened half way down)
   useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
   useClipCleanup(staff);
+  useAlertSounds();
   // First time on this phone: walk through the real screens once (replay any time from Help).
   useEffect(() => { if (tour.open && !fullscreen) { tour.done(); startGuide(tourRole(role) === 'parent' ? 'start-parent' : 'start-coach'); } }, [tour.open, fullscreen, role]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
@@ -76,6 +82,7 @@ function Shell() {
         <Route path="/feedback" element={<SendFeedback />} />
         <Route path="/videos" element={<VideoLibrary />} />
         <Route path="/feedback/inbox" element={<FeedbackInbox />} />
+        <Route path="/alerts" element={<Alerts />} />
         {staff && (<>
           <Route path="/assign" element={<AssignList />} />
           <Route path="/attendance" element={<AttendanceHome />} />
@@ -95,7 +102,9 @@ function Shell() {
           <Route path="/train" element={<Train />} />
           <Route path="/train/run/:id" element={<RunSession />} />
           <Route path="/drills" element={<Drills />} />
+          <Route path="/drills/new" element={<DrillEditor />} />
           <Route path="/drills/:id" element={<DrillDetail />} />
+          <Route path="/drills/:id/edit" element={<DrillEditor />} />
           <Route path="/review" element={<ReviewList />} />
           <Route path="/review/:playerId" element={<Review />} />
           <Route path="/recognise" element={<Recognise />} />
@@ -104,6 +113,8 @@ function Shell() {
           <Route path="/videos/new" element={<VideoNew />} />
           <Route path="/motivation" element={<Motivation />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/drive" element={<Suspense fallback={null}><DriveSetup /></Suspense>} />
+          <Route path="/settings/push" element={<Suspense fallback={null}><PushSetup /></Suspense>} />
         </>)}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

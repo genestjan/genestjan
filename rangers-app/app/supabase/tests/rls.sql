@@ -268,7 +268,7 @@ select t.ok(not has_function_privilege('anon', 'public.team_guardians(uuid)', 'e
 select t.ok(not has_function_privilege('anon', 'public.team_coaches(uuid)', 'execute') and not has_function_privilege('authenticated', 'public.team_coaches(uuid)', 'execute'), 'nobody outside the database can list a team''s coaches');
 select t.ok(not has_function_privilege('anon', 'public.enqueue_event_reminders()', 'execute') and not has_function_privilege('authenticated', 'public.purge_old_data()', 'execute'), 'reminders and clean-up cannot be triggered from outside');
 select t.ok(not has_function_privilege('authenticated', 'public.rangers_health()', 'execute'), 'the health checklist is for the SQL Editor only');
-select t.ok((select count(*) from public.rangers_health()) = 12 and (select ok from public.rangers_health() where item like 'Assignments rules%'), 'health checklist runs and sees the assignments rules');
+select t.ok((select count(*) from public.rangers_health()) = 14 and (select ok from public.rangers_health() where item like 'Assignments rules%'), 'health checklist runs and sees the assignments rules');
 reset role;
 
 -- ========== short videos (0007) ==========
@@ -327,6 +327,37 @@ select t.login('00000000-0000-0000-0000-0000000000c1');
 select t.ok(t.state($q$insert into public.records (id,kind,visibility,data,author) values (gen_random_uuid(),'video','staff','{}','00000000-0000-0000-0000-0000000000c1')$q$) = '00000', 'a coach adds a coaches-only video');
 reset role;
 delete from public.records where kind = 'video';
+
+-- ========== coaches' drills, Google Drive videos, test alerts (0008) ==========
+insert into public.records (id,kind,team_id,visibility,data,author) values
+ ('30000000-0000-0000-0000-0000000000d1','drill',null,'staff','{"name":"Rondo 4v1","video":{"drive":"1AbCdEfGhIjKlMnOpQrStUvWxYz012345"}}','00000000-0000-0000-0000-0000000000c1');
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000c2');
+select t.ok(t.count($q$select count(*) from public.records where kind='drill'$q$) = 1, 'a coach of another team can open a coach''s drill (drills are for every coach)');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','d/30000000-0000-0000-0000-0000000000d1/a.jpg')$q$) = '00000', 'any coach can add a photo to a drill');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name,metadata) values ('clips','d/30000000-0000-0000-0000-0000000000d1/how.mp4','{"size": 1000}')$q$) = '00000', 'any coach can add a short video to a drill');
+select t.ok(public.drive_ok('upload'), 'any coach may upload a video to the club Drive');
+select t.ok(not public.drive_ok('delete', '1AbCdEfGhIjKlMnOpQrStUvWxYz012345'), 'another coach cannot remove a Drive video that a coach saved');
+select t.ok(public.drive_ok('delete', 'ZZZZZZZZZZZZZZZZZZZZZZZZZZunsaved'), 'a Drive video that was uploaded but never saved can be cleaned up');
+select t.ok(not public.drive_ok('delete', '') and not public.drive_ok('delete', '%') and not public.drive_ok('other'), 'odd requests to the Drive helper are refused');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(public.drive_ok('delete', '1AbCdEfGhIjKlMnOpQrStUvWxYz012345'), 'the coach who saved a Drive video can remove it');
+select t.login('00000000-0000-0000-0000-0000000000a1');
+select t.ok(public.drive_ok('delete', '1AbCdEfGhIjKlMnOpQrStUvWxYz012345'), 'a club admin can remove any Drive video');
+select t.login('00000000-0000-0000-0000-0000000000b1');
+select t.ok(t.count($q$select count(*) from public.records where kind='drill'$q$) = 0, 'families never see coaches'' drills');
+select t.ok(t.count($q$select count(*) from storage.objects where name like 'd/%'$q$) = 0, 'families never see drill photos or videos');
+select t.ok(t.state($q$insert into storage.objects (bucket_id,name) values ('media','d/30000000-0000-0000-0000-0000000000d1/b.jpg')$q$) = '42501', 'families cannot add drill photos');
+select t.ok(t.state($q$insert into public.records (id,kind,visibility,data,author) values (gen_random_uuid(),'drill','staff','{}','00000000-0000-0000-0000-0000000000b1')$q$) = '42501', 'families cannot add drills');
+select t.ok(not public.drive_ok('upload') and not public.drive_ok('delete', 'ZZZZZZZZZZZZZZZZZZZZZZZZZZunsaved'), 'families cannot upload to or remove from the club Drive');
+select public.queue_test_alert();
+select t.ok(t.count($q$select count(*) from public.notification_queue where dedupe_key like 'test:%'$q$) >= 0, 'anyone signed in can ask for a test alert');
+select public.queue_test_alert(); select public.queue_test_alert(); select public.queue_test_alert(); select public.queue_test_alert();
+select t.ok(t.state($q$select public.queue_test_alert()$q$) <> '00000', 'test alerts are limited (5 an hour)');
+reset role;
+select t.ok((select count(*) from public.notification_queue where dedupe_key like 'test:%' and user_id = '00000000-0000-0000-0000-0000000000b1') = 5, 'test alerts go only to the person who asked');
+select t.ok(not has_function_privilege('anon', 'public.drive_ok(text,text)', 'execute') and not has_function_privilege('anon', 'public.queue_test_alert()', 'execute'), 'the Drive helper and test alerts need a sign-in');
+delete from storage.objects where name like 'd/%'; delete from public.records where kind = 'drill'; delete from public.notification_queue where dedupe_key like 'test:%';
 
 -- ========== feedback (0006) ==========
 set role authenticated;

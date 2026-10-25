@@ -1,3 +1,4 @@
+import type { Drill } from '../content/drills';
 import type { FormatId, Player as BasePlayer } from './types';
 
 export type AgeBand = 'U8' | 'U10' | 'U12' | 'U14' | 'U16';
@@ -52,7 +53,12 @@ export interface Submission { id: string; assignmentId: string; taskId: string; 
 /** The video library: a YouTube link (any length, free, no club storage) for coaches only, one team, or the whole club. */
 export type VideoAudience = 'coaches' | 'team' | 'club';
 export type VideoTopic = 'how-we-work' | 'warm-up' | 'ball-skills' | 'drills' | 'goalkeeping' | 'fitness' | 'match-day' | 'safety';
-export interface ClubVideo { id: string; title: string; youtubeId: string; audience: VideoAudience; teamId?: string; topic: VideoTopic; notes: string; at: string; by: string }
+/** A library video: a YouTube link (youtubeId) or a video uploaded in the app to the club's Google Drive (driveId). */
+export interface ClubVideo { id: string; title: string; youtubeId: string; driveId?: string; audience: VideoAudience; teamId?: string; topic: VideoTopic; notes: string; at: string; by: string }
+/** Where a coach's video lives: the club's Google Drive (uploaded in the app), a short video in the club's video space, or YouTube. */
+export interface VideoRef { drive?: string; clip?: string; youtube?: string }
+/** A drill a coach made for the club: same shape as the built-in drills, plus photos, a video and a saved board. Coaches only. */
+export interface CustomDrill extends Drill { by: string; at: string; photos: string[]; video?: VideoRef; boardId?: string; updatedBy?: string }
 export interface Goal { id: string; playerId: string; text: string; status: 'active' | 'done'; at: string }
 export interface Recognition { id: string; playerId: string; valueKey: string; note: string; at: string }
 export interface BadgeAward { id: string; playerId: string; badgeKey: string; at: string }
@@ -64,7 +70,7 @@ export interface EquipmentItem { id: string; item: string; size: string; qty: nu
 export interface BootRequest { id: string; playerId: string; size: string; status: 'needed' | 'matched' | 'given' }
 export interface Charge { id: string; playerId: string; label: string; amount: number; dueOn: string; status: 'due' | 'submitted' | 'paid' | 'waived'; reference?: string }
 export interface CustomStrategy { id: string; name: string; whyKids: string; coachNote: string; doc: import('./board').BoardDoc }
-export interface ClubSettings { gcashNumber: string; contributionsOn: boolean; heatAction: boolean; concussionMinDays: number; goingDefaultTraining: boolean; headCoachPin: string }
+export interface ClubSettings { gcashNumber: string; contributionsOn: boolean; heatAction: boolean; concussionMinDays: number; goingDefaultTraining: boolean; headCoachPin: string; /** the club's Google Apps Script web app for videos */ driveUrl?: string; /** push alerts: the public key (the private key lives only in Supabase) */ vapidPublic?: string }
 
 export const AGE_BANDS: AgeBand[] = ['U8', 'U10', 'U12', 'U14', 'U16'];
 export const PROGRAMMES: Record<Programme, { name: string; values: string[]; short: string }> = {

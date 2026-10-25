@@ -127,11 +127,11 @@ try {
 
   // the video library: YouTube links for coaches only, or for the team's families
   await p.goto(B + '/more'); await p.getByRole('link', { name: /Video library/ }).click(); await p.getByRole('link', { name: 'Add a video' }).click();
-  await p.getByLabel('YouTube link', { exact: true }).fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ'); await p.getByLabel('Title').fill('Our match day routine');
+  await p.getByLabel('Or paste a YouTube link').fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ'); await p.getByLabel('Title').fill('Our match day routine');
   await p.getByRole('button', { name: 'Coaches only' }).click(); await p.getByRole('button', { name: 'Save to the library' }).click(); await p.waitForURL(/#\/videos$/);
   ok(!(await text()).includes('Our match day routine'), 'a coaches-only video is not on the families tab');
   await p.getByRole('button', { name: 'For coaches' }).click(); ok((await text()).includes('Our match day routine') && (await text()).includes('Coaches only'), 'coach added a coaches-only how-we-work video');
-  await p.getByRole('link', { name: 'Add a video' }).click(); await p.getByLabel('YouTube link', { exact: true }).fill('https://youtu.be/aqz-KE-bpKQ'); await p.getByLabel('Title').fill('Toe taps at home');
+  await p.getByRole('link', { name: 'Add a video' }).click(); await p.getByLabel('Or paste a YouTube link').fill('https://youtu.be/aqz-KE-bpKQ'); await p.getByLabel('Title').fill('Toe taps at home');
   await p.getByLabel('Topic').selectOption('ball-skills'); await p.getByRole('button', { name: 'Save to the library' }).click(); await p.waitForURL(/#\/videos$/);
   ok((await text()).includes('Toe taps at home') && (await text()).includes('Ball skills'), 'coach added a video for the team');
   await p.goto(B + '/player/' + ANA); await p.getByRole('button', { name: /Preview as this child/ }).click(); await p.waitForTimeout(300);
@@ -139,6 +139,32 @@ try {
   ok((await text()).includes('Toe taps at home') && !(await text()).includes('Our match day routine') && await p.getByRole('link', { name: 'Add a video' }).count() === 0, 'the family sees the team video, not the coaches-only one, and cannot add videos');
   await p.getByRole('button', { name: 'Play video' }).click(); ok(await p.locator('iframe[src*="youtube-nocookie.com/embed/aqz-KE-bpKQ"]').count() === 1, 'the video plays only when tapped (saves data)');
   await p.goto(B + '/more'); await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
+
+  // coaches' own drills: instructions, a photo and a video, for every coach to follow
+  await p.goto(B + '/drills'); await p.getByRole('link', { name: 'Create a drill' }).click();
+  await p.getByRole('button', { name: 'Save the drill for all coaches' }).click(); ok((await text()).includes('Give the drill a name'), 'a drill needs a name before it is saved');
+  await p.getByLabel('Name of the drill').fill('Rondo 4 v 1'); await p.getByLabel('Theme').selectOption('possession');
+  await p.getByLabel('How it works (instructions)').fill('Four players keep the ball from one defender inside the square. Swap the defender after 5 passes.');
+  await p.getByLabel('Coaching point 1').fill('Open your body to see more');
+  await p.getByLabel(/^Add a photo \(the set-up/).setInputFiles(photo); await p.getByRole('button', { name: 'Remove', exact: true }).first().waitFor({ timeout: 5000 }).catch(() => undefined);
+  await p.getByLabel('Or paste a YouTube link').fill('https://youtu.be/aqz-KE-bpKQ');
+  ok(await p.locator('iframe[src*="youtube-nocookie.com/embed/aqz-KE-bpKQ"]').count() === 1, 'coach attached a video to the drill');
+  await p.getByRole('button', { name: 'Save the drill for all coaches' }).click(); await p.waitForURL(/#\/drills\/[0-9a-f-]{36}$/);
+  ok((await text()).includes('Rondo 4 v 1') && (await text()).includes('Open your body to see more') && (await text()).includes('Made by') && await p.getByRole('button', { name: 'Play video' }).count() === 1 && await p.locator('img').count() >= 1, 'the drill shows instructions, coaching points, photo and video');
+  await p.goto(B + '/drills'); ok((await text()).includes("Our coaches' drills (1)") && (await text()).includes('Rondo 4 v 1'), 'the drill is listed for every coach');
+  await p.getByRole('button', { name: 'Built-in drills' }).click(); await p.getByRole('link', { name: /Traffic Lights/ }).click(); await p.getByRole('link', { name: 'Make my own version of this drill' }).click();
+  ok((await p.getByLabel('Name of the drill').inputValue()) === 'Traffic Lights (our version)' && (await p.getByLabel('How it works (instructions)').inputValue()).includes('green = dribble'), 'a coach can start from a built-in drill');
+  await p.goto(B + '/train'); await p.getByRole('button', { name: 'U12', exact: true }).click(); await p.getByLabel('Theme').selectOption('possession'); await p.waitForTimeout(200);
+  ok((await text()).includes('Rondo 4 v 1'), 'a coach\'s drill can go into a session plan');
+  // alerts and the club song
+  await p.goto(B + '/more'); await p.getByRole('link', { name: /Alerts and sound/ }).click();
+  ok((await text()).includes('We move as one') && await p.getByRole('link', { name: /Save the song to this phone/ }).count() === 1, 'alerts page offers the club song');
+  await p.getByRole('button', { name: 'Play it now' }).click(); ok((await p.evaluate(() => window.__rangersAlerts ?? 0)) >= 1, 'the club song plays on this phone');
+  ok((await (await fetch(`http://localhost:${PORT}${BASE}sounds/rangers-alert.mp3`)).arrayBuffer()).byteLength > 20000, 'the song file is published with the app');
+  await p.goto(B + '/player/' + ANA); await p.getByRole('button', { name: /Preview as this child/ }).click(); await p.waitForTimeout(300);
+  await p.goto(B + '/drills'); ok(!(await text()).includes('Rondo 4 v 1'), 'families cannot open the coaches\' drills');
+  await p.goto(B + '/more'); ok(await p.getByRole('link', { name: /Alerts and sound/ }).count() === 1, 'families have Alerts and sound too');
+  await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
 
   // a brand new phone: welcome screen, then the "getting started" guide on the real screens, once only
   const fresh = await browser.newContext({ viewport: { width: 390, height: 844 } }); const f = await fresh.newPage();

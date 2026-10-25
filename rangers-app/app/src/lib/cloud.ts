@@ -8,6 +8,10 @@ import type { FeedbackKind } from './feedback';
 const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const cloudEnabled = Boolean(URL && KEY);
+/** The project address and the anon key: public values, shown to the admin for the Google Drive and push alert set-up. */
+export const PUBLIC_CFG = { url: URL ?? '', anon: KEY ?? '' };
+/** The signed-in person's own access token (for the club's Google Drive helper, which checks it with the database). */
+export async function accessToken(): Promise<string> { const c = await sb(); return (await c.auth.getSession()).data.session?.access_token ?? ''; }
 
 export type CloudStatus = 'off' | 'loading' | 'signed-out' | 'no-role' | 'pending' | 'local-choice' | 'ready';
 export interface CloudState { status: CloudStatus; role: 'admin' | 'coach' | 'parent' | null; email: string; userId: string; error: string; syncing: boolean; lastSync: number; offline: boolean; /** reads the club's feedback (admins and chosen readers) */ reader: boolean }
@@ -291,15 +295,22 @@ async function subscribeRealtime() {
 
 /* ---------- web push ---------- */
 export async function enablePush(): Promise<string> {
-  const key = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return 'This browser cannot receive reminders. On iPhone, tap Share, then Add to Home Screen first.';
-  if (!key) return 'Reminders are not set up for this app yet.';
+  const key = (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) || getState().settings.vapidPublic;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return 'This browser cannot receive alerts. On iPhone, tap Share, then Add to Home Screen first, and open the app from there.';
+  if (!cloudEnabled || cs.status !== 'ready') return 'Sign in first: alerts come to your account.';
+  if (!key) return 'Alerts are not switched on for the club yet. The club admin turns them on once in Settings, Push alerts.';
   const perm = await Notification.requestPermission(); if (perm !== 'granted') return 'Reminders are off. You can turn them on in your phone settings.';
   const reg = await navigator.serviceWorker.ready;
   const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64(key) });
   const j = sub.toJSON(); const c = await sb();
   const { error } = await c.from('push_subscriptions').upsert({ endpoint: j.endpoint!, user_id: cs.userId, p256dh: j.keys!.p256dh, auth: j.keys!.auth });
-  return error ? error.message : 'Reminders are on.';
+  return error ? error.message : 'Alerts are on for this phone.';
+}
+/** One alert to yourself, sent within a minute once the admin has finished the push alert set-up. */
+export async function sendTestAlert(): Promise<string> {
+  const c = await sb(); const { error } = await c.rpc('queue_test_alert');
+  if (error) return /could not find the function|schema cache/i.test(error.message) ? 'The club admin needs to run the latest update.sql in Supabase first.' : /too many/.test(error.message) ? 'That is enough tests for now. Try again in an hour.' : error.message;
+  return 'Test alert sent. It should arrive within a minute. If it does not, the admin should check Settings, Push alerts.';
 }
 function urlB64(b: string) { const p = '='.repeat((4 - (b.length % 4)) % 4); const r = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); }
 

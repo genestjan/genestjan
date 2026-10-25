@@ -1,5 +1,5 @@
 import { Avatar, CLUB_PHOTO, CREST, Hero, IconChip, Row } from '../components/ui';
-import { Award, ClipboardCheck, Inbox, MessageSquareHeart, Clapperboard, ClipboardList, Dumbbell, HeartHandshake, HeartPulse, HelpCircle, IdCard, Lightbulb, ListChecks, Lock, LogOut, Medal, Megaphone, Settings as SettingsIcon, Shapes, ShieldAlert, Sparkles, TrendingUp, Trophy, type LucideIcon } from 'lucide-react';
+import { Award, ClipboardCheck, Inbox, MessageSquareHeart, Clapperboard, ClipboardList, Dumbbell, HeartHandshake, HeartPulse, HelpCircle, IdCard, Lightbulb, ListChecks, Lock, LogOut, Medal, Megaphone, Settings as SettingsIcon, Shapes, ShieldAlert, Sparkles, TrendingUp, Trophy, type LucideIcon, BellRing } from 'lucide-react';
 import { unreadCount } from '../lib/inbox';
 import { HelpChat } from '../components/HelpChat';
 import { guidesFor } from '../content/guides';
@@ -45,6 +45,7 @@ export default function More() {
           <R to="/review" icon={ClipboardList} title="Term reviews" />
           <R to="/motivation" icon={Sparkles} title="Motivation corner" />
           <R to="/support" icon={HeartHandshake} title="Club support: fund, boots, contributions" />
+          <R to="/alerts" icon={BellRing} title="Alerts and sound" />
           <R to="/settings" icon={SettingsIcon} title="Settings and club admin" />
           <R to="/help" icon={HelpCircle} title="Help and Show me how" />
           <R to="/feedback?from=More" icon={MessageSquareHeart} title="Send feedback about the app" />
@@ -57,6 +58,7 @@ export default function More() {
           {myKids.map((k) => <R key={'d' + k.id} to={`/docs/${k.id}`} icon={IdCard} title={`${k.firstName}'s ID papers`} />)}
           {myKids.some((k) => isSchoolTeam(s.teamInfo, k.teamId)) && <R to="/pathway" icon={Medal} title="Road to Palaro" />}
           <R to="/support" icon={HeartHandshake} title="Club support" />
+          <R to="/alerts" icon={BellRing} title="Alerts and sound" />
           <R to="/privacy" icon={Lock} title="Privacy and my child's information" />
           <R to="/tips" icon={Lightbulb} title="Tips for parents" />
           <R to="/help" icon={HelpCircle} title="Help and Show me how" />
@@ -100,7 +102,7 @@ export function Help() {
 export function Settings() {
   const s = useAppState(); const cloud = useCloud(); const role = useRole(); const team = activeTeam(s);
   const [tn, setTn] = useState(''); const [prog, setProg] = useState<Programme>('rangers'); const [band, setBand] = useState<(typeof AGE_BANDS)[number]>('U10'); const [fmt, setFmt] = useState<FormatId>('8v8');
-  const [token, setToken] = useState(''); const [adminLink, setAdminLink] = useState(''); const [msg, setMsg] = useState(''); const [adminMsg, setAdminMsg] = useState(''); const [pushMsg, setPushMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
+  const [token, setToken] = useState(''); const [adminLink, setAdminLink] = useState(''); const [msg, setMsg] = useState(''); const [adminMsg, setAdminMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
   const admins = members.filter((m) => m.role === 'admin'); const teamName = (id: string) => s.teams.find((t) => t.id === id)?.name ?? 'another team';
   useEffect(() => { if (cloud.status === 'ready' && role === 'admin') listMembers().then(setMembers).catch(() => {}); }, [cloud.status, role, token]);
   const st = s.settings; const set = (p: Partial<typeof st>) => update((x) => ({ ...x, settings: { ...x.settings, ...p } }));
@@ -127,7 +129,11 @@ export function Settings() {
         <label className="grid gap-1 text-sm font-semibold">GCash number families pay to<input className="field" inputMode="tel" value={st.gcashNumber} onChange={(e) => set({ gcashNumber: e.target.value })} /></label><p className="muted text-sm">Reference numbers are checked for format only. A coach confirms each payment by hand. Waivers are private.</p></Card>
 
       {cloudEnabled && cloud.status === 'ready' && (<>
-        <H2>Reminders on this phone</H2><Card className="grid gap-2"><button className="btn" onClick={async () => setPushMsg(await enablePush())}>Turn on reminders</button>{pushMsg && <p role="status">{pushMsg}</p>}<p className="muted text-sm">On iPhone, add the app to the Home Screen first.</p></Card>
+        <H2>Alerts on this phone</H2><Card className="grid gap-2"><Link to="/alerts" className="btn ghost">Alerts and sound</Link></Card>
+        {role === 'admin' && (<><H2>Club set-up (once)</H2><Card className="grid gap-2">
+          <Link to="/settings/push" className="btn ghost justify-start">Push alerts on phones{st.vapidPublic ? ': keys made' : ': not set up yet'}</Link>
+          <Link to="/settings/drive" className="btn ghost justify-start">Coaches' videos in Google Drive{st.driveUrl ? ': connected' : ': not set up yet'}</Link>
+          <p className="muted text-sm">Both are free. Each takes 10 to 15 minutes, best on a computer.</p></Card></>)}
         {role === 'admin' && (<><H2>Club admins</H2><Card className="grid gap-2" data-tour="admins">
           <p className="text-sm">Admins run the whole club in the app: teams, coaches, settings and every child's information. Only invite someone you trust.</p>
           <button className="btn" onClick={async () => { setAdminMsg(''); try { setAdminLink(inviteLink(await createAdminInvite())); } catch (e) { setAdminMsg((e as Error).message); } }}>Create an admin invite link</button>

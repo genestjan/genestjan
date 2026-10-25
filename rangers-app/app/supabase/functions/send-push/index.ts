@@ -1,8 +1,8 @@
 // Supabase Edge Function (Deno). Sends due rows from notification_queue as Web Push messages.
-// Schedule it every 10 minutes (Dashboard > Edge Functions > Schedules, or pg_cron + pg_net).
+// Scheduled every minute with pg_cron + pg_net (the app's Settings, Push alerts, gives the SQL).
 // Secrets: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:you@example.com). SUPABASE_URL and
-// SUPABASE_SERVICE_ROLE_KEY are provided by Supabase. NOT YET TESTED against a live project:
-// verify `npm:web-push` runs on the Edge runtime during go-live and swap for a Deno web-push library if not.
+// SUPABASE_SERVICE_ROLE_KEY are provided by Supabase. Tested on Deno 2.1 against the local stack and a pretend push service
+// (the alert decrypts, the VAPID signature verifies); not yet against a live Supabase project.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 
@@ -15,10 +15,12 @@ Deno.serve(async () => {
     const { data: subs } = await db.from('push_subscriptions').select('*').eq('user_id', n.user_id);
     for (const s of subs ?? []) {
       try {
-        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify({ title: n.title, body: n.body, url: n.url }));
+        // high urgency: phones deliver it straight away, even when asleep; kept for a day if the phone is off
+        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify({ title: n.title, body: n.body, url: n.url, tag: n.id }), { urgency: 'high', TTL: 86400 });
         sent++;
       } catch (e) {
         const code = (e as { statusCode?: number }).statusCode;
+        console.error('push failed', code ?? '', String((e as Error).message ?? e).slice(0, 200));   // shows in Supabase, Edge Functions, Logs
         if (code === 404 || code === 410) { await db.from('push_subscriptions').delete().eq('endpoint', s.endpoint); dead++; }
       }
     }
