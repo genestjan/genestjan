@@ -42,7 +42,7 @@ export async function saveMedia(p: Prepared, path: string): Promise<string> {
     if ((data as number) < p.blob.size) throw new Error('The club\'s video space is full right now. Please send a photo instead, and tell the club admin.');
   }
   const { error } = await c.storage.from(bucketOf(path)).upload(path, p.blob, { contentType: p.type ?? 'image/jpeg', upsert: true });
-  if (error) throw new Error(`Could not upload: ${error.message}`);
+  if (error) throw new Error(/row-level security|violates|unauthorized|not allowed/i.test(error.message) ? 'This could not be saved yet. If this is a new part of the app, the club admin needs to run the latest update.sql in Supabase.' : `Could not upload: ${error.message}`);
   return path;
 }
 
