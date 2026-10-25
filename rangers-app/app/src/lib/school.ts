@@ -32,10 +32,10 @@ export function ageOn(birth: string, on: Date): number | undefined {
   if (m < 0 || (m === 0 && on.getDate() < b.getDate())) a--;
   return a;
 }
-export function bandForAge(age: number): AgeBand { return age <= 8 ? 'U8' : age <= 10 ? 'U10' : age <= 12 ? 'U12' : age <= 14 ? 'U14' : 'U16'; }
-/** On a mixed-age team each child is reviewed against their own age group; otherwise the team's. */
+export function bandForAge(age: number): AgeBand { return age <= 6 ? 'U6' : age <= 19 ? (`U${age}` as AgeBand) : age < 30 ? '20+' : age < 40 ? '30+' : '40+'; }
+/** On a mixed-age team (school setting, or a team with several age groups) each child is reviewed against their own age group; otherwise the team's. */
 export function bandOf(p: Player, team: Team, info: TeamInfo | undefined, now = new Date()): AgeBand {
-  if (!info?.mixedAges) return team.ageBand;
+  if (!info?.mixedAges && !(team.ageBands && team.ageBands.length > 1)) return team.ageBand;
   const a = birthOf(p) ? ageOn(birthOf(p), now) : undefined;
   return a === undefined ? team.ageBand : bandForAge(a);
 }

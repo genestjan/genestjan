@@ -1,3 +1,4 @@
+import { contentBand } from '../lib/model';
 import { Link, useParams } from 'react-router-dom';
 import { FeedbackNudge } from './Feedback';
 import { Avatar, Back, Card, CREST, ClubHero, DateBlock, Empty, H2, IconChip, Page, Row, SectionHead, Tile } from '../components/ui';
@@ -66,7 +67,7 @@ export function ProgressPage({ playerId }: { playerId?: string }) {
   const k = kids.find((x) => x.id === playerId) ?? kids[0];
   if (!k) return <Page title="Progress"><Empty>No child linked yet.</Empty></Page>;
   const team = s.teams.find((t) => t.id === k.teamId) ?? s.teams[0];
-  const skills = RUBRIC[bandOf(k, team, infoFor(s.teamInfo, team.id))];
+  const skills = RUBRIC[contentBand(bandOf(k, team, infoFor(s.teamInfo, team.id)))];
   const pubs = s.assessments.filter((a) => a.playerId === k.id && a.publishedAt).sort((a, b) => a.term.localeCompare(b.term));
   const cur = pubs[pubs.length - 1]; const prev = pubs[pubs.length - 2];
   const sum = cur ? summarise(skills, cur, prev) : null;

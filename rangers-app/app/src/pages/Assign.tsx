@@ -1,3 +1,4 @@
+import { bandsLabel, teamBands } from '../lib/model';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Back, Card, Empty, H2, Page } from '../components/ui';
@@ -63,7 +64,7 @@ export function AssignNew() {
       <H2>1. Start from a ready-made one</H2>
       <div className="grid gap-2" data-tour="assign-templates">
         {templates.map((t) => <button key={t.id} className={`btn ${templateId === t.id ? '' : 'ghost'} justify-start text-left`} aria-pressed={templateId === t.id} onClick={() => applyTemplate(t.id)}>{t.title}</button>)}
-        <button className="btn ghost" onClick={() => setAll(!all)}>{all ? `Only show ones for ${team.ageBand}` : 'Show all ready-made assignments'}</button>
+        <button className="btn ghost" onClick={() => setAll(!all)}>{all ? `Only show ones for ${bandsLabel(teamBands(team))}` : 'Show all ready-made assignments'}</button>
       </div>
       <H2>2. Check or write the tasks</H2>
       <Card className="grid gap-3">

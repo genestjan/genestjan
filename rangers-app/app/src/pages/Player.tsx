@@ -1,3 +1,4 @@
+import { contentBand } from '../lib/model';
 import { useState } from 'react';
 import { useRole } from '../lib/role';
 import { EmergencyEditor } from '../components/Emergency';
@@ -24,7 +25,7 @@ export default function PlayerProfile() {
   if (!p) return <Page title="Player" back={<Back to="/squad" />}><Empty>Player not found.</Empty></Page>;
   const team = s.teams.find((t) => t.id === p.teamId) ?? s.teams[0];
   const set = (patch: Partial<Player>) => put('players', { ...p, ...patch });
-  const skills = RUBRIC[bandOf(p, team, infoFor(s.teamInfo, team.id))];
+  const skills = RUBRIC[contentBand(bandOf(p, team, infoFor(s.teamInfo, team.id)))];
   const mine = s.assessments.filter((a) => a.playerId === p.id).sort((a, b) => a.term.localeCompare(b.term));
   const sum = mine.length ? summarise(skills, mine[mine.length - 1], mine[mine.length - 2]) : null;
   const growth = s.growth.filter((g) => g.playerId === p.id).sort((a, b) => b.date.localeCompare(a.date));

@@ -2,7 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { applyRows, isDemoId, isUuid, rowJson, toRows, type RowIn } from './syncMap';
 import { db, getState, migrate, onChange, update, type AppState } from './store';
-import type { Player } from './model';
+import type { Player, Team } from './model';
 import type { FeedbackKind } from './feedback';
 
 const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -186,6 +186,12 @@ export const appUrl = (route = '/') => `${location.origin}${import.meta.env.BASE
 export const inviteLink = (token: string) => appUrl(`/join/${token}`);
 
 /* ---------- sync ---------- */
+/** Mixed age groups live in teams.age_bands (update 0009). Until the server has that column, single age group teams sync as before. */
+let serverBands = (() => { try { return localStorage.getItem('rangers-team-bands') === '1'; } catch { return false; } })();
+const markServerBands = () => { if (serverBands) return; serverBands = true; try { localStorage.setItem('rangers-team-bands', '1'); } catch { /* ignore */ } };
+const mixed = (t: Team) => (t.ageBands?.length ?? 0) > 1;
+const teamRow = (t: Team) => ({ id: t.id, name: t.name, programme: t.programme, age_band: t.ageBand, ...(serverBands || mixed(t) ? { age_bands: mixed(t) ? t.ageBands : [] } : {}), default_format: t.defaultFormat });
+const NEED_0009 = 'The new age groups need the latest update.sql in Supabase (club admin). Until then, teams keep their old age group.';
 const playerRow = (p: Player) => ({ id: p.id, team_id: p.teamId, first_name: p.firstName, last_name: p.lastName ?? null, shirt_number: p.number ?? null, birth_date: p.birthDate || null, gk_willing: p.gkWilling, photo_consent: p.photoConsent, left_at: p.left ? p.leftAt ?? '2000-01-01T00:00:00Z' : null });
 /** What each role may save. The database enforces the same rules; this just avoids sending what it would refuse. */
 function canWrite(kind: string) {
@@ -205,11 +211,17 @@ export async function pushNow() {
   try {
     const c = await sb(); const s = getState();
     // teams and players (admin and coaches; parents can only change private info for their own child)
-    const isCoach = cs.role === 'admin' || cs.role === 'coach';
+    const isCoach = cs.role === 'admin' || cs.role === 'coach'; let teamNote = '';
     if (cs.role === 'admin') {
-      const teams = s.teams.filter((t) => isUuid(t.id)).map((t) => ({ id: t.id, name: t.name, programme: t.programme, age_band: t.ageBand, default_format: t.defaultFormat }));
+      const teams = s.teams.filter((t) => isUuid(t.id)).map(teamRow);
       const changed = teams.filter((t) => snap.get('team:' + t.id) !== JSON.stringify(t));
-      if (changed.length) { const { error } = await c.from('teams').upsert(changed); if (error) throw error; changed.forEach((t) => snap.set('team:' + t.id, JSON.stringify(t))); }
+      if (changed.length) {
+        let { error } = await c.from('teams').upsert(changed);
+        // an older database: no age_bands column yet. Save the rest now, try the mixed age groups again next time, and say why.
+        if (error && /age_bands/.test(error.message)) { ({ error } = await c.from('teams').upsert(changed.map(({ age_bands: _b, ...t }) => t))); if (!error) teamNote = NEED_0009; }
+        else if (!error) changed.forEach((t) => snap.set('team:' + t.id, JSON.stringify(t)));
+        if (error) throw new Error(/age_band/.test(error.message) ? NEED_0009 : error.message);
+      }
     }
     if (isCoach) {
       const players = s.players.filter((p) => isUuid(p.id) && isUuid(p.teamId) && !isDemoId(p.id)).map(playerRow);
@@ -237,7 +249,7 @@ export async function pushNow() {
     if (gone.length && isCoach) {
       for (const k of gone) { const { error } = await c.from('records').update({ deleted_at: new Date().toISOString() }).eq('id', k); if (!error) snap.delete(k); else failed.push(friendly('delete', error.message)); }
     }
-    saveSnap(); set({ error: failed.length ? `${failed.length} change(s) were not accepted: ${[...new Set(failed)].join('; ')}` : '', lastSync: Date.now() });
+    saveSnap(); set({ error: [teamNote, failed.length ? `${failed.length} change(s) were not accepted: ${[...new Set(failed)].join('; ')}` : ''].filter(Boolean).join(' '), lastSync: Date.now() });
   } catch (e) { set({ error: (e as Error).message }); }
   finally { pushing = false; set({ syncing: false }); if (again) { again = false; schedulePush(); } }
 }
@@ -252,10 +264,12 @@ export async function pullNow() {
     for (;;) { const { data, error } = await c.from('records').select('*').gt('updated_at', since).order('updated_at').range(from, from + 999); if (error) throw error; all.push(...((data ?? []) as RowIn[])); if (!data || data.length < 1000) break; from += 1000; }
     update((s) => {
       let n: AppState = { ...s };
-      for (const t of (tm.data ?? []) as { id: string; name: string; programme: never; age_band: never; default_format: never }[]) {
-        const item = { id: t.id, name: t.name, programme: t.programme, ageBand: t.age_band, defaultFormat: t.default_format };
+      const rows = (tm.data ?? []) as { id: string; name: string; programme: never; age_band: never; age_bands?: never[] | null; default_format: never }[];
+      if (rows.some((t) => 'age_bands' in t)) markServerBands();
+      for (const t of rows) {
+        const item: Team = { id: t.id, name: t.name, programme: t.programme, ageBand: t.age_band, ageBands: (t.age_bands?.length ?? 0) > 1 ? t.age_bands! : undefined, defaultFormat: t.default_format };
         n.teams = n.teams.some((x) => x.id === t.id) ? n.teams.map((x) => (x.id === t.id ? item : x)) : [...n.teams.filter((x) => isUuid(x.id) || n.teams.length > 1), item];
-        snap.set('team:' + t.id, JSON.stringify({ id: t.id, name: t.name, programme: t.programme, age_band: t.age_band, default_format: t.default_format }));
+        snap.set('team:' + t.id, JSON.stringify(teamRow(item)));
       }
       for (const p of (pl.data ?? []) as Record<string, unknown>[]) {
         const item = { id: p.id as string, teamId: p.team_id as string, firstName: p.first_name as string, lastName: (p.last_name as string) ?? undefined, number: (p.shirt_number as number) ?? undefined, birthDate: (p.birth_date as string) ?? undefined, gkWilling: p.gk_willing as boolean, photoConsent: p.photo_consent as boolean, videoConsent: p.video_consent === true, left: Boolean(p.left_at), leftAt: (p.left_at as string) ?? undefined } as Player;

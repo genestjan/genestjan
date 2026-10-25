@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Back, Card, H2, Page } from '../components/ui';
 import { activeTeam, put, uid, update, useAppState, exportBackup } from '../lib/store';
-import { AGE_BANDS, PROGRAMMES, type Programme } from '../lib/model';
+import { AGE_BANDS, bandsLabel, PROGRAMMES, sortBands, teamBands, withBands, type AgeBand, type Programme } from '../lib/model';
 import { FORMATS, type FormatId } from '../lib/types';
 import { isStaff, useMyChildren, useRole } from '../lib/role';
 import { approveMember, assignStaff, cloudEnabled, createAdminInvite, createCoachInvite, enablePush, inviteLink, listMembers, removeAdmin, removeMember, removeStaff, setConsent, signOut, syncNow, useCloud, useNewFeedback, type Member } from '../lib/cloud';
@@ -99,9 +99,17 @@ export function Help() {
   );
 }
 
+/** Tap one or more age groups (teams often mix them). At least one stays chosen. */
+function BandPicker({ label, value, onChange }: { label: string; value: AgeBand[]; onChange: (b: AgeBand[]) => void }) {
+  return (<div className="grid gap-1">
+    <div className="flex flex-wrap gap-2" role="group" aria-label={label}>{AGE_BANDS.map((b) => { const on = value.includes(b); return <button key={b} aria-pressed={on} className={`btn min-h-[44px] px-3 text-sm ${on ? '' : 'ghost'}`} onClick={() => { const n = on ? value.filter((x) => x !== b) : [...value, b]; if (n.length) onChange(sortBands(n)); }}>{b}</button>; })}</div>
+    <p className="muted text-xs">{value.length > 1 ? `Mixed: ${bandsLabel(value)}. Plans and safety rules follow the youngest (${sortBands(value)[0]}); each child's review uses their own age when their birthday is known.` : 'Tap more than one if this team mixes age groups.'}</p>
+  </div>);
+}
+
 export function Settings() {
   const s = useAppState(); const cloud = useCloud(); const role = useRole(); const team = activeTeam(s);
-  const [tn, setTn] = useState(''); const [prog, setProg] = useState<Programme>('rangers'); const [band, setBand] = useState<(typeof AGE_BANDS)[number]>('U10'); const [fmt, setFmt] = useState<FormatId>('8v8');
+  const [tn, setTn] = useState(''); const [prog, setProg] = useState<Programme>('rangers'); const [bands, setBands] = useState<AgeBand[]>(['U10']); const [fmt, setFmt] = useState<FormatId>('8v8');
   const [token, setToken] = useState(''); const [adminLink, setAdminLink] = useState(''); const [msg, setMsg] = useState(''); const [adminMsg, setAdminMsg] = useState(''); const [members, setMembers] = useState<Member[]>([]);
   const admins = members.filter((m) => m.role === 'admin'); const teamName = (id: string) => s.teams.find((t) => t.id === id)?.name ?? 'another team';
   useEffect(() => { if (cloud.status === 'ready' && role === 'admin') listMembers().then(setMembers).catch(() => {}); }, [cloud.status, role, token]);
@@ -112,14 +120,17 @@ export function Settings() {
     <Page title="Settings" back={<Back to="/more" />}>
       <H2>You</H2><Card><label className="grid gap-1 text-sm font-semibold">Name shown on your messages<input className="field" value={s.me.name} onChange={(e) => update((x) => ({ ...x, me: { ...x.me, name: e.target.value } }))} /></label></Card>
       <H2>Teams</H2>
-      <Card className="grid gap-2">{s.teams.map((t) => <div key={t.id} className="flex items-center justify-between gap-2"><span>{t.name} <span className="muted text-sm">({PROGRAMMES[t.programme].short}, {t.ageBand}, {t.defaultFormat})</span></span><button className={`btn min-h-[44px] px-3 text-sm ${t.id === team.id ? '' : 'ghost'}`} onClick={() => update((x) => ({ ...x, activeTeamId: t.id }))}>{t.id === team.id ? 'Active' : 'Use'}</button></div>)}
+      <Card className="grid gap-2">{s.teams.map((t) => <div key={t.id} className="flex items-center justify-between gap-2"><span>{t.name} <span className="muted text-sm">({PROGRAMMES[t.programme].short}, {bandsLabel(teamBands(t))}, {t.defaultFormat})</span></span><button className={`btn min-h-[44px] px-3 text-sm ${t.id === team.id ? '' : 'ghost'}`} onClick={() => update((x) => ({ ...x, activeTeamId: t.id }))}>{t.id === team.id ? 'Active' : 'Use'}</button></div>)}
         <h3 className="mt-2 text-2xl">School team settings for {team.name}</h3>
         <SchoolSettings teamId={team.id} />
         <h3 className="mt-2 text-2xl">Rename the active team</h3>
         <input className="field" aria-label="Active team name" value={team.name} onChange={(e) => put('teams', { ...team, name: e.target.value })} />
+        <h3 className="mt-2 text-2xl">Age groups in {team.name}</h3>
+        <BandPicker label={`Age groups in ${team.name}`} value={teamBands(team)} onChange={(b) => put('teams', withBands(team, b))} />
         <h3 className="mt-2 text-2xl">Add a team</h3><input className="field" placeholder="Team name, e.g. Gila U12" aria-label="Team name" value={tn} onChange={(e) => setTn(e.target.value)} />
-        <div className="grid grid-cols-3 gap-2"><select className="field" aria-label="Programme" value={prog} onChange={(e) => setProg(e.target.value as Programme)}>{Object.entries(PROGRAMMES).map(([k, v]) => <option key={k} value={k}>{v.short}</option>)}</select><select className="field" aria-label="Age group" value={band} onChange={(e) => setBand(e.target.value as typeof band)}>{AGE_BANDS.map((b) => <option key={b}>{b}</option>)}</select><select className="field" aria-label="Format" value={fmt} onChange={(e) => setFmt(e.target.value as FormatId)}>{Object.values(FORMATS).map((f) => <option key={f.id} value={f.id}>{f.id}</option>)}</select></div>
-        <button className="btn" disabled={!tn} onClick={() => { const id = crypto.randomUUID(); put('teams', { id, name: tn, programme: prog, ageBand: band, defaultFormat: fmt }); update((x) => ({ ...x, activeTeamId: id })); setTn(''); }}>Add team</button></Card>
+        <BandPicker label="Age groups of the new team" value={bands} onChange={setBands} />
+        <div className="grid grid-cols-2 gap-2"><select className="field" aria-label="Programme" value={prog} onChange={(e) => setProg(e.target.value as Programme)}>{Object.entries(PROGRAMMES).map(([k, v]) => <option key={k} value={k}>{v.short}</option>)}</select><select className="field" aria-label="Format" value={fmt} onChange={(e) => setFmt(e.target.value as FormatId)}>{Object.values(FORMATS).map((f) => <option key={f.id} value={f.id}>{f.id}</option>)}</select></div>
+        <button className="btn" disabled={!tn} onClick={() => { const id = crypto.randomUUID(); put('teams', withBands({ id, name: tn, programme: prog, ageBand: bands[0], defaultFormat: fmt }, bands)); update((x) => ({ ...x, activeTeamId: id })); setTn(''); }}>Add team</button></Card>
       <H2>Safety rules</H2>
       <Card className="grid gap-2"><label className="flex items-center gap-3"><input type="checkbox" className="h-6 w-6" checked={st.goingDefaultTraining} onChange={(e) => set({ goingDefaultTraining: e.target.checked })} />Training: "Going" unless the parent says otherwise</label>
         <label className="grid gap-1 text-sm font-semibold">Minimum days before a competitive match after a head injury<input type="number" className="field" value={st.concussionMinDays} onChange={(e) => set({ concussionMinDays: Math.max(0, +e.target.value) })} /></label>

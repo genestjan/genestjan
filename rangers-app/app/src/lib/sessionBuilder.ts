@@ -1,16 +1,17 @@
 import { DRILLS, SESSION_SLOTS, type Drill } from '../content/drills';
 import { CURRICULUM } from '../content/curriculum';
-import type { AgeBand, SessionBlock } from './model';
+import { AGE_BANDS, bandAge, contentBand, type AgeBand, type SessionBlock } from './model';
 
-export const BAND_AGE: Record<AgeBand, number> = { U8: 8, U10: 10, U12: 12, U14: 14, U16: 16 };
-const SPLIT: Record<AgeBand, number[]> = { // minutes in the six slots for a 60-minute base, scaled
+/** The age used to choose drills and tasks. The drills are written for up to 16 (and suit older players), so 17 and up count as 16. */
+export const BAND_AGE = Object.fromEntries(AGE_BANDS.map((b) => [b, Math.min(16, bandAge(b))])) as Record<AgeBand, number>;
+const SPLIT: Record<ReturnType<typeof contentBand>, number[]> = { // minutes in the six slots for a 60-minute base, scaled
   U8: [10, 15, 10, 10, 12, 3], U10: [10, 15, 12, 15, 20, 3], U12: [8, 15, 12, 20, 22, 3], U14: [5, 20, 15, 25, 20, 5], U16: [0, 20, 15, 25, 25, 5],
 };
 export interface BuildInput { band: AgeBand; players: number; minutes: number; theme: string; equipment: Set<string>; allDrills?: Drill[]; seed?: number; swap?: Record<string, string[]> }
 const WARMUP: Record<string, string> = { U8: 'D02', U10: 'D02', U12: 'D02', U14: 'D02', U16: 'D02' };
 
 export function currentTheme(band: AgeBand, weeksSinceStart: number) {
-  const list = CURRICULUM[band]; return list[Math.min(list.length - 1, Math.floor(Math.max(0, weeksSinceStart) / 2))];
+  const list = CURRICULUM[contentBand(band)]; return list[Math.min(list.length - 1, Math.floor(Math.max(0, weeksSinceStart) / 2))];
 }
 export function eligible(d: Drill, i: BuildInput) {
   const age = BAND_AGE[i.band];
@@ -24,7 +25,7 @@ export function buildSession(i: BuildInput): { blocks: SessionBlock[]; gaps: str
   const all = i.allDrills ?? DRILLS;
   const pool = all.filter((d) => eligible(d, i));
   const scale = i.minutes / 60;
-  const mins = SPLIT[i.band].map((m) => Math.round(m * scale));
+  const mins = SPLIT[contentBand(i.band)].map((m) => Math.round(m * scale));
   const used = new Set<string>(); const gaps: string[] = []; const blocks: SessionBlock[] = [];
   const pick = (cands: Drill[], salt: number) => {
     const fresh = cands.filter((d) => !used.has(d.id)); const list = fresh.length ? fresh : cands;
@@ -33,7 +34,7 @@ export function buildSession(i: BuildInput): { blocks: SessionBlock[]; gaps: str
   SESSION_SLOTS.forEach((slot, idx) => {
     if (!mins[idx]) return;
     let d: Drill | undefined;
-    if (slot === 'Warm-up') d = pool.find((x) => x.id === WARMUP[i.band]) ?? pick(pool.filter((x) => x.theme === 'ball-mastery' || x.theme === 'fun'), idx);
+    if (slot === 'Warm-up') d = pool.find((x) => x.id === WARMUP[contentBand(i.band)]) ?? pick(pool.filter((x) => x.theme === 'ball-mastery' || x.theme === 'fun'), idx);
     else if (slot === 'Skill') d = pick(pool.filter((x) => x.theme === i.theme && x.minutes <= mins[idx] + 4), idx) ?? pick(pool.filter((x) => x.theme === i.theme), idx);
     else if (slot === 'Game-like practice') d = pick(pool.filter((x) => x.theme === i.theme && !used.has(x.id)), idx + 1) ?? pick(pool.filter((x) => ['1v1', 'passing', 'possession', 'defending', 'finishing'].includes(x.theme)), idx);
     else if (slot === 'Play') d = pick(pool.filter((x) => x.theme === 'game'), idx);

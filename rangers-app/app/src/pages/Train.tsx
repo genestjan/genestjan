@@ -10,7 +10,7 @@ import { CURRICULUM } from '../content/curriculum';
 import { buildSession, currentTheme, eligible, waterBreaks } from '../lib/sessionBuilder';
 import { HEAT_ACTIONS } from '../content/safety';
 import type { AgeBand, SessionBlock, TrainingSession } from '../lib/model';
-import { AGE_BANDS } from '../lib/model';
+import { AGE_BANDS, bandsLabel, contentBand, sortBands, teamBands } from '../lib/model';
 import { today } from '../lib/util';
 import { formatClock } from '../lib/fairShare';
 import { fetchWx, forEvent, YAM1 } from '../lib/weather';
@@ -22,7 +22,7 @@ export default function Train() {
   const s = useAppState(); const nav = useNavigate(); const team = activeTeam(s); const kids = teamPlayers(s);
   const weeks = Math.floor((Date.now() - Date.parse(s.sessions.filter((x) => x.teamId === team.id).sort((a, b) => a.date.localeCompare(b.date))[0]?.date ?? today())) / (7 * 86400000));
   const sug = currentTheme(team.ageBand, weeks);
-  const [band, setBand] = useState<AgeBand>(team.ageBand); const [players, setPlayers] = useState(Math.max(kids.length, 8)); const [minutes, setMinutes] = useState(75);
+  const [bands, setBands] = useState<AgeBand[]>(teamBands(team)); const band = sortBands(bands)[0] ?? team.ageBand; const [players, setPlayers] = useState(Math.max(kids.length, 8)); const [minutes, setMinutes] = useState(75);
   const [theme, setTheme] = useState(sug.theme); const [eq, setEq] = useState({ ball: true, cones: true, bibs: false, goals: false });
   const [seed, setSeed] = useState(0);
   const equipment = useMemo(() => new Set(Object.entries(eq).filter(([, v]) => v).map(([k]) => k)), [eq]);
@@ -31,13 +31,16 @@ export default function Train() {
   const [blocks, setBlocks] = useState<SessionBlock[] | null>(null);
   const shown = blocks ?? built.blocks;
   const next = s.events.filter((e) => e.teamId === team.id && e.type === 'training' && !e.cancelled && Date.parse(e.endsAt) > Date.now()).sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0];
-  const save = () => { const id = uid(); put('sessions', { id, teamId: team.id, eventId: next?.id, date: today(), band, minutes, theme, blocks: shown }); nav(`/train/run/${id}`); };
+  const save = () => { const id = uid(); put('sessions', { id, teamId: team.id, eventId: next?.id, date: today(), band, bands: bands.length > 1 ? sortBands(bands) : undefined, minutes, theme, blocks: shown }); nav(`/train/run/${id}`); };
   return (
     <Page title="Train" actions={<Link className="btn ghost px-4" to="/drills">Drills</Link>}>
-      <Card className="mb-3"><p className="muted text-sm">Curriculum, {team.ageBand}: block {Math.min(6, Math.floor(weeks / 2) + 1)} of 6</p><p className="text-xl font-semibold">{sug.title}</p></Card>
+      <Card className="mb-3"><p className="muted text-sm">Curriculum, {bandsLabel(teamBands(team))}{contentBand(team.ageBand) !== team.ageBand ? ` (uses the ${contentBand(team.ageBand)} plan)` : ''}: block {Math.min(6, Math.floor(weeks / 2) + 1)} of 6</p><p className="text-xl font-semibold">{sug.title}</p></Card>
       {next && <Card className="mb-3"><p className="mb-2 font-semibold">Next training: {next.title}</p><EventWeather e={next} compact /></Card>}
       <Card className="grid gap-3">
-        <div className="flex flex-wrap gap-2">{AGE_BANDS.map((b) => <Chip key={b} on={band === b} onClick={() => setBand(b)}>{b}</Chip>)}</div>
+        <div><div className="mb-1 text-sm font-semibold">Age groups today (tap more than one to mix)</div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Age groups">{AGE_BANDS.map((b) => <Chip key={b} on={bands.includes(b)} onClick={() => { const n = bands.includes(b) ? bands.filter((x) => x !== b) : [...bands, b]; if (n.length) { const sb = sortBands(n); if (sb[0] !== band) setTheme(currentTheme(sb[0], weeks).theme); setBands(sb); setBlocks(null); } }}>{b}</Chip>)}</div>
+          {bands.length > 1 && <p className="mt-1 text-sm">Mixed: {bandsLabel(bands)}. The plan suits the youngest ({band}); use the Harder ideas for the older players.</p>}
+          {contentBand(band) !== band && <p className="muted mt-1 text-xs">{band} uses the {contentBand(band)} timings and curriculum.</p>}</div>
         <div className="grid grid-cols-2 gap-2"><label className="text-sm font-semibold">Children<input type="number" className="field" value={players} onChange={(e) => setPlayers(+e.target.value)} /></label><label className="text-sm font-semibold">Minutes<input type="number" className="field" value={minutes} step={5} onChange={(e) => setMinutes(+e.target.value)} /></label></div>
         <label className="text-sm font-semibold">Theme<select className="field" value={theme} onChange={(e) => setTheme(e.target.value)}>{THEMES.map((t) => <option key={t} value={t}>{t}{t === sug.theme ? ' (this fortnight)' : ''}</option>)}</select></label>
         <div><div className="mb-1 text-sm font-semibold">What do you have?</div><div className="flex flex-wrap gap-2">{(['ball', 'cones', 'bibs', 'goals'] as const).map((k) => <Chip key={k} on={eq[k]} onClick={() => setEq({ ...eq, [k]: !eq[k] })}>{k}</Chip>)}</div><p className="muted mt-1 text-xs">No cones? Use slippers or bottles. No bibs? Tuck shirts in. No balls? Share one between two.</p></div>
@@ -52,7 +55,7 @@ export default function Train() {
             : <div className="text-xl font-semibold">Huddle</div>}</li>); })}</ol>
       <button className="btn mt-4 h-16 w-full text-xl" disabled={!shown.length} onClick={save}>Save and start</button>
       <H2>Past sessions</H2>
-      {s.sessions.length === 0 ? <Empty>None yet.</Empty> : <ul className="grid gap-2">{[...s.sessions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8).map((x) => <li key={x.id}><Link to={`/train/run/${x.id}`} className="card flex justify-between p-3"><span>{x.date} · {x.band} · {x.theme}</span><span className="muted">{x.minutes} min</span></Link></li>)}</ul>}
+      {s.sessions.length === 0 ? <Empty>None yet.</Empty> : <ul className="grid gap-2">{[...s.sessions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8).map((x) => <li key={x.id}><Link to={`/train/run/${x.id}`} className="card flex justify-between p-3"><span>{x.date} · {bandsLabel(x.bands ?? [x.band])} · {x.theme}</span><span className="muted">{x.minutes} min</span></Link></li>)}</ul>}
     </Page>
   );
 }

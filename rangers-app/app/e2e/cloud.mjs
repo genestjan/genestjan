@@ -204,6 +204,14 @@ try {
   await waitFor(async () => (await svc('records?kind=eq.drill&select=visibility,team_id,data')).some((r) => r.visibility === 'staff' && !r.team_id && r.data.video?.youtube === 'aqz-KE-bpKQ'), 'the drill is saved for every coach');
   ok((await (await asParent('records?kind=eq.drill&select=id')).json()).length === 0, 'API: families cannot read coaches\' drills');
 
+  // 5e2. A team can mix age groups; it reaches the server (and an older single age group team still works)
+  await admin.goto(APP + '#/settings'); const grp = admin.getByRole('group', { name: /^Age groups in / });
+  const before = (await svc('teams?select=id,age_band,age_bands'))[0];
+  await grp.getByRole('button', { name: 'U9', exact: true }).click(); await grp.getByRole('button', { name: 'U11', exact: true }).click();
+  await waitFor(async () => { const t = (await svc(`teams?id=eq.${before.id}&select=age_band,age_bands`))[0]; return t.age_band === 'U9' && t.age_bands.join() === ['U9', before.age_band, 'U11'].join(); }, 'a mixed team is saved on the server (youngest first)');
+  await grp.getByRole('button', { name: 'U9', exact: true }).click(); await grp.getByRole('button', { name: 'U11', exact: true }).click();
+  await waitFor(async () => { const t = (await svc(`teams?id=eq.${before.id}&select=age_band,age_bands`))[0]; return t.age_band === before.age_band && t.age_bands.length === 0; }, 'back to one age group on the server');
+
   // 5f. Push alert set-up: keys made on the admin's phone, the private key never saved; a test alert is queued
   await admin.goto(APP + '#/settings/push'); await admin.getByRole('button', { name: 'Make the keys' }).click();
   const pubKey = await admin.getByLabel('Public key', { exact: true }).inputValue(); const privKey = await admin.getByLabel('Private key (secret)').inputValue();

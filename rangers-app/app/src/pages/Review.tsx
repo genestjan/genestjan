@@ -1,3 +1,4 @@
+import { contentBand } from '../lib/model';
 import { bandOf, infoFor } from '../lib/school';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -28,7 +29,7 @@ export function Review() {
   const existing = s.assessments.find((a) => a.playerId === playerId && a.term === term);
   const [a, setA] = useState<Assessment | null>(null);
   if (!p) return <Page title="Review" back={<Back to="/review" />}><Empty>Player not found.</Empty></Page>;
-  const band = bandOf(p, team, infoFor(s.teamInfo, team.id)); const skills = RUBRIC[band];
+  const band = bandOf(p, team, infoFor(s.teamInfo, team.id)); const skills = RUBRIC[contentBand(band)];
   const cur: Assessment = a ?? existing ?? { id: uid(), playerId: p.id, teamId: p.teamId, term, ratings: {}, strength: '', working: '', familyComment: '', coachNote: '' };
   const prev = s.assessments.filter((x) => x.playerId === p.id && x.term !== term).sort((x, y) => y.term.localeCompare(x.term))[0];
   const sum = summarise(skills, cur, prev);

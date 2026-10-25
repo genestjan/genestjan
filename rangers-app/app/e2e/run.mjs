@@ -166,6 +166,22 @@ try {
   await p.goto(B + '/more'); ok(await p.getByRole('link', { name: /Alerts and sound/ }).count() === 1, 'families have Alerts and sound too');
   await p.getByRole('button', { name: 'Back to the coach app' }).click(); await p.waitForTimeout(300);
 
+  // every age group, and a team that mixes them; training plans for the youngest
+  await p.goto(B + '/settings'); await p.getByLabel('Team name', { exact: true }).fill('Rangers Mixed');
+  const pickNew = p.getByRole('group', { name: 'Age groups of the new team' });
+  await pickNew.getByRole('button', { name: 'U9', exact: true }).click(); await pickNew.getByRole('button', { name: 'U11', exact: true }).click();
+  ok(await pickNew.getByRole('button').count() === 17 && (await text()).includes('Mixed: U9 + U10 + U11'), 'all 17 age groups, and a new team can mix them');
+  await p.getByRole('button', { name: 'Add team' }).click(); await p.waitForTimeout(200);
+  ok((await text()).includes('Rangers Mixed') && (await text()).includes('U9 + U10 + U11'), 'the mixed team is listed with its age groups');
+  await p.goto(B + '/train');
+  ok((await text()).includes('Curriculum, U9 + U10 + U11 (uses the U10 plan)') && (await text()).includes('The plan suits the youngest (U9)'), 'training for a mixed team plans for the youngest');
+  const pickDay = p.getByRole('group', { name: 'Age groups' });
+  await pickDay.getByRole('button', { name: '40+' }).click(); for (const b of ['U9', 'U10', 'U11']) await pickDay.getByRole('button', { name: b, exact: true }).click(); await p.getByLabel('Theme').selectOption('possession');
+  ok((await text()).includes('40+ uses the U16 timings') && !(await text()).includes('Skill: no drill fits') && !(await text()).includes('Warm-up: no drill fits'), 'a 40+ session gets a plan (the same drills as U16)');
+  await p.goto(B + '/settings'); const mixedPick = p.getByRole('group', { name: 'Age groups in Rangers Mixed' });
+  await mixedPick.getByRole('button', { name: 'U9', exact: true }).click(); ok((await text()).includes('Mixed: U10 + U11'), 'a team\'s age groups can be changed later');
+  await p.getByRole('button', { name: 'Use' }).first().click(); await p.waitForTimeout(200);
+
   // a brand new phone: welcome screen, then the "getting started" guide on the real screens, once only
   const fresh = await browser.newContext({ viewport: { width: 390, height: 844 } }); const f = await fresh.newPage();
   await f.goto(B + '/'); await f.getByRole('button', { name: 'Get started' }).waitFor({ timeout: 5000 }).catch(() => undefined); ok((await f.textContent('body')).includes('Welcome to Rangers'), 'new phone sees the welcome screen');
@@ -259,7 +275,7 @@ try {
   await p.locator('a', { hasText: /^Ana\b/ }).first().click(); await p.getByLabel('Category').selectOption('Secondary Boys'); await p.getByText('PSA birth certificate', { exact: true }).click();
   await p.getByRole('button', { name: 'Region XII' }).click();
   ok((await text()).includes('Age OK'), 'age checked against the DepEd cutoff (birthday from the family)'); await shot('screening');
-  await p.goto(B + '/review/' + ANA); ok((await text()).includes('U12'), 'mixed ages: Ana (11) is reviewed against U12, not the team group');
+  await p.goto(B + '/review/' + ANA); ok((await text()).includes('U11 (own age group)'), 'mixed ages: Ana (11) is reviewed against her own age group (U11, with the U12 skills)');
 
   // pick the squad for the meet; the team is told and each picked family gets a message
   await p.goto(B + '/schedule'); await p.getByText('District Meet').first().click(); await p.getByRole('link', { name: 'Pick the squad' }).click();

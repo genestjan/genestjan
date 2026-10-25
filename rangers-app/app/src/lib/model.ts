@@ -1,11 +1,14 @@
 import type { Drill } from '../content/drills';
 import type { FormatId, Player as BasePlayer } from './types';
 
-export type AgeBand = 'U8' | 'U10' | 'U12' | 'U14' | 'U16';
+export type AgeBand = 'U6' | 'U7' | 'U8' | 'U9' | 'U10' | 'U11' | 'U12' | 'U13' | 'U14' | 'U15' | 'U16' | 'U17' | 'U18' | 'U19' | '20+' | '30+' | '40+';
+/** The age groups the coaching content (curriculum, review skills, session timings) is written for. Every age group uses the nearest one. */
+export type ContentBand = 'U8' | 'U10' | 'U12' | 'U14' | 'U16';
 export type Programme = 'rangers' | 'newmabu' | 'gila';
 export type Role = 'admin' | 'coach' | 'parent';
 
-export interface Team { id: string; name: string; programme: Programme; ageBand: AgeBand; defaultFormat: FormatId }
+/** ageBand: the youngest age group (plans and safety rules follow the youngest). ageBands: every age group in the team, when it mixes them. */
+export interface Team { id: string; name: string; programme: Programme; ageBand: AgeBand; ageBands?: AgeBand[]; defaultFormat: FormatId }
 /** Family-entered details. Stored in the private table: only the child's coaches and own parents can read it. */
 export interface Emergency {
   contacts: { name: string; phone: string }[]; allergies: string; inhaler: boolean; note: string;
@@ -42,7 +45,7 @@ export interface Eligibility { id: string; playerId: string; category: string; d
 export interface Announcement { id: string; scope: 'team' | 'club'; teamId?: string; title: string; body: string; at: string; by: string; pinned?: boolean; seenBy: string[] }
 export interface Message { id: string; threadId: string; playerId: string; teamId: string; from: 'coach' | 'parent'; byName: string; body: string; at: string; readBy: string[] }
 export interface SessionBlock { slot: string; drillId: string; minutes: number }
-export interface TrainingSession { id: string; teamId: string; eventId?: string; date: string; band: AgeBand; minutes: number; theme: string; blocks: SessionBlock[]; reflection?: { energy: 'low' | 'ok' | 'high'; fun: 'yes' | 'partly' | 'no'; note: string } }
+export interface TrainingSession { id: string; teamId: string; eventId?: string; date: string; band: AgeBand; /** all age groups in this session (band is the youngest) */ bands?: AgeBand[]; minutes: number; theme: string; blocks: SessionBlock[]; reflection?: { energy: 'low' | 'ok' | 'high'; fun: 'yes' | 'partly' | 'no'; note: string } }
 export interface Assessment { id: string; playerId: string; teamId: string; term: string; ratings: Record<string, number>; strength: string; working: string; familyComment: string; coachNote: string; publishedAt?: string; selfRatings?: Record<string, number>; fromPub?: boolean }
 /** One assignment for one child. A group of children sent the same assignment share a groupId. */
 export interface AssignTask { id: string; text: string }
@@ -72,7 +75,19 @@ export interface Charge { id: string; playerId: string; label: string; amount: n
 export interface CustomStrategy { id: string; name: string; whyKids: string; coachNote: string; doc: import('./board').BoardDoc }
 export interface ClubSettings { gcashNumber: string; contributionsOn: boolean; heatAction: boolean; concussionMinDays: number; goingDefaultTraining: boolean; headCoachPin: string; /** the club's Google Apps Script web app for videos */ driveUrl?: string; /** push alerts: the public key (the private key lives only in Supabase) */ vapidPublic?: string }
 
-export const AGE_BANDS: AgeBand[] = ['U8', 'U10', 'U12', 'U14', 'U16'];
+export const AGE_BANDS: AgeBand[] = ['U6', 'U7', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'U19', '20+', '30+', '40+'];
+export const isAgeBand = (b: unknown): b is AgeBand => AGE_BANDS.includes(b as AgeBand);
+/** The age a group stands for: U9 is 9, 30+ is 30. */
+export const bandAge = (b: AgeBand) => parseInt(b.replace('U', ''), 10);
+/** The coaching content an age group uses: U6 and U7 use U8, U9 uses U10, U11 uses U12, U13 uses U14, U15 and older use U16. */
+export const contentBand = (b: AgeBand): ContentBand => { const a = bandAge(b); return a <= 8 ? 'U8' : a <= 10 ? 'U10' : a <= 12 ? 'U12' : a <= 14 ? 'U14' : 'U16'; };
+/** Age groups in order, youngest first, no repeats. */
+export const sortBands = (bs: AgeBand[]): AgeBand[] => [...new Set(bs.filter(isAgeBand))].sort((a, b) => bandAge(a) - bandAge(b));
+export const teamBands = (t: Team): AgeBand[] => { const b = sortBands(t.ageBands ?? []); return b.length ? b : [t.ageBand]; };
+/** "U9", "U9 + U10 + U11" */
+export const bandsLabel = (bs: AgeBand[]) => sortBands(bs).join(' + ');
+/** The team as saved: the youngest age group first, and the full list only when it mixes age groups. */
+export const withBands = <T extends { ageBand: AgeBand; ageBands?: AgeBand[] }>(t: T, bs: AgeBand[]): T => { const b = sortBands(bs); return { ...t, ageBand: b[0] ?? t.ageBand, ageBands: b.length > 1 ? b : undefined }; };
 export const PROGRAMMES: Record<Programme, { name: string; values: string[]; short: string }> = {
   rangers: { name: 'Rangers FC', short: 'Rangers', values: ['Play With Your Heart', 'Teamwork', 'Sportsmanship', 'Perseverance', 'Respect', 'Integrity', 'Discipline', 'Community'] },
   newmabu: { name: 'FC New Mabu', short: 'New Mabu', values: ['Mindset', 'Attitude', 'Belief', 'Unity'] },

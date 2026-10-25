@@ -11,14 +11,15 @@ describe('school team', () => {
   it('works out age on a date and the matching age group', () => {
     expect(ageOn('2014-10-25', new Date('2026-10-24'))).toBe(11);
     expect(ageOn('2014-10-24', new Date('2026-10-24T12:00:00'))).toBe(12);
-    expect([8, 10, 12, 14, 17].map(bandForAge)).toEqual(['U8', 'U10', 'U12', 'U14', 'U16']);
+    expect([8, 10, 12, 14, 17].map(bandForAge)).toEqual(['U8', 'U10', 'U12', 'U14', 'U17']);
   });
   it('mixed-age teams review each child against their own age group', () => {
     const info = { ...newTeamInfo('t', 'i'), mixedAges: true }; const now = new Date('2026-10-24');
-    expect(bandOf(kid({ birthDate: '2017-01-01' }), team, info, now)).toBe('U10');
-    expect(bandOf(kid({ emergency: { contacts: [], allergies: '', inhaler: false, note: '', birthDate: '2011-03-01' } }), team, info, now)).toBe('U16');
+    expect(bandOf(kid({ birthDate: '2017-01-01' }), team, info, now)).toBe('U9');   // reviewed with the U10 skills (nearest plan)
+    expect(bandOf(kid({ emergency: { contacts: [], allergies: '', inhaler: false, note: '', birthDate: '2011-03-01' } }), team, info, now)).toBe('U15');
     expect(bandOf(kid(), team, info, now)).toBe('U14');                       // no birthday: the team's group
     expect(bandOf(kid({ birthDate: '2017-01-01' }), team, undefined, now)).toBe('U14');   // not mixed
+    expect(bandOf(kid({ birthDate: '2017-01-01' }), { ...team, ageBands: ['U9', 'U14'] }, undefined, now)).toBe('U9');   // a team with several age groups
   });
   it('lists missing screening papers and checks age against the cutoff', () => {
     const e: Eligibility = { id: 'x', playerId: 'p', category: 'Secondary Boys', docs: { psa: true, consent: true }, selectedFor: [], note: '' };

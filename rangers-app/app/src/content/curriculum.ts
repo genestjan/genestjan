@@ -1,6 +1,6 @@
-import type { AgeBand } from '../lib/model';
+import type { ContentBand } from '../lib/model';
 /** Six two-week blocks per age band, as in the playbook. Theme ids match drill themes. */
-export const CURRICULUM: Record<AgeBand, { title: string; theme: string }[]> = {
+export const CURRICULUM: Record<ContentBand, { title: string; theme: string }[]> = {
   U8: [{ title: 'Ball mastery and dribbling', theme: 'ball-mastery' }, { title: 'Turning and changing direction', theme: 'turning' }, { title: 'Dribble to score', theme: 'dribbling' }, { title: 'Stopping the ball, passing to a friend', theme: 'passing' }, { title: 'Brave 1v1 attacking', theme: '1v1' }, { title: 'Festival and favourite games', theme: 'game' }],
   U10: [{ title: 'Dribbling and 1v1 moves', theme: 'dribbling' }, { title: 'Passing and receiving', theme: 'passing' }, { title: 'Finishing', theme: 'finishing' }, { title: 'Defending 1v1', theme: 'defending' }, { title: 'Support and finding space', theme: 'possession' }, { title: 'Small-sided festival and review', theme: 'game' }],
   U12: [{ title: 'Receiving under pressure and turning', theme: 'receiving' }, { title: 'Passing combinations', theme: 'passing' }, { title: '1v1 and 2v1 attacking', theme: '1v1' }, { title: 'Defending as a pair', theme: 'defending' }, { title: 'Playing out from the back', theme: 'build-out' }, { title: 'Transitions', theme: 'transition' }],

@@ -268,7 +268,7 @@ select t.ok(not has_function_privilege('anon', 'public.team_guardians(uuid)', 'e
 select t.ok(not has_function_privilege('anon', 'public.team_coaches(uuid)', 'execute') and not has_function_privilege('authenticated', 'public.team_coaches(uuid)', 'execute'), 'nobody outside the database can list a team''s coaches');
 select t.ok(not has_function_privilege('anon', 'public.enqueue_event_reminders()', 'execute') and not has_function_privilege('authenticated', 'public.purge_old_data()', 'execute'), 'reminders and clean-up cannot be triggered from outside');
 select t.ok(not has_function_privilege('authenticated', 'public.rangers_health()', 'execute'), 'the health checklist is for the SQL Editor only');
-select t.ok((select count(*) from public.rangers_health()) = 14 and (select ok from public.rangers_health() where item like 'Assignments rules%'), 'health checklist runs and sees the assignments rules');
+select t.ok((select count(*) from public.rangers_health()) = 15 and (select ok from public.rangers_health() where item like 'Assignments rules%'), 'health checklist runs and sees the assignments rules');
 reset role;
 
 -- ========== short videos (0007) ==========
@@ -358,6 +358,18 @@ reset role;
 select t.ok((select count(*) from public.notification_queue where dedupe_key like 'test:%' and user_id = '00000000-0000-0000-0000-0000000000b1') = 5, 'test alerts go only to the person who asked');
 select t.ok(not has_function_privilege('anon', 'public.drive_ok(text,text)', 'execute') and not has_function_privilege('anon', 'public.queue_test_alert()', 'execute'), 'the Drive helper and test alerts need a sign-in');
 delete from storage.objects where name like 'd/%'; delete from public.records where kind = 'drill'; delete from public.notification_queue where dedupe_key like 'test:%';
+
+-- ========== every age group, mixed teams (0009) ==========
+set role authenticated;
+select t.login('00000000-0000-0000-0000-0000000000a1');
+select t.ok(t.state($q$insert into public.teams (id,name,programme,age_band,age_bands) values ('10000000-0000-0000-0000-0000000000e1','Rangers Mixed','rangers','U9','{U9,U10,U11}')$q$) = '00000', 'an admin can make a team that mixes U9, U10 and U11');
+select t.ok(t.state($q$insert into public.teams (id,name,programme,age_band) values ('10000000-0000-0000-0000-0000000000e2','Rangers Veterans','rangers','40+')$q$) = '00000', 'an admin can make a 40+ team');
+select t.ok(t.state($q$insert into public.teams (id,name,programme,age_band) values (gen_random_uuid(),'x','rangers','U5')$q$) = '23514', 'an age group that does not exist is refused');
+select t.ok(t.state($q$insert into public.teams (id,name,programme,age_band,age_bands) values (gen_random_uuid(),'x','rangers','U9','{U9,U99}')$q$) = '23514', 'a mix with an unknown age group is refused');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select t.ok(t.state($q$insert into public.teams (id,name,programme,age_band) values (gen_random_uuid(),'x','rangers','U9')$q$) = '42501', 'a coach still cannot create teams');
+reset role;
+delete from public.teams where id in ('10000000-0000-0000-0000-0000000000e1','10000000-0000-0000-0000-0000000000e2');
 
 -- ========== feedback (0006) ==========
 set role authenticated;
