@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 /**
  * The entrance: the logo builds on solid black, holds there, and only then
@@ -25,7 +26,13 @@ import { useEffect, useState } from 'react';
 const FULL_MS = 4800;
 const REDUCED_MS = 3500;
 
+/** Only the home page opens with the intro. Pages people are sent to directly (privacy, terms) open straight away. */
 export default function ApertureIntro() {
+  const path = usePathname();
+  return path === '/' || path === '' ? <Intro /> : null;
+}
+
+function Intro() {
   // Server and first client render agree, so there is no hydration mismatch
   // and no frame in which the overlay is missing.
   const [show, setShow] = useState(true);

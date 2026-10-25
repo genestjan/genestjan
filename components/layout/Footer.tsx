@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import { footer, site } from '@/lib/content';
 
-export default function Footer() {
+/** base: '/' on pages other than home, so the section links lead back to the home page. */
+export default function Footer({ base = '' }: { base?: string }) {
   return (
     <footer className="border-t border-line bg-ink py-12">
       <div className="mx-auto max-w-content px-5 sm:px-8">
@@ -19,7 +20,7 @@ export default function Footer() {
               {footer.nav.map((n) => (
                 <li key={n}>
                   <a
-                    href={n === 'Home' ? '#top' : `#${n.toLowerCase()}`}
+                    href={n === 'Home' ? `${base}#top` : `${base}#${n.toLowerCase()}`}
                     className="mono-label text-muted hover:text-current"
                   >
                     {n}
@@ -36,6 +37,11 @@ export default function Footer() {
 
         <p className="mono-label mt-10 text-muted">{footer.tagline}</p>
         <p className="mt-3 text-xs text-muted">{footer.copyright}</p>
+        <p className="mt-2 text-xs text-muted">
+          <a href="/privacy/" className="underline-offset-4 hover:text-current hover:underline">Privacy</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/terms/" className="underline-offset-4 hover:text-current hover:underline">Terms</a>
+        </p>
       </div>
     </footer>
   );
