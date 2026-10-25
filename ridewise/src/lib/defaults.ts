@@ -69,7 +69,8 @@ export function newPlan(partial: Partial<RidePlan> = {}): RidePlan {
  * page replaces the snapshot with a live search.
  */
 export async function samplePlan(): Promise<RidePlan> {
-  const [routeMod, placesMod] = await Promise.all([import('../data/gensan-davao-route.json'), import('../data/gensan-davao-places-snapshot.json')]);
+  const [routeMod, placesMod, elevMod] = await Promise.all([import('../data/gensan-davao-route.json'), import('../data/gensan-davao-places-snapshot.json'), import('../data/gensan-davao-elevation.json')]);
+  const elev = elevMod.default as unknown as { elevationM: number[]; retrievedAt: string; source: string };
   const data = routeMod.default as unknown as {
     source: string;
     retrievedAt: string;
@@ -106,6 +107,7 @@ export async function samplePlan(): Promise<RidePlan> {
       distanceM: data.distanceM,
       providerDurationS: data.durationS,
       coords,
+      elevation: { elevationM: elev.elevationM, retrievedAt: elev.retrievedAt, source: elev.source },
       retrievedAt: `${data.retrievedAt}T00:00:00.000Z`,
     },
     settings,

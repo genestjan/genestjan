@@ -1,10 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0f1b2d"/>
-  <path d="M96 352 C 170 352, 170 210, 256 210 S 342 120, 416 120" fill="none" stroke="#38bdf8" stroke-width="22" stroke-linecap="round" stroke-dasharray="2 40"/>
-  <circle cx="96" cy="352" r="26" fill="#22c55e"/>
-  <circle cx="256" cy="210" r="30" fill="#ffffff"/>
-  <circle cx="256" cy="210" r="13" fill="#0f1b2d"/>
-  <path d="M416 82 l0 76" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
-  <path d="M416 82 l52 18 l-52 18 z" fill="#f59e0b"/>
-  <text x="256" y="440" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#ffffff" text-anchor="middle">RideWise</text>
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b95a0"/><stop offset="1" stop-color="#1d5b6c"/></linearGradient>
+    <linearGradient id="arrow" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1d5b6c"/><stop offset=".55" stop-color="#6fb3ba"/><stop offset="1" stop-color="#f4a97a"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#f3f8f8"/>
+  <g transform="translate(46 56) scale(4.2)">
+    <circle cx="50" cy="54" r="38" fill="#fff" fill-opacity=".75"/>
+    <path d="M55.5 52.0L78.2 71.0 M55.5 52.0L78.2 33.0 M54.8 54.8L64.9 82.6 M54.8 54.8L83.9 49.6 M52.8 56.8L47.6 85.9 M52.8 56.8L80.6 66.9 M50.0 57.5L31.0 80.2 M50.0 57.5L69.0 80.2 M47.2 56.8L19.4 66.9 M47.2 56.8L52.4 85.9 M45.2 54.8L16.1 49.6 M45.2 54.8L35.1 82.6 M44.5 52.0L21.8 33.0 M44.5 52.0L21.8 71.0 M45.2 49.2L35.1 21.4 M45.2 49.2L16.1 54.4 M47.2 47.2L52.4 18.1 M47.2 47.2L19.4 37.1 M50.0 46.5L69.0 23.8 M50.0 46.5L31.0 23.8 M52.8 47.2L80.6 37.1 M52.8 47.2L47.6 18.1 M54.8 49.2L83.9 54.4 M54.8 49.2L64.9 21.4" fill="none" stroke="#f4a97a" stroke-width="1.1" stroke-linecap="round" opacity=".95"/>
+    <circle cx="50" cy="52" r="6" fill="#fff" stroke="#1d5b6c" stroke-width="2"/><circle cx="50" cy="52" r="2" fill="#1d5b6c"/>
+    <circle cx="50" cy="54" r="38" fill="none" stroke="url(#rim)" stroke-width="7.5"/>
+    <path d="M18 80 C 34 84, 46 72, 56 62 L 62 66 L 74 44 L 80 48 L 90 20 L 62 30 L 69 34 L 60 52 L 54 48 C 46 58, 34 68, 18 72 Z" fill="url(#arrow)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+  </g>
 </svg>

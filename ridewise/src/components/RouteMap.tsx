@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CircleMarker, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet';
+import { LocateFixed } from 'lucide-react';
+import { CircleMarker, MapContainer, Marker, Polyline, TileLayer, Tooltip, ZoomControl, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Candidate, LatLng, PlannedStop, RouteResult } from '../types';
@@ -27,13 +28,13 @@ function bearing(a: LatLng, b: LatLng) {
 function FitTo({ coords, fitKey, focus }: { coords: [number, number][]; fitKey: string; focus?: LatLng | null }) {
   const map = useMap();
   useEffect(() => {
-    if (focus) map.setView([focus.lat, focus.lng], Math.max(map.getZoom(), 15));
+    if (focus) map.setView([focus.lat, focus.lng], Math.max(map.getZoom(), 15), { animate: false });
   }, [focus, map]);
   useEffect(() => {
-    if (coords.length === 1) map.setView(coords[0], 14);
+    if (coords.length === 1) map.setView(coords[0], 14, { animate: false });
     else {
       const b = boundsOf(coords);
-      if (b) map.fitBounds(b, { padding: [24, 24] });
+      if (b) map.fitBounds(b, { padding: [24, 24], animate: false });
     }
   }, [fitKey, map]);
   return null;
@@ -137,14 +138,19 @@ export function RouteMap({
   const stopIds = new Set(stops.map((s) => s.place.id));
   const endpointCoords = ([start, end].filter(Boolean) as LatLng[]).map((p) => [p.lat, p.lng] as [number, number]);
   const fitCoords = coords.length ? coords : endpointCoords;
-  const fitKey = route ? `route:${route.id}` : `pts:${endpointCoords.map((c) => c.join(',')).join(';')}`;
+  const [recenter, setRecenter] = useState(0);
+  const fitKey = (route ? `route:${route.id}` : `pts:${endpointCoords.map((c) => c.join(',')).join(';')}`) + `#${recenter}`;
   const center: [number, number] = start ? [start.lat, start.lng] : [6.6, 125.4];
   const progressPoint = progressKm != null && coords.length ? pointAtKm(coords, progressKm, cum) : null;
 
   return (
     // `isolate` keeps Leaflet's high z-index controls inside the map, under the app header.
-    <div className={`isolate overflow-hidden rounded-2xl border border-slate-200 ${className}`}>
-      <MapContainer center={center} zoom={9} className="h-full w-full" scrollWheelZoom preferCanvas>
+    <div className={`relative isolate overflow-hidden rounded-3xl shadow-card ${className}`}>
+      <button type="button" onClick={() => setRecenter((n) => n + 1)} className="absolute right-3 top-[7.2rem] z-[1000] inline-flex min-h-[40px] items-center gap-1.5 rounded-full bg-white px-4 text-sm font-bold text-brand-700 shadow-lift">
+        <LocateFixed aria-hidden className="h-4 w-4" /> Recenter
+      </button>
+      <MapContainer center={center} zoom={9} className="h-full w-full" scrollWheelZoom preferCanvas zoomControl={false}>
+        <ZoomControl position="topright" />
         <TileLayer url={config.tileUrl} attribution={config.tileAttribution} maxZoom={19} />
         <FitTo coords={fitCoords} fitKey={fitKey} focus={focus} />
         <ClickCatcher onClick={onMapClick} />
@@ -155,8 +161,8 @@ export function RouteMap({
           ))}
         {coords.length > 1 && (
           <>
-            <Polyline positions={coords} pathOptions={{ color: '#ffffff', weight: 8, opacity: 0.9 }} interactive={false} />
-            <Polyline positions={coords} pathOptions={{ color: '#0f1b2d', weight: 5 }} interactive={false} />
+            <Polyline positions={coords} pathOptions={{ color: '#ffffff', weight: 9, opacity: 0.95 }} interactive={false} />
+            <Polyline positions={coords} pathOptions={{ color: '#236472', weight: 5 }} interactive={false} />
           </>
         )}
         {arrows.map((a, i) => (
@@ -173,7 +179,7 @@ export function RouteMap({
           <Marker
             key={s.id}
             position={[s.place.point.lat, s.place.point.lng]}
-            icon={pin(s.status === 'skipped' ? '#94a3b8' : s.status === 'completed' ? '#15803d' : '#0369a1', String(i + 1), 28, s.place.id === selectedId)}
+            icon={pin(s.status === 'skipped' ? '#94a3b8' : s.status === 'completed' ? '#177a52' : '#2c7a86', String(i + 1), 28, s.place.id === selectedId)}
             eventHandlers={{ click: () => onSelect?.(s.place) }}
             title={`Stop ${i + 1}: ${s.place.name}`}
             alt={`Stop ${i + 1}: ${s.place.name}`}
@@ -184,8 +190,8 @@ export function RouteMap({
             </Tooltip>
           </Marker>
         ))}
-        {start && <Marker position={[start.lat, start.lng]} icon={pin('#15803d', 'S', 30)} title="Start" alt="Start" zIndexOffset={800} />}
-        {end && <Marker position={[end.lat, end.lng]} icon={pin('#0f1b2d', 'F', 30)} title="Finish" alt="Finish" zIndexOffset={800} />}
+        {start && <Marker position={[start.lat, start.lng]} icon={pin('#177a52', 'S', 30)} title="Start" alt="Start" zIndexOffset={800} />}
+        {end && <Marker position={[end.lat, end.lng]} icon={pin('#243447', 'F', 30)} title="Finish" alt="Finish" zIndexOffset={800} />}
         {extraPoints.map((e, i) => (
           <Marker key={`x${i}`} position={[e.point.lat, e.point.lng]} icon={pin('#facc15', '?', 26)} title={e.label} alt={e.label}>
             <Tooltip permanent direction="top" offset={[0, -14]}>
@@ -203,9 +209,9 @@ export function MapLegend() {
   return (
     <div className="space-y-1">
       <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-700" aria-label="Map legend">
-        <li className="flex items-center gap-1"><span className="rw-pin h-4 w-4 text-[9px]" style={{ background: '#15803d' }}>S</span>Start</li>
-        <li className="flex items-center gap-1"><span className="rw-pin h-4 w-4 text-[9px]" style={{ background: '#0f1b2d' }}>F</span>Finish</li>
-        <li className="flex items-center gap-1"><span className="rw-pin h-4 w-4 text-[9px]" style={{ background: '#0369a1' }}>1</span>Planned stop</li>
+        <li className="flex items-center gap-1"><span className="rw-pin h-4 w-4 text-[9px]" style={{ background: '#177a52' }}>S</span>Start</li>
+        <li className="flex items-center gap-1"><span className="rw-pin h-4 w-4 text-[9px]" style={{ background: '#243447' }}>F</span>Finish</li>
+        <li className="flex items-center gap-1"><span className="rw-pin h-4 w-4 text-[9px]" style={{ background: '#2c7a86' }}>1</span>Planned stop</li>
         {Object.values(GROUP_STYLE).map((g) => (
           <li key={g.label} className="flex items-center gap-1">
             <span className="rw-pin h-4 w-4 text-[9px]" style={{ background: g.color }}>{g.letter}</span>
