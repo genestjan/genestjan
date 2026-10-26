@@ -2865,6 +2865,8 @@ GJCore.start({
   normalize: p => (p && p.role === 'partner' ? p : normalize(p)),
   isEmpty: () => MODE === 'owner' && isEmpty(),
   syncAllowed: () => MODE === 'owner', // a partner's device never touches Jan's own sync
+  // Jan's device locks after 3 minutes unused; a partner's after 8 hours, and never while their timer runs
+  idleMs: () => (MODE === 'partner' ? (PS.log.timer.startedAt ? 7 * 24 * 3600000 : 8 * 3600000) : 3 * 60000),
   // Jan's own sync never goes to the team account: partners hold its token
   refuseSyncLogin: login => (login && S.team.login && login.toLowerCase() === S.team.login.toLowerCase()
     ? `That token is for the team account (${login}), which your partners can use. Sync needs your own GitHub account.` : ''),

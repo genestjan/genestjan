@@ -32,6 +32,10 @@ function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); ret
 
 const ITER = 600000;
 const IDLE_MS = 3 * 60 * 1000;
+// how long this device may sit unused before it locks: 3 minutes unless the app says otherwise
+// (a partner's device tracking time stays open much longer)
+const idleLimit = () => { const n = A && A.idleMs ? +A.idleMs() : IDLE_MS; return n > 0 ? n : IDLE_MS; };
+const recLimit = v => (v && +v.limit > 0 ? +v.limit : IDLE_MS);
 let A = null; // the app
 let K = null; // storage names
 let vault = null; // { key, raw, salt, password } while unlocked; password is null after a refresh
@@ -551,7 +555,7 @@ function sessionSweep() {
       const c = req.result;
       if (!c) return;
       const v = c.value;
-      if (String(c.key).startsWith('session') && !(v && Date.now() - (+v.at || 0) <= IDLE_MS)) c.delete();
+      if (String(c.key).startsWith('session') && !(v && Date.now() - (+v.at || 0) <= recLimit(v))) c.delete();
       c.continue();
     };
     return null;
@@ -572,7 +576,7 @@ async function rememberSession() {
       if (!vault) return;
       wrapped = { salt: bytesToB64(vault.salt), iv: bytesToB64(iv), data: bytesToB64(data), forKey: vault.key };
     }
-    const rec = { salt: wrapped.salt, iv: wrapped.iv, data: wrapped.data, at: lastActive };
+    const rec = { salt: wrapped.salt, iv: wrapped.iv, data: wrapped.data, at: lastActive, limit: idleLimit() };
     await idb('readwrite', st => st.put(rec, 'session:' + w.id));
   } catch (e) { /* a refresh then asks for the password */ }
 }
@@ -580,7 +584,7 @@ async function sessionRestore(box) {
   const w = windowSecret(false);
   if (!w) return null;
   const rec = await idb('readonly', st => st.get('session:' + w.id)).catch(() => null);
-  if (!rec || rec.salt !== box.salt || !(Date.now() - (+rec.at || 0) <= IDLE_MS)) return null;
+  if (!rec || rec.salt !== box.salt || !(Date.now() - (+rec.at || 0) <= recLimit(rec))) return null;
   try {
     const raw = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(rec.iv) }, await secretKey(w), b64ToBytes(rec.data)));
     const key = await crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
@@ -608,7 +612,7 @@ async function lockNow() {
   vault = null; // stops the page from writing the key back while it unloads
   location.reload();
 }
-const idleTooLong = () => vault && Date.now() - lastActive > IDLE_MS;
+const idleTooLong = () => vault && Date.now() - lastActive > idleLimit();
 
 /* ------------------------------------------------------------------ fingerprint unlock */
 
