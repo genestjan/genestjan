@@ -11,6 +11,18 @@ Most users are volunteer coaches on mid-range Android phones at a dusty pitch wi
 3. The docs the spec links to: `docs/02-product-spec.md`, `docs/03-coaching-playbook.md`, `docs/04-technical-blueprint.md`.
 4. `docs/decisions.md` for choices the club has made. A decision there overrides a default anywhere else.
 
+## Unfamiliar features: research before building (Jan's rule)
+
+For any feature or integration new to this app, do not write it from scratch first:
+
+1. Search GitHub (and the plugin catalogue) for open-source projects, libraries and working examples that already solve it.
+2. Compare at least two approaches: maintenance (recent commits, open issues), licence (MIT, Apache or BSD preferred; flag GPL), size against the JavaScript budget, security record, cost (free first), and fit with the stack below.
+3. Install the skills, MCP servers or plugins that help, when they are available in the session.
+4. Tell Jan in a few lines what was found, which approach was chosen and why, then build.
+5. Write it from scratch only when nothing suitable exists or the best option would break a rule here (bundle budget, children's data, licence), and say so.
+
+A chosen library still needs an ADR and a pinned version (see Stack). The same rule is in the repository's top-level `CLAUDE.md`.
+
 ## Roles
 
 - **Planner session**: writes and updates `docs/specs/phase-N.md`, reviews pull requests against the spec and this file, records architecture decisions in `docs/adr/NNNN-title.md`. Does not write feature code.
