@@ -14,8 +14,10 @@ import Testimonials from '@/components/sections/Testimonials';
 import Faq from '@/components/sections/Faq';
 import Contact from '@/components/sections/Contact';
 import CtaBand from '@/components/sections/CtaBand';
+import { HOMEPAGE_VISIBLE } from '@/lib/visibility';
 
 export default function Page() {
+  if (!HOMEPAGE_VISIBLE) return <main id="main" aria-hidden="true" style={{ minHeight: '100dvh' }} />;
   return (
     <>
       <Nav />

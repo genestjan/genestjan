@@ -8,6 +8,7 @@ import SmoothScroll from '@/components/layout/SmoothScroll';
 import CinematicCursor from '@/components/ui/CinematicCursor';
 import ApertureIntro from '@/components/ui/ApertureIntro';
 import SoundBoot from '@/components/ui/SoundBoot';
+import { HOMEPAGE_VISIBLE } from '@/lib/visibility';
 
 const display = Space_Grotesk({
   subsets: ['latin'], weight: ['500', '700'],
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   keywords: site.keywords,
   authors: [{ name: site.name }],
   alternates: { canonical: site.domain },
-  robots: { index: true, follow: true },
+  robots: HOMEPAGE_VISIBLE ? { index: true, follow: true } : { index: false, follow: false, nocache: true },
   openGraph: {
     type: 'website',
     url: site.domain,
@@ -125,18 +126,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
       </head>
       <body className="grain vignette">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <a href="#main" className="skip-link">Skip to content</a>
-        <ApertureIntro />
-        <SoundBoot />
-        <SmoothScroll />
-        <ScrollProgress />
-        <CursorGlow />
-        <CinematicCursor />
-        {children}
+        {HOMEPAGE_VISIBLE ? (
+          <>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <a href="#main" className="skip-link">Skip to content</a>
+            <ApertureIntro />
+            <SoundBoot />
+            <SmoothScroll />
+            <ScrollProgress />
+            <CursorGlow />
+            <CinematicCursor />
+            {children}
+          </>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );
