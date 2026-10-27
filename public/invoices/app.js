@@ -225,7 +225,7 @@ function cleanPartner(x) {
 }
 const cleanTeam = x => {
   const o = x && typeof x === 'object' ? x : {};
-  return { token: str(o.token, 200).trim(), login: str(o.login, 60), updatedAt: +o.updatedAt || 0 };
+  return { token: str(o.token, 200).trim(), login: str(o.login, 60), board: TK.cleanBoard(o.board), updatedAt: +o.updatedAt || 0 };
 };
 // a or b, whichever is newer; the same time is settled the same way on every device
 const newer = (a, b) => a.updatedAt > b.updatedAt || (a.updatedAt === b.updatedAt && JSON.stringify(a) > JSON.stringify(b));
@@ -1671,14 +1671,19 @@ function initTime() {
   timeView = TK.view({
     root: $('#timeRoot'),
     me: 'me',
-    people: () => (partner() ? [] : activePartners().length || Object.keys(teamCache).length
+    // a partner sees the other partners' time too (read-only), from the team board
+    people: () => (partner() ? (Object.keys(PS.others).length ? [{ id: 'me', name: 'Me', color: '#b8873a' }, ...Object.entries(PS.others).map(([id, o], i) => ({ id, name: o.name || 'Partner', color: TK.COLORS[(i % (TK.COLORS.length - 1)) + 1] }))] : []) : activePartners().length || Object.keys(teamCache).length
       ? [{ id: 'me', name: 'Me', color: '#b8873a' }, ...Object.values(S.partners).filter(p => p.active || (teamCache[p.id] && Object.keys(teamCache[p.id].log.entries).length)).map(p => ({ id: p.id, name: p.name, color: p.color }))]
       : []),
     projects: () => (partner() ? partnerProjects() : projectList()),
-    entries: () => (partner() ? Object.values(PS.log.entries).map(e => ({ ...e, who: 'me' })) : allEntries()),
+    otherProjects: () => (partner() ? Object.values(PS.others).flatMap(o => o.projects) : []),
+    addPeople: () => (partner() ? [] : null), // partners only add their own time
+    canEdit: who => !partner() || who === 'me',
+    canStart: () => (partner() ? partnerCanStart() : ''),
+    entries: () => (partner() ? [...Object.values(PS.log.entries).map(e => ({ ...e, who: 'me' })), ...Object.entries(PS.others).flatMap(([id, o]) => o.log.entries.map(e => ({ ...e, who: id })))] : allEntries()),
     timer: () => (partner() ? PS.log.timer : S.log.timer),
     setTimer: t => {
-      if (partner()) { PS.log.timer = TK.cleanTimer(t); save(); schedulePartnerSync(); return; }
+      if (partner()) { PS.log.timer = TK.cleanTimer(t); save(); syncChannel(); return; } // the others see it straight away
       S.log.timer = TK.cleanTimer(t); save(); renderOverview();
     },
     save: (who, e) => {
@@ -1698,17 +1703,22 @@ function initTime() {
       save();
       afterTimeChange();
     },
-    working: () => (partner() ? [] : activePartners()).filter(p => teamCache[p.id] && teamCache[p.id].log.timer.startedAt).map(p => {
-      const t = teamCache[p.id].log.timer;
-      const pr = projectList().find(x => x.id === t.projectId);
-      return { name: p.name, project: pr ? `${pr.clientName} · ${pr.name}` : '', note: t.note, since: t.startedAt };
-    }),
+    working: () => (partner() ? Object.values(PS.others).filter(o => tracking(o.log.timer)).map(o => {
+      const pr = o.projects.find(x => x.id === o.log.timer.projectId);
+      return { name: o.name, project: pr ? `${pr.clientName} · ${pr.name}` : '', note: o.log.timer.note, since: o.log.timer.startedAt };
+    }) : ownerWorking()),
     emptyText: () => (!partner() ? (projectList().length ? 'No time this week yet.' : 'Add a project under Clients first, then start the timer.')
       : PS.ws.projects.length ? 'No time this week yet.' : 'No projects yet. Jan adds the ones you work on, and they show here.'),
     longHours: () => { const n = num(S.business.timerLong); return n > 0 && n <= 24 ? n : 6; },
     onChange: afterTimeChange,
   });
 }
+// partners whose timer is running, for Jan's Time screen
+const ownerWorking = () => activePartners().filter(p => teamCache[p.id] && teamCache[p.id].log.timer.startedAt).map(p => {
+  const t = teamCache[p.id].log.timer;
+  const pr = projectList().find(x => x.id === t.projectId);
+  return { name: p.name, project: pr ? `${pr.clientName} · ${pr.name}` : '', note: t.note, since: t.startedAt };
+});
 function afterTimeChange() {
   if (MODE === 'partner') return;
   refreshLinkedDrafts();
@@ -1727,13 +1737,16 @@ function scheduleTeamSync() { clearTimeout(teamTimer); teamTimer = setTimeout(()
 function workspaceFor(p) {
   const projects = Object.values(S.projects).filter(x => x.assignees.includes(p.id));
   const clients = [...new Set(projects.map(x => x.clientId))].map(id => S.clients[id]).filter(Boolean).map(c => ({ id: c.id, name: c.name || c.company }));
-  return TK.cleanWorkspace({ partner: { id: p.id, name: p.name }, clients, projects });
+  return TK.cleanWorkspace({ partner: { id: p.id, name: p.name }, clients, projects, board: S.team.board });
 }
 async function syncTeam() {
   if (!S.team.token || !GJCore.unlocked()) return;
   if (teamRun) { teamQueued = true; return teamRun; }
   teamRun = (async () => {
     let changed = false;
+    if (!S.team.board) { // the team board, made once on the team account
+      try { const key = GJCore.newRawKey(); S.team.board = { id: await TK.createBoard(S.team.token, key), key }; S.team.updatedAt = stamp(S.team); save(); } catch (e) { /* next time */ }
+    }
     for (const p of activePartners()) {
       if (!p.gistId || !p.key) continue;
       const c = cacheOf(p.id);
@@ -2296,6 +2309,7 @@ async function partnerEvent(e) {
       // (a revoked team token can't reach it either, so removing goes ahead then)
       if (err && ['offline', 'busy', 'error'].includes(err.code)) { toast(`Couldn't reach the team account, so ${p.name} isn't removed yet. Try again when you're online.`); row.querySelector('[data-tconfirm]').hidden = true; return; }
     }
+    if (S.team.board) { try { await TK.clearBoard(S.team.token, S.team.board, p.id); } catch (err) { /* their copy stays on the board */ } }
     p.active = false; p.gistId = ''; p.key = ''; p.updatedAt = stamp(p);
     for (const pr of Object.values(S.projects)) if (pr.assignees.includes(p.id)) { pr.assignees = pr.assignees.filter(x => x !== p.id); pr.updatedAt = stamp(pr); }
     save();
@@ -2535,7 +2549,7 @@ async function importPayroll(password) {
 // address of their team channel, the work Jan shares with them, and their own time.
 let MODE = 'owner';
 const cleanRawKey = k => (typeof k === 'string' && /^[A-Za-z0-9+/]{43}=$/.test(k) ? k : '');
-const blankPartnerState = () => ({ me: { id: '', name: '' }, key: '', token: '', gistId: '', ws: TK.cleanWorkspace(null), log: TK.emptyLog(), firstRun: false, at: 0, err: '' });
+const blankPartnerState = () => ({ me: { id: '', name: '' }, key: '', token: '', gistId: '', ws: TK.cleanWorkspace(null), log: TK.emptyLog(), others: {}, firstRun: false, at: 0, err: '' });
 let PS = blankPartnerState();
 function loadPartner(o) {
   PS = blankPartnerState();
@@ -2545,10 +2559,13 @@ function loadPartner(o) {
   PS.gistId = typeof o.gistId === 'string' && /^[0-9a-f]{20,64}$/i.test(o.gistId) ? o.gistId : '';
   PS.ws = TK.cleanWorkspace(o.ws);
   PS.log = TK.logFrom(o.log);
+  for (const [id, x] of Object.entries(o.others && typeof o.others === 'object' ? o.others : {})) {
+    if (validId(id) && x && typeof x === 'object') PS.others[id] = { name: str(x.name, 80), projects: Array.isArray(x.projects) ? x.projects : [], log: TK.normalizeLog(x.log) };
+  }
   PS.firstRun = !!o.firstRun;
   PS.at = +o.at || 0;
 }
-const partnerDump = () => ({ v: 1, role: 'partner', me: PS.me, key: PS.key, token: PS.token, gistId: PS.gistId, ws: PS.ws, log: TK.logDoc(PS.log), firstRun: PS.firstRun, at: PS.at, ui: { tab: PARTNER_TABS.includes(UI.tab) ? UI.tab : 'time' } });
+const partnerDump = () => ({ v: 1, role: 'partner', me: PS.me, key: PS.key, token: PS.token, gistId: PS.gistId, ws: PS.ws, log: TK.logDoc(PS.log), others: PS.others, firstRun: PS.firstRun, at: PS.at, ui: { tab: PARTNER_TABS.includes(UI.tab) ? UI.tab : 'time' } });
 function setMode(m) {
   MODE = m;
   document.body.classList.toggle('partner', m === 'partner');
@@ -2569,6 +2586,7 @@ async function syncChannel() {
       if (r.entries) TK.mergeLog(PS.log, r.entries);
       const mine = TK.logDoc(PS.log);
       if (!r.entries || JSON.stringify(mine) !== JSON.stringify(TK.normalizeLog(r.entries))) await TK.writeChannel(PS.token, PS.gistId, PS.key, { entries: mine });
+      await syncBoard();
       PS.at = Date.now();
       PS.err = '';
     } catch (e) {
@@ -2580,6 +2598,42 @@ async function syncChannel() {
     }
   })();
   try { await pRun; } finally { pRun = null; if (pQueued) { pQueued = false; syncChannel(); } }
+}
+// the team board: this partner's own time goes up, the other partners' comes down
+const DAY = 24 * 3600000;
+const tracking = t => !!(t && t.startedAt && Date.now() - t.startedAt < DAY); // a timer older than a day was left on: it doesn't block
+async function syncBoard() {
+  const board = PS.ws.board;
+  if (!board || !PS.me.id) return;
+  const all = await TK.readBoard(PS.token, board);
+  if (!all) return;
+  const mine = () => ({ name: PS.me.name, projects: partnerProjects().map(p => ({ id: p.id, name: p.name, clientName: p.clientName, color: p.color })), log: TK.logDoc(PS.log) });
+  const cur = all[PS.me.id];
+  delete all[PS.me.id];
+  PS.others = all;
+  // two timers started within moments of each other: the later one gives way
+  const t = PS.log.timer;
+  const first = tracking(t) && Object.values(all).find(o => tracking(o.log.timer) && o.log.timer.startedAt < t.startedAt);
+  if (first) {
+    PS.log.timer = TK.cleanTimer({ projectId: '', note: '', startedAt: 0, updatedAt: TK.stamp(t) });
+    toast(`${first.name || 'Someone'} started tracking a moment before you, so your timer was stopped. Only one person can track at a time.`);
+  }
+  if (!cur || JSON.stringify(cur) !== JSON.stringify(mine())) await TK.writeBoard(PS.token, board, PS.me.id, mine());
+}
+// before a partner starts the timer: nobody else may be tracking
+async function partnerCanStart() {
+  const board = PS.ws.board;
+  if (!board) return ''; // Jan's app hasn't set the board up yet
+  let all;
+  try { all = await TK.readBoard(PS.token, board); } catch (e) { return "Can't check whether someone else is tracking right now. Check your internet and try again, or add the time afterwards with + Add time."; }
+  if (!all) return '';
+  const busy = Object.entries(all).find(([id, o]) => id !== PS.me.id && tracking(o.log.timer));
+  if (!busy) return '';
+  const o = busy[1], at = new Date(o.log.timer.startedAt);
+  const time = at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const when = iso(at) === iso(today()) ? time : `${at.toLocaleDateString('en-US', { weekday: 'short' })} ${time}`;
+  PS.others[busy[0]] = o;
+  return `${o.name || 'Someone'} is using the tracker since ${when}. Only one person can track at a time.`;
 }
 const partnerProjects = () => {
   const names = Object.fromEntries(PS.ws.clients.map(c => [c.id, c.name]));

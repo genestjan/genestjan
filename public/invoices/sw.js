@@ -1,6 +1,6 @@
 /* Work Hub service worker: keeps the app working offline and installable.
    Bump VERSION whenever any file below changes, so phones pick up the new copy. */
-const VERSION = 'invoices-2026-10-26.1';
+const VERSION = 'invoices-2026-10-27.1';
 const SHELL = [
   './', 'index.html', 'app.css', 'core.js', 'time.js', 'payroll.js', 'app.js', 'pdf.js', 'payslip.js', 'manifest.webmanifest',
   'vendor/jspdf.umd.min.js', 'img/mark.png',

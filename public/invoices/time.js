@@ -125,6 +125,7 @@ function cleanWorkspace(x) {
     partner: { id: validId(p.id) ? p.id : '', name: str(p.name, 80) },
     clients: (Array.isArray(o.clients) ? o.clients : []).filter(c => c && validId(c.id)).map(c => ({ id: c.id, name: str(c.name, 120) })).sort((a, b) => byStr(a.id, b.id)),
     projects: (Array.isArray(o.projects) ? o.projects : []).filter(c => c && validId(c.id)).map(c => ({ id: c.id, clientId: validId(c.clientId) ? c.clientId : '', name: str(c.name, 120), color: COLORS.includes(c.color) ? c.color : COLORS[0], archived: !!c.archived })).sort((a, b) => byStr(a.id, b.id)),
+    board: cleanBoard(o.board),
   };
 }
 
@@ -163,6 +164,33 @@ async function createChannel(token, key, workspace) {
   return g.id;
 }
 const deleteChannel = (token, gistId) => GJCore.github(token, '/gists/' + gistId, { method: 'DELETE' });
+
+// The team board: one shared gist where each partner keeps a copy of their own time (one file each),
+// so partners see each other's time and only one of them tracks at a time. Sealed with a key all
+// partners have; each writes only their own file.
+const cleanBoard = b => (b && typeof b === 'object' && /^[0-9a-f]{20,64}$/i.test(b.id || '') && /^[A-Za-z0-9+/]{43}=$/.test(b.key || '') ? { id: b.id, key: b.key } : null);
+const boardFile = pid => 'p-' + pid + '.json';
+async function createBoard(token, key) {
+  const g = await GJCore.github(token, '/gists', { method: 'POST', body: { description: 'Team board (encrypted)', public: false, files: { 'about.json': { content: await envelope(key, 'board', { v: 1 }) } } } });
+  if (!g || !g.id) throw new Error('no gist');
+  return g.id;
+}
+// { partner id: { name, projects, log } } for everyone on the board; null when the board is gone
+async function readBoard(token, board) {
+  const g = await GJCore.github(token, '/gists/' + board.id);
+  if (!g) return null;
+  const out = {};
+  for (const [name, f] of Object.entries(g.files || {})) {
+    const m = /^p-([A-Za-z0-9_-]{1,40})\.json$/.exec(name);
+    if (!m) continue;
+    const d = await openFile(board.key, f, token);
+    if (!d || d.unreadable) continue;
+    out[m[1]] = { name: str(d.name, 80), projects: (Array.isArray(d.projects) ? d.projects : []).filter(x => x && validId(x.id)).map(x => ({ id: x.id, name: str(x.name, 120), clientName: str(x.clientName, 120), color: COLORS.includes(x.color) ? x.color : COLORS[0] })), log: normalizeLog(d.log) };
+  }
+  return out;
+}
+const writeBoard = async (token, board, pid, doc) => GJCore.github(token, '/gists/' + board.id, { method: 'PATCH', body: { files: { [boardFile(pid)]: { content: await envelope(board.key, 'board', doc) } } } });
+const clearBoard = (token, board, pid) => GJCore.github(token, '/gists/' + board.id, { method: 'PATCH', body: { files: { [boardFile(pid)]: null } } });
 
 /* ------------------------------------------------------------------ the Time screen */
 
@@ -204,7 +232,7 @@ function view(H) {
     <div id="tmDays" class="tdays"></div>`;
   if (!$('#entrySheet')) document.body.insertAdjacentHTML('beforeend', sheetHtml());
 
-  const projById = () => Object.fromEntries(H.projects().map(p => [p.id, p]));
+  const projById = () => Object.fromEntries([...(H.otherProjects ? H.otherProjects() : []), ...H.projects()].map(p => [p.id, p]));
   function projectOptions(sel, value, includeArchived) {
     const ps = H.projects().filter(p => includeArchived || !p.archived || p.id === value);
     const byClient = {};
@@ -258,6 +286,13 @@ function view(H) {
     }
     const projectId = $('#tmProject').value;
     if (!projectId) { GJCore.toast('Choose a project first.'); $('#tmProject').focus(); return; }
+    if (H.canStart) { // someone else may be tracking already
+      const btn = $('#tmBtn');
+      btn.disabled = true;
+      let why = '';
+      try { why = await H.canStart(); } finally { btn.disabled = false; }
+      if (why) { GJCore.toast(why); return; }
+    }
     H.setTimer({ projectId, note: $('#tmNote').value.trim(), startedAt: Date.now(), updatedAt: stamp(t) });
     renderAll();
   }
@@ -338,7 +373,7 @@ function view(H) {
   let editing = null; // { who, entry, isNew }
   // check = a long timer just stopped (already saved): fix it, or delete it if it was left running
   function openSheet(entry, whoFor, isNew, check) {
-    const people = H.people ? H.people() : [];
+    const people = (H.addPeople && H.addPeople()) || (H.people ? H.people() : []); // who time can be added for
     editing = { who: whoFor, entry, isNew: !!isNew };
     $('#esTitle').textContent = check ? 'Check this time' : isNew ? 'Add time' : 'Edit time';
     const wsel = $('#esWho');
@@ -498,5 +533,6 @@ window.TimeKit = {
   COLORS, parseDur, fmtHM, fmtLong, fmtHMS, decimal, clock12, dayLabel, weekStart, spanMinutes,
   cleanEntry, cleanTimer, normalizeLog, emptyLog, logFrom, logDoc, mergeLog, stamp, newer, cleanWorkspace,
   readChannel, writeChannel, createChannel, deleteChannel, view, uid,
+  cleanBoard, createBoard, readBoard, writeBoard, clearBoard,
 };
 })();
