@@ -55,6 +55,13 @@
     films.forEach(function (v) { if (reduce) { v.removeAttribute("autoplay"); v.pause(); } vo.observe(v); });
   }
 
+  // programme cards lift as they reach the middle of the phone screen
+  d.querySelectorAll(".reel").forEach(function (r) {
+    if (!("IntersectionObserver" in window)) return;
+    var io2 = new IntersectionObserver(function (es) { es.forEach(function (e) { e.target.classList.toggle("near", e.intersectionRatio > .6); }); }, { root: r, threshold: [0, .6, 1] });
+    r.querySelectorAll(".offer").forEach(function (o) { io2.observe(o); });
+  });
+
   // drag to scroll the story reel with a mouse
   d.querySelectorAll(".vreel").forEach(function (r) {
     var down = false, x0 = 0, s0 = 0, moved = false;
@@ -83,23 +90,73 @@
   // ---------- hero: the one opening sequence ----------
   var hero = d.querySelector(".hero");
   if (hero) {
-    var tl = G.timeline({ defaults: { ease: "expo.out" } });
+    var wait = html.classList.contains("curtain-on") ? 1.75 : 0;
+    var tl = G.timeline({ defaults: { ease: "expo.out" }, delay: wait });
     tl.from(hero.querySelector(".hero-film"), { opacity: 0, duration: 2.2, ease: "power2.out" }, 0);
     var h1 = hero.querySelector("h1");
     if (Split && h1) {
       Split.create(h1, { type: "lines", mask: "lines", linesClass: "split-line", autoSplit: true, onSplit: function (self) {
-        return G.from(self.lines, { yPercent: 108, duration: 1.25, stagger: .1, ease: "expo.out", delay: .25 });
+        return G.from(self.lines, { yPercent: 108, duration: 1.25, stagger: .1, ease: "expo.out", delay: wait + .25 });
       } });
     }
     tl.to(hero.querySelectorAll("[data-rv]"), { opacity: 1, y: 0, duration: 1, stagger: .08, ease: "power3.out" }, .65);
-    var art = hero.querySelector(".hero-art .frame");
-    if (art) {
-      tl.fromTo(art, { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "expo.inOut" }, .3)
-        .from(art.querySelector("img"), { scale: 1.18, duration: 2.2, ease: "expo.out" }, .5);
-    }
+    var obj = hero.querySelector(".hero-object");
+    if (obj) tl.from(obj, { scale: .7, opacity: 0, rotation: -8, duration: 2, ease: "expo.out" }, .1)
+      .from(obj.querySelectorAll(".chip"), { y: 40, opacity: 0, duration: 1.2, stagger: .18, ease: "power3.out" }, .9);
     G.to(hero.querySelector(".hero-film"), { scale: 1.12, ease: "none", scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true } });
     G.to(hero.querySelector(".hero-grid"), { y: -90, opacity: .15, ease: "none", scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true } });
   }
+
+  // ---------- drifting light: mint and gold motes rising slowly in every dark section ----------
+  d.querySelectorAll("canvas.motes").forEach(function (c) {
+    var g = c.getContext("2d"), dots = [], on = false, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var size = function () {
+      c.width = c.offsetWidth * dpr; c.height = c.offsetHeight * dpr;
+      var n = Math.min(70, Math.round(c.offsetWidth * c.offsetHeight / 16000)); dots = [];
+      for (var i = 0; i < n; i++) dots.push({ x: Math.random(), y: Math.random(), r: .6 + Math.random() * 1.9, v: .00025 + Math.random() * .0006, s: Math.random() * 6.3, gold: Math.random() < .3 });
+    };
+    var tick = function (t) {
+      if (!on) return;
+      g.clearRect(0, 0, c.width, c.height);
+      dots.forEach(function (p) {
+        p.y -= p.v; if (p.y < -.02) { p.y = 1.02; p.x = Math.random(); }
+        var a = .25 + .55 * (.5 + .5 * Math.sin(t / 900 + p.s)), x = (p.x + .012 * Math.sin(t / 2600 + p.s)) * c.width;
+        g.beginPath(); g.arc(x, p.y * c.height, p.r * dpr, 0, 7);
+        g.fillStyle = p.gold ? "rgba(216,180,69," + a + ")" : "rgba(159,217,188," + a + ")"; g.fill();
+      });
+      requestAnimationFrame(tick);
+    };
+    size(); addEventListener("resize", size);
+    new IntersectionObserver(function (es) { var was = on; on = es[0].isIntersecting; if (on && !was) requestAnimationFrame(tick); }).observe(c);
+  });
+
+  // ---------- map lines draw themselves as each dark section comes in ----------
+  d.querySelectorAll(".topo").forEach(function (svg) {
+    var ps = svg.querySelectorAll("path");
+    ps.forEach(function (p) { var L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L; });
+    G.to(ps, { strokeDashoffset: 0, ease: "none", stagger: .08, scrollTrigger: { trigger: svg.parentNode, start: "top 85%", end: "center 40%", scrub: 1 } });
+  });
+
+  // ---------- numbers count up ----------
+  d.querySelectorAll("[data-count]").forEach(function (el) {
+    var n = { v: 0 }, to = +el.dataset.count;
+    G.to(n, { v: to, duration: 2.2, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 90%", once: true },
+      onUpdate: function () { el.textContent = Math.round(n.v).toLocaleString("en-GB"); } });
+  });
+
+  // ---------- words light up one by one as they are read ----------
+  if (Split) d.querySelectorAll("[data-words]").forEach(function (el) {
+    var sp = Split.create(el, { type: "words", wordsClass: "w" });
+    G.to(sp.words, { opacity: 1, stagger: .1, ease: "none", scrollTrigger: { trigger: el, start: "top 85%", end: "bottom 50%", scrub: true } });
+  });
+
+  // ---------- pictures unmask with a slow push-in ----------
+  d.querySelectorAll("[data-reveal]").forEach(function (el) {
+    var im = el.querySelector("img");
+    var tl2 = G.timeline({ scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+    tl2.to(el, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.4, ease: "expo.out" });
+    if (im && !im.hasAttribute("data-parallax")) tl2.from(im, { scale: 1.3, duration: 2, ease: "expo.out" }, 0);
+  });
 
   // ---------- page heads on inner pages ----------
   d.querySelectorAll(".page-hero h1").forEach(function (h) {
@@ -122,6 +179,66 @@
   d.querySelectorAll("[data-parallax]").forEach(function (el) {
     G.fromTo(el, { yPercent: -7 }, { yPercent: 7, ease: "none", scrollTrigger: { trigger: el.parentNode, start: "top bottom", end: "bottom top", scrub: true } });
   });
+
+  // ---------- a thin line along the top shows how far down the page you are ----------
+  var bar = d.createElement("div"); bar.className = "progress"; bar.setAttribute("aria-hidden", "true"); d.body.appendChild(bar);
+  G.to(bar, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: .3 } });
+
+  // ---------- the turning rings of words: slow on their own, faster while the page moves ----------
+  var rings = d.querySelectorAll(".badge .spin");
+  if (rings.length) {
+    html.classList.add("spin-js");
+    var turn = 0;
+    G.ticker.add(function () {
+      turn += .2 + Math.min(5, Math.abs(lenis ? lenis.velocity : 0) * .15);
+      rings.forEach(function (r) { r.style.transform = "rotate(" + turn + "deg)"; });
+    });
+  }
+
+  // ---------- the window: the film frame opens to the full screen and the line slides in ----------
+  d.querySelectorAll(".window").forEach(function (w) {
+    var narrow = innerWidth < 760;
+    G.timeline({ scrollTrigger: { trigger: w.querySelector(".window-pin"), start: "top top", end: function () { return "+=" + innerHeight * 1.4; }, pin: true, scrub: .6 } })
+      .fromTo(w.querySelector(".window-frame"), { clipPath: narrow ? "inset(22% 9% 22% 9% round 14px)" : "inset(19% 27% 19% 27% round 18px)" },
+        { clipPath: "inset(0% 0% 0% 0% round 0px)", ease: "power2.inOut", duration: .6 }, 0)
+      .fromTo(w.querySelectorAll("video"), { scale: 1.35 }, { scale: 1, ease: "power2.inOut", duration: .6 }, 0)
+      .fromTo(w.querySelector(".window-shade"), { opacity: 0 }, { opacity: 1, duration: .3 }, .25)
+      .from(w.querySelector(".eyebrow"), { opacity: 0, y: 24, duration: .2 }, .3)
+      .from(w.querySelectorAll(".stagger > span"), { xPercent: function (i) { return i % 2 ? 30 : -30; }, opacity: 0, duration: .3, stagger: .08, ease: "power3.out" }, .32)
+      .to({}, { duration: .3 });  // a beat with the line fully in before the page moves on
+  });
+
+  // ---------- giant type: the stages slide one way, the promise the other ----------
+  d.querySelectorAll(".bt-row").forEach(function (r, i) {
+    var far = function () { return -Math.max(0, r.scrollWidth - innerWidth) * .55; };
+    G.fromTo(r, { x: i % 2 ? far : 0 }, { x: i % 2 ? 0 : far, ease: "none", immediateRender: true,
+      scrollTrigger: { trigger: r.parentNode, start: "top bottom", end: "bottom top", scrub: .5, invalidateOnRefresh: true } });
+  });
+
+  // the map behind the numbers drifts slower than the page
+  d.querySelectorAll(".stats-map img").forEach(function (im) {
+    G.fromTo(im, { yPercent: -18 }, { yPercent: 0, ease: "none", scrollTrigger: { trigger: im.closest("section"), start: "top bottom", end: "bottom top", scrub: true } });
+  });
+
+  // ---------- desktop pointer: a ring that follows, and buttons that lean towards it ----------
+  if (matchMedia("(pointer: fine)").matches) {
+    var ring = d.createElement("div"); ring.className = "cursor"; ring.setAttribute("aria-hidden", "true"); ring.innerHTML = "<span></span>"; d.body.appendChild(ring);
+    var rx = G.quickTo(ring, "x", { duration: .35, ease: "power3" }), ry = G.quickTo(ring, "y", { duration: .35, ease: "power3" }), word = ring.firstChild;
+    addEventListener("pointermove", function (e) { rx(e.clientX); ry(e.clientY); ring.classList.add("on"); }, { passive: true });
+    d.documentElement.addEventListener("pointerleave", function () { ring.classList.remove("on"); });
+    d.addEventListener("pointerover", function (e) {
+      var t = e.target.closest("[data-wistia], .vreel, a, button, summary"), say = "";
+      if (t && t.matches("[data-wistia]")) say = "Play"; else if (t && t.matches(".vreel")) say = "Drag";
+      word.textContent = say;
+      ring.classList.toggle("label", !!say); ring.classList.toggle("big", !!t && !say);
+    });
+    d.querySelectorAll(".cta, .badge").forEach(function (b) {
+      b.style.transition = "background .18s ease, box-shadow .18s ease";  // the CSS lift would fight the pull
+      var bx = G.quickTo(b, "x", { duration: .6, ease: "elastic.out(1, .45)" }), by = G.quickTo(b, "y", { duration: .6, ease: "elastic.out(1, .45)" });
+      b.addEventListener("pointermove", function (e) { var r = b.getBoundingClientRect(); bx((e.clientX - r.left - r.width / 2) * .22); by((e.clientY - r.top - r.height / 2) * .32); });
+      b.addEventListener("pointerleave", function () { bx(0); by(0); });
+    });
+  }
 
   // ---------- the compass: pinned, frames follow the scroll, one card per stage ----------
   var sec = d.querySelector(".compass");
@@ -181,5 +298,5 @@
   });
 
   if (d.fonts && d.fonts.ready) d.fonts.ready.then(function () { ST.refresh(); });
-  addEventListener("load", function () { ST.refresh(); });
+  addEventListener("load", function () { ST.sort(); ST.refresh(); });  // pins first in page order, so everything below them measures right
 })();
