@@ -1,0 +1,259 @@
+# The editing dashboard for Beki's draft website (Sveltia CMS). Every Publish saves to GitHub,
+# and the "Build and deploy" action rebuilds the site in about two minutes.
+backend:
+  name: github
+  repo: genestjan/genestjan
+  branch: claude/plugin-installation-5r36f2
+  commit_messages:
+    update: "Beki site: edit {{collection}} ({{slug}})"
+    uploadMedia: "Beki site: add picture {{path}}"
+
+site_url: https://genestjanramirez.com/BekiEakinsdraftwebsite/
+display_url: https://genestjanramirez.com/BekiEakinsdraftwebsite/
+media_folder: beki-site/assets/img
+public_folder: assets/img
+
+collections:
+  - name: pages
+    label: Pages
+    files:
+      - name: home
+        label: Home page
+        file: beki-site/content/home.yml
+        fields:
+          - { name: title, label: Browser tab title, widget: string }
+          - { name: description, label: Google description, widget: text }
+          - name: sections
+            label: Sections (drag to reorder, + to add)
+            label_singular: section
+            widget: list
+            typeKey: type
+            types:
+              - name: hero
+                label: Opening (with the compass)
+                fields:
+                  - { name: eyebrow, label: Small label, widget: string }
+                  - { name: heading, label: Headline, widget: string, hint: &style "Put *stars* round words for the mint highlight, **two stars** for bold. No dashes as pauses: use a comma." }
+                  - { name: text, label: Text under the headline, widget: text, hint: *style }
+                  - name: buttons
+                    label: Buttons
+                    widget: list
+                    fields:
+                      - { name: label, label: Button text, widget: string }
+                      - { name: link, label: Link, widget: string }
+                      - { name: style, label: Look, widget: select, options: [solid, outline], default: solid }
+                  - { name: photo, label: Small round photo, widget: image }
+                  - { name: name, label: Name next to it, widget: string }
+                  - { name: name_line, label: Line under the name, widget: string }
+                  - { name: proof, label: Line after the stars, widget: string }
+                  - name: quote_cards
+                    label: Floating quote cards (2)
+                    widget: list
+                    max: 2
+                    fields:
+                      - { name: quote, label: Quote (her exact words), widget: text }
+                      - { name: name, label: Name, widget: string }
+                      - { name: photo, label: Photo, widget: image }
+                  - { name: small_card, label: Small card text, widget: string, required: false }
+                  - { name: ring_words, label: Turning ring words, widget: string, required: false }
+              - name: results
+                label: Moving results strip
+                summary: "Edit the results in Lists > Results"
+                fields:
+                  - { name: note, label: Note, widget: hidden, default: "" }
+              - name: numbers
+                label: Counting numbers
+                fields:
+                  - name: numbers
+                    label: Numbers
+                    widget: list
+                    fields:
+                      - { name: number, label: Number, widget: number, value_type: int }
+                      - { name: after, label: After the number (e.g. +), widget: string, required: false }
+                      - { name: text, label: Text, widget: string }
+              - name: window
+                label: Opening picture with big words
+                fields:
+                  - { name: eyebrow, label: Small label, widget: string }
+                  - { name: line_1, label: Line 1, widget: string, hint: *style }
+                  - { name: line_2, label: Line 2, widget: string, required: false, hint: *style }
+                  - { name: line_3, label: Line 3, widget: string, required: false, hint: *style }
+                  - { name: picture, label: "Picture (wide, big)", widget: image }
+              - name: story
+                label: Text and photo
+                fields:
+                  - { name: eyebrow, label: Small label, widget: string }
+                  - { name: heading, label: Heading, widget: string, hint: *style }
+                  - { name: text, label: Text (leave an empty line between paragraphs), widget: text, hint: *style }
+                  - name: team
+                    label: Team (optional)
+                    widget: list
+                    required: false
+                    fields:
+                      - { name: name, label: Name, widget: string }
+                      - { name: role, label: Role, widget: string }
+                      - { name: photo, label: Photo (optional), widget: image, required: false }
+                  - { name: link_label, label: Link text, widget: string, required: false }
+                  - { name: link, label: Link, widget: string, required: false }
+                  - { name: picture, label: Photo, widget: image }
+                  - { name: picture_text, label: Photo description (for screen readers), widget: string }
+                  - { name: picture_focus, label: Photo focus point (e.g. 50% 50%), widget: string, required: false }
+                  - { name: picture_side, label: Photo side, widget: select, options: [right, left], default: right }
+              - name: statement
+                label: Big statement (lights up word by word)
+                fields:
+                  - { name: text, label: Statement, widget: text, hint: *style }
+              - name: moving_words
+                label: Giant moving words
+                fields:
+                  - { name: row_1, label: Top row words, widget: list, hint: *style }
+                  - { name: row_2, label: "Bottom row (outlined, repeats)", widget: string }
+              - name: stages
+                label: Compass and Freedom Stages
+                summary: "The four stage cards are in Lists > Freedom Stages"
+                fields:
+                  - { name: eyebrow, label: Small label, widget: string }
+                  - { name: heading, label: Heading, widget: string, hint: *style }
+                  - { name: last_card_label, label: Last card small label, widget: string }
+                  - { name: last_card_heading, label: Last card heading, widget: string }
+                  - { name: last_card_text, label: Last card text, widget: text }
+                  - { name: last_card_button, label: Last card button, widget: string }
+                  - { name: last_card_button_link, label: Last card button link, widget: string }
+                  - { name: last_card_link, label: Last card small link, widget: string }
+                  - { name: last_card_link_to, label: Last card small link goes to, widget: string }
+              - name: offers
+                label: Ways to work with Beki (cards)
+                summary: "The cards are in Lists > Offers"
+                fields:
+                  - { name: eyebrow, label: Small label, widget: string }
+                  - { name: heading, label: Heading, widget: string, hint: *style }
+                  - { name: text, label: Text, widget: text, hint: *style }
+              - name: testimonials
+                label: Videos and quotes
+                summary: "The videos and quotes are in Lists > Testimonials"
+                fields:
+                  - { name: eyebrow, label: Small label, widget: string }
+                  - { name: heading, label: Heading, widget: string, hint: *style }
+                  - { name: text, label: Text, widget: string }
+                  - { name: link_label, label: Link text, widget: string, required: false }
+                  - { name: link, label: Link, widget: string, required: false }
+              - name: podcast
+                label: Podcast
+                summary: "The episodes are in Lists > Podcast episodes"
+                fields:
+                  - { name: eyebrow, label: Small label, widget: string }
+                  - { name: heading, label: Heading, widget: string, hint: *style }
+                  - { name: cover, label: Cover picture, widget: image }
+                  - { name: button_label, label: Button text, widget: string }
+                  - { name: button_link, label: Button link, widget: string }
+              - name: questions
+                label: Questions (FAQs)
+                summary: "Pick which questions show here in Lists > FAQs (Show on home page)"
+                fields:
+                  - { name: eyebrow, label: Small label, widget: string }
+                  - { name: heading, label: Heading, widget: string, hint: *style }
+              - name: final
+                label: Last call to action (dawn film)
+                fields:
+                  - { name: heading, label: Heading, widget: string, hint: *style }
+                  - { name: text, label: Text, widget: text }
+
+  - name: lists
+    label: Lists (used on several pages)
+    files:
+      - name: offers
+        label: Offers
+        file: beki-site/content/offers.yml
+        fields:
+          - name: offers
+            label: Offer cards (drag to reorder)
+            label_singular: offer
+            widget: list
+            summary: "{{fields.name}}: {{fields.price}}"
+            fields:
+              - { name: name, label: Name, widget: string }
+              - { name: picture, label: Picture, widget: image }
+              - { name: show_whole_picture, label: Show the whole picture (for covers), widget: boolean, default: false }
+              - { name: price, label: Price, widget: string, hint: "Only Beki sets prices. Write Free for the free guide." }
+              - { name: price_note, label: Note next to the price (VAT etc.), widget: string }
+              - { name: points, label: Ticked points, widget: list, hint: *style }
+              - { name: button_label, label: Button text, widget: string }
+              - { name: button_link, label: Button link, widget: string }
+              - { name: second_label, label: Small link text (optional), widget: string, required: false }
+              - { name: second_link, label: Small link (optional), widget: string, required: false }
+      - name: testimonials
+        label: Testimonials
+        file: beki-site/content/testimonials.yml
+        fields:
+          - name: quotes
+            label: Written quotes (her exact words only)
+            widget: list
+            summary: "{{fields.name}}"
+            fields:
+              - { name: name, label: Name, widget: string }
+              - { name: photo, label: Photo, widget: image }
+              - { name: quote, label: Quote, widget: text }
+          - name: videos
+            label: Videos
+            widget: list
+            summary: "{{fields.name}}"
+            fields:
+              - { name: name, label: Name, widget: string }
+              - { name: wistia, label: Wistia video code (the letters after /medias/), widget: string }
+              - { name: thumbnail, label: Thumbnail, widget: image }
+              - { name: label, label: Small label (e.g. 1:36), widget: string }
+      - name: stages
+        label: Freedom Stages
+        file: beki-site/content/stages.yml
+        fields:
+          - name: stages
+            label: Stages (keep these four in order)
+            widget: list
+            allow_add: false
+            allow_remove: false
+            allow_reorder: false
+            summary: "{{fields.name}}"
+            fields:
+              - { name: key, label: Key, widget: hidden }
+              - { name: colour, label: Colour, widget: hidden }
+              - { name: name, label: Name, widget: string }
+              - { name: who, label: Who it is, widget: string }
+              - { name: intro, label: Intro, widget: text, hint: *style }
+              - { name: strong, label: What is strong, widget: text }
+              - { name: hold, label: What holds them back, widget: text }
+              - { name: next_step, label: Next step, widget: text, hint: *style }
+              - { name: button_label, label: Button text, widget: string }
+              - { name: button_link, label: Button link, widget: string }
+              - { name: link_label, label: Small link text, widget: string }
+              - { name: link, label: Small link, widget: string }
+      - name: results
+        label: Results (moving strip)
+        file: beki-site/content/results.yml
+        fields:
+          - { name: results, label: Results (Beki to confirm every figure), widget: list }
+      - name: episodes
+        label: Podcast episodes (home page)
+        file: beki-site/content/episodes.yml
+        fields:
+          - name: episodes
+            label: Episodes
+            widget: list
+            summary: "{{fields.number}}: {{fields.title}}"
+            fields:
+              - { name: number, label: Episode number, widget: string }
+              - { name: title, label: Title, widget: string }
+              - { name: subtitle, label: Subtitle, widget: string }
+              - { name: image, label: Artwork, widget: image }
+              - { name: link, label: Link to the episode, widget: string }
+      - name: faqs
+        label: FAQs
+        file: beki-site/content/faqs.yml
+        fields:
+          - name: faqs
+            label: Questions (drag to reorder)
+            widget: list
+            summary: "{{fields.q}}"
+            fields:
+              - { name: q, label: Question, widget: string }
+              - { name: a, label: Answer paragraphs, widget: list, field: { name: p, label: Paragraph, widget: text } }
+              - { name: on_home, label: Show on home page, widget: boolean, default: false }

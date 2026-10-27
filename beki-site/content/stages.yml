@@ -1,0 +1,49 @@
+stages:
+- key: quiet
+  name: The Quiet Planner
+  colour: f-mist2
+  who: Employed, with an idea you haven't said out loud
+  intro: You've got years of skill and a quiet feeling there's more you could do with it. You haven't started yet, and that's fine. Most OTs I work with began exactly here, with a job, a rota and an idea they hadn't said out loud.
+  strong: Steady income while you test ideas, deep clinical knowledge, and time to start small without pressure.
+  hold: The idea stays in your head because you don't know what you'd actually offer, or who'd pay for it.
+  next_step: Turn one thing you already know into a simple offer, alongside your job, without changing your job.
+  button_label: Show me how to package my skills
+  button_link: https://dbf.bekieakins.com/ot-mini-course
+  link_label: Or start with the free resources
+  link: start-free.html
+- key: solo
+  name: The Fully Booked Solo
+  colour: f-moss
+  who: Self-employed, and your diary is full
+  intro: You did the brave bit. You work for yourself and your diary is full. The catch is that your income is tied to your hours, so the only way to earn more is to work more, and you're already tired.
+  strong: Proven demand, clients who trust you, and full control over how you work.
+  hold: No session, no income. Time off costs you money.
+  next_step: Package what you already know into something that earns without another session in the diary.
+  button_label: Book my free Connection Call
+  button_link: https://otfreedom.bekieakins.com/widget/booking/JfKQUgoHVwsRF5gqBs4W
+  link_label: Or see the Membership
+  link: membership.html
+- key: clinic
+  name: The Stretched Clinic Owner
+  colour: f-forest
+  who: A practice and a team, still running through you
+  intro: You've built a practice and a team, which most OTs never do. But it still runs through you. The questions, the decisions and the hardest cases all come back to your desk.
+  strong: A real business, a team, and a reputation people refer to.
+  hold: The business depends on your hours and your head. Step back and things wobble.
+  next_step: Get your expertise out of your head and into something packaged, so the business earns and runs without you in every room.
+  button_label: Book my free Connection Call
+  button_link: https://otfreedom.bekieakins.com/widget/booking/JfKQUgoHVwsRF5gqBs4W
+  link_label: Or see the Collective
+  link: collective.html
+- key: scale
+  name: The Ready-to-Scale Expert
+  colour: f-navy
+  who: Already selling something online
+  intro: 'You''ve already done what most OTs only talk about: you have your practice and you''ve started something online. Now it needs to sell steadily, not only when you push it.'
+  strong: A product that exists, proof people will buy, and experience of launching.
+  hold: Sales come in waves, so it never quite replaces the hours.
+  next_step: A simple, repeatable way to sell what you've already built.
+  button_label: Book my free Connection Call
+  button_link: https://otfreedom.bekieakins.com/widget/booking/JfKQUgoHVwsRF5gqBs4W
+  link_label: Or see the Collective
+  link: collective.html

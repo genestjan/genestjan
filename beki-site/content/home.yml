@@ -1,0 +1,122 @@
+title: Beki Eakins | OT Yourself to Freedom
+description: Former OT Beki Eakins helps occupational therapists turn the skills they already have into an online business.
+sections:
+- type: hero
+  eyebrow: OT Yourself to Freedom
+  heading: Turn the OT skills you *already have* into your way out
+  text: Beki Eakins is a former OT who helps occupational therapists build an online business. More income, fewer hours, and a life you choose.
+  buttons:
+  - label: Find your stage
+    link: '#stages'
+    style: solid
+  - label: Book a free call
+    link: book-a-call.html
+    style: outline
+  photo: assets/img/beki-face.webp
+  name: Beki Eakins
+  name_line: Former OT, North Wales
+  proof: Downloaded by over 1,000 OTs
+  quote_cards:
+  - quote: May has been my greatest income month yet.
+    name: Angela, OT
+    photo: assets/img/t-angela.webp
+  - quote: I've made like 10 times that back.
+    name: Sarita, OT
+    photo: assets/img/t-sarita.webp
+  small_card: Built by a former OT, for OTs
+  ring_words: FIND YOUR STAGE
+- type: results
+- type: numbers
+  numbers:
+  - number: 1000
+    after: +
+    text: OTs have downloaded the free guide
+  - number: 100
+    after: +
+    text: OTs Beki has taken through the first step
+  - number: 12
+    after: ''
+    text: 'hours a week: the business model Beki built for herself'
+  - number: 3
+    after: ''
+    text: days to try the Membership free
+- type: window
+  eyebrow: The life you are building
+  line_1: More income,
+  line_2: '*fewer hours,*'
+  line_3: and a life you choose.
+  picture: assets/img/desk.webp
+- type: story
+  eyebrow: Why this exists
+  heading: You are not short of skills. You are short of a starting point.
+  text: |-
+    I am Beki, former Occupational Therapist and now Business and Lifestyle Coach. I left the profession in 2019 to travel the world, build my business and to support a freedom-based life.
+
+    I spent years trying to create a freedom style business before I hit on a model that worked. **I did the notes, the caseloads and the capped pay bands.** Now I teach other OTs to do the same.
+  link_label: Read Beki's story
+  link: about.html
+  picture: assets/img/beki-hero.webp
+  picture_text: Beki working from home in North Wales
+  picture_focus: 58% 50%
+  picture_side: right
+- type: statement
+  text: The problem was never that you lacked expertise. It was that nobody showed you *how to package it.*
+- type: moving_words
+  row_1: [Quiet Planner, Fully Booked Solo, Stretched Clinic Owner, Ready-to-Scale Expert, '*Freedom*']
+  row_2: OT yourself to freedom
+- type: stages
+  eyebrow: Find your Freedom Stage
+  heading: Which stage are you at?
+  last_card_label: Wherever you are now
+  last_card_heading: Freedom
+  last_card_text: 8 honest questions. 2 minutes. Find out where you are and the one next step that gives you more time and income, without more hours.
+  last_card_button: Take the 2-minute quiz
+  last_card_button_link: https://dbf.bekieakins.com/quiz
+  last_card_link: or book a free call
+  last_card_link_to: book-a-call.html
+- type: offers
+  eyebrow: Ways to work with Beki
+  heading: One next step, *whatever your stage*
+  text: Start free, start small, or start with the team. Every price includes UK VAT unless it says otherwise.
+- type: testimonials
+  eyebrow: In their own words
+  heading: OTs who started exactly where you are
+  text: Unedited. Tap any one to play.
+  link_label: Read all the stories
+  link: stories.html
+- type: story
+  eyebrow: Who is teaching this
+  heading: Beki Eakins
+  text: |-
+    Occupational therapist turned online business coach. I built my own business from the clinical skills I already had, while still working, and I have since taken more than a hundred OTs through the same first step.
+
+    I am not a generic business coach who found a niche. I did the notes, the caseloads and the capped pay bands. I made a decision that I wanted more from life and work than the system allowed me. I created my own path, with time freedom and now teach others to do the same.
+
+    **Everything here is built for OTs and OTPs specifically.** It respects your training rather than asking you to start from nothing.
+  team:
+  - name: Meg
+    role: Human Design and energetic alignment
+    photo: assets/img/t-meg.jpg
+  - name: Katja
+    role: Vocal Alchemy and visibility
+    photo: assets/img/t-katja.jpg
+  - name: Rob
+    role: Sales, discipline and your free call
+    photo: ''
+  link_label: ''
+  link: ''
+  picture: assets/img/forest-denim.jpg
+  picture_text: Beki in the forest near her home
+  picture_side: left
+- type: podcast
+  eyebrow: Listen on the school run
+  heading: OTs who built the way out
+  cover: assets/img/compass-top.jpg
+  button_label: Listen on Apple Podcasts
+  button_link: https://podcasts.apple.com/gb/podcast/ot-yourself-to-freedom/id1713728830
+- type: questions
+  eyebrow: Before you decide
+  heading: Honest answers
+- type: final
+  heading: One call. *Your time back.*
+  text: A free 45-minute Connection Call with Rob. Routing you to the right room is part of the job, not a way of turning you away.

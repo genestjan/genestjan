@@ -37,6 +37,14 @@ jobs:
       - run: npm run build
         working-directory: ridewise
       - run: cp -r ridewise/dist out/ridewise
+      # Beki's draft website: built from beki-site/ (its words and pictures are edited at /BekiEakinsdraftwebsite/admin/)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow==11.0.0 pyyaml==6.0.2
+      - run: python beki-site/build.py
+        env:
+          BEKI_OUT: out/BekiEakinsdraftwebsite
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
