@@ -611,7 +611,7 @@ main { counter-reset: sec; }
 .window { padding: 0; background: var(--navy-900); color: #fff; }
 .window-pin { position: relative; height: 100vh; height: 100svh; min-height: 560px; overflow: hidden; display: grid; align-items: center; }
 .window-frame { position: absolute; inset: 0; overflow: hidden; }
-.window-frame video { width: 100%; height: 100%; object-fit: cover; }
+.window-frame video, .window-frame img { width: 100%; height: 100%; object-fit: cover; }
 .window-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12, 34, 46, .82), rgba(12, 34, 46, .35) 70%, rgba(12, 34, 46, .15)); }
 .window-copy { position: relative; z-index: 2; width: 100%; }
 .window .eyebrow { color: var(--mint); }

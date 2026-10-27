@@ -201,7 +201,7 @@
     G.timeline({ scrollTrigger: { trigger: w.querySelector(".window-pin"), start: "top top", end: function () { return "+=" + innerHeight * 1.4; }, pin: true, scrub: .6 } })
       .fromTo(w.querySelector(".window-frame"), { clipPath: narrow ? "inset(22% 9% 22% 9% round 14px)" : "inset(19% 27% 19% 27% round 18px)" },
         { clipPath: "inset(0% 0% 0% 0% round 0px)", ease: "power2.inOut", duration: .6 }, 0)
-      .fromTo(w.querySelectorAll("video"), { scale: 1.35 }, { scale: 1, ease: "power2.inOut", duration: .6 }, 0)
+      .fromTo(w.querySelectorAll("video, img"), { scale: 1.35 }, { scale: 1, ease: "power2.inOut", duration: .6 }, 0)
       .fromTo(w.querySelector(".window-shade"), { opacity: 0 }, { opacity: 1, duration: .3 }, .25)
       .from(w.querySelector(".eyebrow"), { opacity: 0, y: 24, duration: .2 }, .3)
       .from(w.querySelectorAll(".stagger > span"), { xPercent: function (i) { return i % 2 ? 30 : -30; }, opacity: 0, duration: .3, stagger: .08, ease: "power3.out" }, .32)
