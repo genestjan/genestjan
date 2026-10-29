@@ -37,6 +37,8 @@ jobs:
       - run: npm run build
         working-directory: ridewise
       - run: cp -r ridewise/dist out/ridewise
+      # Monggols VPN home-screen app for iPhone: the shared screen from vpn/ui, served at /monggols/
+      - run: cp -r vpn/ui out/monggols
       # Beki's draft website: built from beki-site/ (its words and pictures are edited at /BekiEakinsdraftwebsite/admin/)
       - uses: actions/setup-python@v5
         with:
