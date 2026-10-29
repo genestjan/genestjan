@@ -34,6 +34,17 @@ if command -v netfilter-persistent >/dev/null; then
   netfilter-persistent save
 fi
 
+# 1b. The free AMD server (VM.Standard.E2.1.Micro) has only 1 GB of memory,
+#     not enough to install Docker and pull images without freezing. A 2 GB
+#     swap file gives it room. Harmless on the bigger Arm server.
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
 # 2. Docker, from Docker's official installer.
 curl -fsSL https://get.docker.com | sh
 
