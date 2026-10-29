@@ -1,0 +1,47 @@
+plugins {
+    id "com.android.application"
+}
+
+// Release signing comes from environment variables set by the GitHub workflow.
+// Without them (a local build), the release is signed with the debug key.
+def ks = System.getenv("MONGGOLS_KEYSTORE")
+
+android {
+    namespace "com.genestjanramirez.monggols"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.genestjanramirez.monggols"
+        minSdk 24
+        targetSdk 35
+        versionCode Integer.parseInt(System.getenv("MONGGOLS_VERSION_CODE") ?: "1")
+        versionName "1.0." + (System.getenv("MONGGOLS_VERSION_CODE") ?: "1")
+    }
+
+    signingConfigs {
+        release {
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv("MONGGOLS_KEYSTORE_PASSWORD")
+                keyAlias "monggols"
+                keyPassword System.getenv("MONGGOLS_KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig ks ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "com.wireguard.android:tunnel:1.0.20260102"
+}

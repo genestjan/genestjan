@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Monggols VPN</string>
+    <string name="location">United Kingdom · London</string>
+
+    <string name="now">Karon:</string>
+    <string name="state_off">DI PA KONEKTADO</string>
+    <string name="state_off_body">Dili pa ka safe, Dong. Time na magpa-VPN!</string>
+    <string name="state_on">KONEKTADO NA</string>
+    <string name="state_on_body">Safe na ka, Dong. Naa ka sa London karon.</string>
+    <string name="state_busy">KADIYOT…</string>
+    <string name="connect">KONEKTAHON</string>
+    <string name="disconnect">PUTLON</string>
+
+    <string name="manyak_mode">Manyak Mode</string>
+    <string name="manyak_body">Mas thep, mas paspas, mas kalas. 🔥</string>
+
+    <string name="dest_title">Pili-a ang Destino</string>
+    <string name="dest_body">Asa man nimo gusto magkalibot? (Wala nay visa, gamit ra VPN!)</string>
+    <string name="dest_country">UK</string>
+    <string name="dest_city">London</string>
+
+    <string name="features_title">Mga Panguna nga Feature</string>
+    <string name="features_tag">Tan-awa, pangita, libot!</string>
+    <string name="f1_title">TAN-AWA</string>
+    <string name="f1_body">Mga blocked nga site, ablihi!</string>
+    <string name="f2_title">TANGTANG TRACKER</string>
+    <string name="f2_body">Wala na sila make-istorya nimo.</string>
+    <string name="f3_title">PASPAS MODE</string>
+    <string name="f3_body">Sukad sa slow nga internet ngadto sa piskot!</string>
+    <string name="f4_title">PRIVACY MODE</string>
+    <string name="f4_body">Rangat ka, wala ka\'y kuyog.</string>
+
+    <string name="banner">Konekta na!\nManyakol kang daku!</string>
+    <string name="banner_button">KONEKTA NA DAYON!</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_server">Server</string>
+    <string name="nav_protect">Proteksyon</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="server_body">Monggols server · online</string>
+    <string name="server_more">Ang tanan nimong internet moagi sa London. Ang mga website makakita ug UK nga IP, dili ang imong tinuod nga lokasyon.</string>
+    <string name="protect_body">Kung konektado, ang imong koneksyon naka-encrypt gikan sa imong phone hangtod sa Monggols server. Ang imong Wi-Fi o network provider dili makakita kung unsa imong gibuhat online.</string>
+
+    <string name="setup_title">I-setup kining phone</string>
+    <string name="setup_help">I-paste ang invite link nga gipadala nimo. Usa ra ka higayon, 5 minutos lang.</string>
+    <string name="setup_hint">https://vpn.genestjanramirez.com/cnf/…</string>
+    <string name="setup_go">I-SETUP</string>
+    <string name="setup_file">Gamit ug .conf file</string>
+    <string name="ready_title">Andam na kining phone ✔</string>
+    <string name="ready_body">Pindota ang KONEKTAHON sa Home aron mo-connect.</string>
+    <string name="reset">Tangtangon ang setup niining phone</string>
+    <string name="reset_confirm">Tangtangon ang setup? Kinahanglan nimo ug bag-ong invite link aron maka-connect pag-usab.</string>
+    <string name="yes">Tangtangon</string>
+    <string name="no">Ayaw</string>
+
+    <string name="need_setup">I-setup una kining phone.</string>
+    <string name="err_link">Wala ni-gana ang link. Basin expired na o nagamit na. Pangayo ug bag-o.</string>
+    <string name="err_file">Dili valid nga VPN setup kining file.</string>
+    <string name="err_connect">Wala ka-connect: %1$s</string>
+    <string name="err_permission">Kinahanglan sa Monggols VPN ang permiso aron maka-connect.</string>
+    <string name="setup_done">Andam na! Pindota ang KONEKTAHON.</string>
+    <string name="coming_soon">Moabot ra ni sunod. Karon, ang VPN na mismo ang nag-protect nimo.</string>
+</resources>

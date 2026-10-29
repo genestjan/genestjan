@@ -1,0 +1,27 @@
+// Renders the app's screens to PNGs on any computer (no phone or emulator),
+// so the design can be checked: ./gradlew :preview:recordPaparazziDebug
+plugins {
+    id "com.android.library"
+    id "org.jetbrains.kotlin.android" version "2.2.0"
+    id "app.cash.paparazzi" version "2.0.0-alpha05.1"
+}
+
+android {
+    namespace "com.genestjanramirez.monggols.preview"
+    compileSdk 35
+    defaultConfig { minSdk 24 }
+    sourceSets { main.res.srcDirs = ["../app/src/main/res"] }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    testImplementation "junit:junit:4.13.2"
+}
+
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+}

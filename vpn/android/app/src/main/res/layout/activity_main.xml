@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- ================= HOME ================= -->
+            <LinearLayout
+                android:id="@+id/pageHome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="14dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:id="@+id/menuButton"
+                    style="@style/Icon"
+                    android:layout_marginTop="10dp"
+                    android:padding="6dp"
+                    android:text="&#xe5d2;"
+                    android:textColor="@color/red"
+                    android:textSize="32sp" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-6dp"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/hero" />
+
+                <!-- Status | power button | Manyak Mode -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="168dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/card"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:id="@+id/statusIcon"
+                            style="@style/Icon"
+                            android:text="&#xe8e8;"
+                            android:textColor="@color/red"
+                            android:textSize="26sp" />
+
+                        <TextView
+                            style="@style/Body"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/now"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/statusTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/inter_bold"
+                            android:text="@string/state_off"
+                            android:textColor="@color/red"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/statusBody"
+                            style="@style/Body"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/state_off_body"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/connectButton"
+                        android:layout_width="150dp"
+                        android:layout_height="168dp"
+                        android:layout_marginHorizontal="-6dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:id="@+id/powerRing"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:contentDescription="@string/connect"
+                            android:src="@drawable/power_red" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Icon"
+                                android:text="&#xe8ac;"
+                                android:textColor="@color/text"
+                                android:textSize="44sp" />
+
+                            <TextView
+                                android:id="@+id/connectLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/inter_bold"
+                                android:text="@string/connect"
+                                android:textColor="@color/text"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="168dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/card"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/face_small" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:fontFamily="@font/marker"
+                                android:text="@string/manyak_mode"
+                                android:textColor="@color/red"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <Switch
+                            android:id="@+id/manyakSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:layout_marginTop="4dp"
+                            android:thumbTint="@color/text"
+                            android:trackTint="@color/red" />
+
+                        <TextView
+                            style="@style/Body"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/manyak_body"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Destination -->
+                <LinearLayout
+                    android:id="@+id/destinationCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/card"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <TextView
+                        style="@style/Icon"
+                        android:text="&#xe894;"
+                        android:textColor="@color/red"
+                        android:textSize="34sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Title"
+                            android:text="@string/dest_title"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            style="@style/Body"
+                            android:text="@string/dest_body"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/chip"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="6dp"
+                        android:paddingStart="6dp"
+                        android:paddingEnd="10dp">
+
+                        <ImageView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/flag_uk" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Title"
+                                android:text="@string/dest_country"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                style="@style/Body"
+                                android:text="@string/dest_city"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            style="@style/Icon"
+                            android:layout_marginStart="4dp"
+                            android:text="&#xe5cc;"
+                            android:textColor="@color/muted"
+                            android:textSize="20sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Features -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/Title"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/features_title"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/marker"
+                        android:rotation="-4"
+                        android:text="@string/features_tag"
+                        android:textColor="@color/red"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout style="@style/Tile">
+                        <TextView style="@style/TileIcon" android:text="&#xe80b;" android:textColor="@color/red" />
+                        <TextView style="@style/TileTitle" android:text="@string/f1_title" />
+                        <TextView style="@style/TileBody" android:text="@string/f1_body" />
+                        <TextView style="@style/TileArrow" android:textColor="@color/red" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Tile">
+                        <TextView style="@style/TileIcon" android:text="&#xe32a;" android:textColor="#7C5CFF" />
+                        <TextView style="@style/TileTitle" android:text="@string/f2_title" />
+                        <TextView style="@style/TileBody" android:text="@string/f2_body" />
+                        <TextView style="@style/TileArrow" android:textColor="#7C5CFF" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Tile">
+                        <TextView style="@style/TileIcon" android:text="&#xe9e4;" android:textColor="@color/green" />
+                        <TextView style="@style/TileTitle" android:text="@string/f3_title" />
+                        <TextView style="@style/TileBody" android:text="@string/f3_body" />
+                        <TextView style="@style/TileArrow" android:textColor="@color/green" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Tile">
+                        <TextView style="@style/TileIcon" android:text="&#xe8f5;" android:textColor="#FFC531" />
+                        <TextView style="@style/TileTitle" android:text="@string/f4_title" />
+                        <TextView style="@style/TileBody" android:text="@string/f4_body" />
+                        <TextView style="@style/TileArrow" android:textColor="#FFC531" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Banner -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/card_red"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/face_small" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/marker"
+                        android:rotation="-3"
+                        android:text="@string/banner"
+                        android:textColor="@color/text"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/bannerButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/button_pill"
+                        android:fontFamily="@font/inter_bold"
+                        android:gravity="center"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="10dp"
+                        android:text="@string/banner_button"
+                        android:textColor="@color/text"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ================= SERVER ================= -->
+            <LinearLayout
+                android:id="@+id/pageServer"
+                style="@style/Page">
+
+                <TextView style="@style/PageTitle" android:text="@string/nav_server" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/card"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/flag_uk" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView style="@style/Title" android:text="@string/location" android:textSize="17sp" />
+                        <TextView style="@style/Body" android:text="@string/server_body" android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        style="@style/Icon"
+                        android:text="&#xe86c;"
+                        android:textColor="@color/green"
+                        android:textSize="26sp" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/Body"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/server_more"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- ================= PROTEKSYON ================= -->
+            <LinearLayout
+                android:id="@+id/pageProtect"
+                style="@style/Page">
+
+                <TextView style="@style/PageTitle" android:text="@string/nav_protect" />
+
+                <TextView
+                    android:id="@+id/protectStatus"
+                    style="@style/Title"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/state_off"
+                    android:textSize="20sp" />
+
+                <TextView
+                    style="@style/Body"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/protect_body"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- ================= SETTINGS (setup) ================= -->
+            <LinearLayout
+                android:id="@+id/pageSettings"
+                style="@style/Page">
+
+                <TextView style="@style/PageTitle" android:text="@string/nav_settings" />
+
+                <LinearLayout
+                    android:id="@+id/setupPanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/card"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/Title" android:text="@string/setup_title" android:textSize="18sp" />
+
+                    <TextView
+                        style="@style/Body"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/setup_help"
+                        android:textSize="13sp" />
+
+                    <EditText
+                        android:id="@+id/inviteField"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="14dp"
+                        android:background="@drawable/chip"
+                        android:fontFamily="@font/inter"
+                        android:hint="@string/setup_hint"
+                        android:inputType="textUri"
+                        android:paddingHorizontal="16dp"
+                        android:singleLine="true"
+                        android:textColor="@color/text"
+                        android:textColorHint="#66FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/setupButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/button_pill"
+                        android:fontFamily="@font/inter_bold"
+                        android:gravity="center"
+                        android:text="@string/setup_go"
+                        android:textColor="@color/text"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/fileLink"
+                        style="@style/Body"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="10dp"
+                        android:padding="10dp"
+                        android:text="@string/setup_file"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/readyPanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/card"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/Title" android:text="@string/ready_title" android:textSize="18sp" />
+
+                    <TextView
+                        style="@style/Body"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/ready_body"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/resetLink"
+                        style="@style/Body"
+                        android:layout_marginTop="10dp"
+                        android:paddingVertical="10dp"
+                        android:text="@string/reset"
+                        android:textColor="@color/red"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
+    </ScrollView>
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:background="@drawable/nav_bar"
+        android:orientation="horizontal">
+
+        <LinearLayout android:id="@+id/navHome" style="@style/NavItem">
+            <TextView style="@style/NavIcon" android:text="&#xe88a;" />
+            <TextView style="@style/NavLabel" android:text="@string/nav_home" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navServer" style="@style/NavItem">
+            <TextView style="@style/NavIcon" android:text="&#xe894;" />
+            <TextView style="@style/NavLabel" android:text="@string/nav_server" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navProtect" style="@style/NavItem">
+            <TextView style="@style/NavIcon" android:text="&#xe8e8;" />
+            <TextView style="@style/NavLabel" android:text="@string/nav_protect" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navSettings" style="@style/NavItem">
+            <TextView style="@style/NavIcon" android:text="&#xe8b8;" />
+            <TextView style="@style/NavLabel" android:text="@string/nav_settings" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

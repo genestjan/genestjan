@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Icon">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/icons</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Title">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/inter_bold</item>
+        <item name="android:textColor">@color/text</item>
+    </style>
+
+    <style name="Body">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textColor">@color/muted</item>
+    </style>
+
+    <style name="Page">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">20dp</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <style name="PageTitle" parent="Title">
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:textSize">28sp</item>
+    </style>
+
+    <style name="Tile">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginHorizontal">3dp</item>
+        <item name="android:background">@drawable/card</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingHorizontal">4dp</item>
+        <item name="android:paddingVertical">12dp</item>
+    </style>
+
+    <style name="TileIcon" parent="Icon">
+        <item name="android:textSize">32sp</item>
+    </style>
+
+    <style name="TileTitle" parent="Title">
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="TileBody" parent="Body">
+        <item name="android:layout_marginTop">3dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">9sp</item>
+    </style>
+
+    <style name="TileArrow" parent="Icon">
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:text">&#xe5c8;</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="NavItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="NavIcon" parent="Icon">
+        <item name="android:textColor">@color/muted</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="NavLabel" parent="Body">
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+</resources>
