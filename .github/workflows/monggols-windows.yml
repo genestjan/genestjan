@@ -1,0 +1,72 @@
+name: Build Monggols VPN for Windows
+
+on:
+  push:
+    branches: [claude/plugin-installation-5r36f2, main]
+    paths: ["vpn/windows/**", "vpn/ui/**", ".github/workflows/monggols-windows.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: monggols-windows
+  cancel-in-progress: true
+
+env:
+  WIREGUARD_WINDOWS_TAG: v1.1.1
+  WIREGUARD_NT_VERSION: "1.1"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # tunnel.dll: WireGuard's official embeddable tunnel library (MIT),
+      # built with the toolchain its own build script downloads.
+      - name: Build tunnel.dll
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch %WIREGUARD_WINDOWS_TAG% https://git.zx2c4.com/wireguard-windows "%RUNNER_TEMP%\wgw" || git clone --depth 1 --branch %WIREGUARD_WINDOWS_TAG% https://github.com/WireGuard/wireguard-windows.git "%RUNNER_TEMP%\wgw"
+          cd /d "%RUNNER_TEMP%\wgw\embeddable-dll-service"
+          call build.bat || exit /b 1
+          mkdir "%GITHUB_WORKSPACE%\vpn\windows\native"
+          copy amd64\tunnel.dll "%GITHUB_WORKSPACE%\vpn\windows\native\tunnel.dll"
+
+      # wireguard.dll: the signed WireGuardNT driver library from wireguard.com.
+      - name: Get wireguard.dll
+        shell: pwsh
+        run: |
+          $zip = "$env:RUNNER_TEMP\wgnt.zip"
+          Invoke-WebRequest "https://download.wireguard.com/wireguard-nt/wireguard-nt-$env:WIREGUARD_NT_VERSION.zip" -OutFile $zip
+          Expand-Archive $zip "$env:RUNNER_TEMP\wgnt"
+          Copy-Item "$env:RUNNER_TEMP\wgnt\wireguard-nt\bin\amd64\wireguard.dll" vpn\windows\native\wireguard.dll
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish app
+        working-directory: vpn/windows
+        run: dotnet publish -c Release -o publish
+
+      - name: Build installer
+        working-directory: vpn/windows
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          & $iscc "/DAppVersion=1.0.${{ github.run_number }}" installer.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      # Always the same download address:
+      # https://github.com/genestjan/genestjan/releases/download/monggols-windows/Monggols-VPN-Setup.exe
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: monggols-windows
+          name: Monggols VPN for Windows
+          body: Latest Windows build of Monggols VPN (build ${{ github.run_number }}).
+          files: vpn/windows/output/Monggols-VPN-Setup.exe
+          make_latest: false

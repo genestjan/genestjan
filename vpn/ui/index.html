@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ceb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0B0B12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Monggols VPN">
+  <title>Monggols VPN</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <!-- ================= HOME ================= -->
+    <section id="pageHome" class="page">
+      <button class="icon menu" id="menuButton" aria-label="Settings">menu</button>
+      <img class="hero" src="assets/hero.png" alt="Monggols VPN">
+
+      <div class="row3">
+        <div class="card status">
+          <span class="icon" id="statusIcon">verified_user</span>
+          <p class="small">Karon:</p>
+          <p class="statusTitle" id="statusTitle">DI PA KONEKTADO</p>
+          <p class="small" id="statusBody">Dili pa ka safe, Dong. Time na magpa-VPN!</p>
+        </div>
+
+        <button class="power" id="connectButton" aria-label="Konektahon">
+          <img id="powerRing" src="assets/power_red.png" alt="">
+          <span class="powerInner">
+            <span class="icon">power_settings_new</span>
+            <span id="connectLabel">KONEKTAHON</span>
+          </span>
+        </button>
+
+        <div class="card manyak">
+          <div class="manyakHead">
+            <img src="assets/face_small.png" alt="">
+            <span class="marker red">Manyak Mode</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="manyakSwitch"><span></span></label>
+          <p class="small">Mas thep, mas paspas, mas kalas. 🔥</p>
+        </div>
+      </div>
+
+      <button class="card destination" id="destinationCard">
+        <span class="icon red big">language</span>
+        <span class="destText">
+          <b>Pili-a ang Destino</b>
+          <span class="small">Asa man nimo gusto magkalibot? (Wala nay visa, gamit ra VPN!)</span>
+        </span>
+        <span class="chip">
+          <img src="assets/flag_uk.png" alt="">
+          <span><b>UK</b><span class="tiny">London</span></span>
+          <span class="icon muted">chevron_right</span>
+        </span>
+      </button>
+
+      <div class="featHead">
+        <b>Mga Panguna nga Feature</b>
+        <span class="marker red tilt">Tan-awa, pangita, libot!</span>
+      </div>
+      <div class="tiles">
+        <div class="card tile"><span class="icon" style="color:#E8173A">public</span><b>TAN-AWA</b><span>Mga blocked nga site, ablihi!</span><span class="icon arrow" style="color:#E8173A">arrow_forward</span></div>
+        <div class="card tile"><span class="icon" style="color:#7C5CFF">security</span><b>TANGTANG TRACKER</b><span>Wala na sila make-istorya nimo.</span><span class="icon arrow" style="color:#7C5CFF">arrow_forward</span></div>
+        <div class="card tile"><span class="icon" style="color:#1FC86E">speed</span><b>PASPAS MODE</b><span>Sukad sa slow nga internet ngadto sa piskot!</span><span class="icon arrow" style="color:#1FC86E">arrow_forward</span></div>
+        <div class="card tile"><span class="icon" style="color:#FFC531">visibility_off</span><b>PRIVACY MODE</b><span>Rangat ka, wala ka'y kuyog.</span><span class="icon arrow" style="color:#FFC531">arrow_forward</span></div>
+      </div>
+
+      <div class="card banner">
+        <img src="assets/face_small.png" alt="">
+        <span class="marker tilt">Konekta na!<br>Manyakol kang daku!</span>
+        <button class="pill" id="bannerButton">KONEKTA NA DAYON!</button>
+      </div>
+    </section>
+
+    <!-- ================= SERVER ================= -->
+    <section id="pageServer" class="page" hidden>
+      <h1>Server</h1>
+      <div class="card serverCard">
+        <img src="assets/flag_uk.png" alt="">
+        <span><b>United Kingdom · London</b><span class="small">Monggols server · online</span></span>
+        <span class="icon green">check_circle</span>
+      </div>
+      <p class="body">Ang tanan nimong internet moagi sa London. Ang mga website makakita ug UK nga IP, dili ang imong tinuod nga lokasyon.</p>
+    </section>
+
+    <!-- ================= PROTEKSYON ================= -->
+    <section id="pageProtect" class="page" hidden>
+      <h1>Proteksyon</h1>
+      <p class="protectStatus" id="protectStatus">DI PA KONEKTADO</p>
+      <p class="body">Kung konektado, ang imong koneksyon naka-encrypt gikan sa imong device hangtod sa Monggols server. Ang imong Wi-Fi o network provider dili makakita kung unsa imong gibuhat online.</p>
+    </section>
+
+    <!-- ================= SETTINGS ================= -->
+    <section id="pageSettings" class="page" hidden>
+      <h1>Settings</h1>
+      <div class="card setup" id="setupPanel">
+        <b class="big">I-setup kining device</b>
+        <p class="small" id="setupHelp">I-paste ang invite link nga gipadala nimo. Usa ra ka higayon, 5 minutos lang.</p>
+        <input id="inviteField" type="url" placeholder="https://vpn.genestjanramirez.com/cnf/…" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="pill wide" id="setupButton">I-SETUP</button>
+        <button class="link" id="fileLink">Gamit ug .conf file</button>
+      </div>
+      <div class="card setup" id="readyPanel" hidden>
+        <b class="big">Andam na kining device ✔</b>
+        <p class="small" id="readyBody">Pindota ang KONEKTAHON sa Home aron mo-connect.</p>
+        <button class="link red" id="resetLink">Tangtangon ang setup niining device</button>
+      </div>
+      <div id="platformExtra"></div>
+    </section>
+  </main>
+
+  <nav>
+    <button data-page="0"><span class="icon">home</span>Home</button>
+    <button data-page="1"><span class="icon">language</span>Server</button>
+    <button data-page="2"><span class="icon">verified_user</span>Proteksyon</button>
+    <button data-page="3"><span class="icon">settings</span>Settings</button>
+  </nav>
+
+  <div id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
