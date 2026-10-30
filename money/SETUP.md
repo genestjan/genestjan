@@ -29,7 +29,8 @@ Now only people you add by name can open it.
 Android only installs an update if it is signed with the same key as the app already on the
 phone. Claude made a key for you and sent you two small text files:
 `MONGGOLS_KEYSTORE_BASE64.txt` and `MONGGOLS_KEYSTORE_PASSWORD.txt`.
-(The same key also fixes the Monggols VPN Android build.)
+(The names start with MONGGOLS because Monggols VPN's Android build looks for the same two
+secrets, so one key can sign both apps.)
 
 1. On the laptop, open this page:
    https://github.com/genestjan/genestjan/settings/secrets/actions
