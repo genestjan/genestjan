@@ -8,6 +8,7 @@ import SmoothScroll from '@/components/layout/SmoothScroll';
 import CinematicCursor from '@/components/ui/CinematicCursor';
 import ApertureIntro from '@/components/ui/ApertureIntro';
 import SoundBoot from '@/components/ui/SoundBoot';
+import Clarity from '@/components/layout/Clarity';
 import { HOMEPAGE_VISIBLE } from '@/lib/visibility';
 
 const display = Space_Grotesk({
@@ -144,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : (
           children
         )}
+        <Clarity />
       </body>
     </html>
   );

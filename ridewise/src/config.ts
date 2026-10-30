@@ -21,4 +21,7 @@ export const config = {
   supabaseUrl: env.VITE_SUPABASE_URL || '',
   supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || '',
   defaultTimeZone: 'Asia/Manila',
+  // Microsoft Clarity project ID (public, it shows in the page anyway).
+  // Empty means no heatmaps or session recordings are collected.
+  clarityId: env.VITE_CLARITY_ID || '',
 };
