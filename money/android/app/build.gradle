@@ -1,0 +1,75 @@
+plugins {
+    id "com.android.application"
+}
+
+// Release signing comes from environment variables set by the GitHub workflow (the same key as
+// Monggols VPN, so no new secret is needed). Without them, a local build is signed with the
+// debug key.
+def ks = System.getenv("MONEY_KEYSTORE")
+def build = System.getenv("MONEY_VERSION_CODE") ?: "1"
+
+android {
+    namespace "com.genestjanramirez.money"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.genestjanramirez.money"
+        minSdk 26
+        targetSdk 35
+        versionCode Integer.parseInt(build)
+        versionName "1.0." + build
+    }
+
+    signingConfigs {
+        release {
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv("MONEY_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("MONEY_KEY_ALIAS") ?: "monggols"
+                keyPassword System.getenv("MONEY_KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig ks ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // The shared screen (money/web), built first, is packed into the app as assets/web.
+    sourceSets {
+        main.assets.srcDirs += layout.buildDirectory.dir("generated/webAssets").get().asFile
+    }
+}
+
+def webDist = file("$rootDir/../web/dist")
+
+tasks.register("copyWeb", Copy) {
+    doFirst {
+        if (!new File(webDist, "index.html").exists()) {
+            throw new GradleException("Build the shared screen first: cd money/web && npm ci && npm run build")
+        }
+    }
+    from webDist
+    into layout.buildDirectory.dir("generated/webAssets/web")
+}
+preBuild.dependsOn "copyWeb"
+
+dependencies {
+    implementation "androidx.webkit:webkit:1.12.1"
+    implementation "androidx.biometric:biometric:1.1.0"
+    implementation "androidx.fragment:fragment:1.8.5"
+    implementation "androidx.activity:activity:1.9.3"
+    implementation "androidx.core:core:1.13.1"
+}

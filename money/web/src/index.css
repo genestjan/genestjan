@@ -1,0 +1,84 @@
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-ext-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-ext-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-ext-600.css';
+@import '@fontsource/space-grotesk/latin-500.css';
+@import '@fontsource/space-grotesk/latin-ext-500.css';
+@import '@fontsource/space-grotesk/latin-700.css';
+@import '@fontsource/space-grotesk/latin-ext-700.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-ext-400.css';
+@import '@fontsource/jetbrains-mono/latin-500.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: #06080d;
+  color: #e8edf2;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* The faint instrument-panel grid from genestjanramirez.com */
+.blueprint {
+  background-image:
+    linear-gradient(rgba(30, 58, 95, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 95, 0.22) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
+}
+
+.gold-text {
+  background: linear-gradient(90deg, #c8913f 0%, #e3c574 55%, #f6eaa2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.num { font-variant-numeric: tabular-nums; }
+
+@layer components {
+  .card { @apply rounded-card border border-line bg-ink-3 shadow-card; }
+  .label { @apply font-mono text-[11px] uppercase tracking-[0.12em] text-muted; }
+  .field {
+    @apply w-full rounded-xl border border-line-strong bg-ink-2 px-3.5 py-3 text-[15px] text-paper outline-none transition
+      placeholder:text-faint focus:border-current focus:ring-2 focus:ring-current/25;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-[15px] font-semibold transition
+      disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98];
+  }
+  .btn-primary { @apply btn bg-signal text-ink hover:bg-[#ffbe5c]; }
+  .btn-outline { @apply btn border border-line-strong bg-transparent text-paper hover:bg-ink-4; }
+  .btn-ghost { @apply btn bg-transparent text-paper hover:bg-ink-4; }
+  .btn-danger { @apply btn border border-expense/40 bg-expense/10 text-expense hover:bg-expense/20; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium; }
+}
+
+:focus-visible { outline: 2px solid #4fd1e0; outline-offset: 2px; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #222d40; border-radius: 10px; border: 2px solid #06080d; }
+::-webkit-scrollbar-track { background: transparent; }
+
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator { filter: invert(0.8); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
