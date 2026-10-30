@@ -78,6 +78,8 @@ export async function currentUserId(c: SupabaseClient): Promise<string | null> {
 export async function changeLogin(c: SupabaseClient, auth: string) {
   const { error } = await c.auth.updateUser({ password: auth });
   fail(error);
+  // A lost or stolen device loses its cloud access the moment the password changes.
+  await c.auth.signOut({ scope: 'others' });
 }
 
 export async function signOut(c: SupabaseClient) {

@@ -77,7 +77,7 @@ export function Accounts() {
                         <td className="px-2 py-3"><div className="flex items-center gap-2.5"><InstitutionBadge id={a.institution} size={28} /><span className="font-medium">{a.name}</span></div></td>
                         <td className="px-2 py-3 text-muted">{accountTypeLabel(a.type)}</td>
                         <td className="px-2 py-3 text-right"><Money value={v} currency={a.currency} tone={isLiability(a) && v < 0 ? 'out' : 'plain'} /></td>
-                        <td className="px-2 py-3 text-muted">{l ? `${shortDate(l.date)}${l.source === 'capture' ? ' · captured' : ''}` : '—'}</td>
+                        <td className="px-2 py-3 text-muted">{l ? `${shortDate(l.date)}${l.source === 'capture' ? ' · captured' : ''}` : 'None yet'}</td>
                         <td className="px-2 py-3"><Badge tone={st.tone}><span className={cx('h-1.5 w-1.5 rounded-full', st.tone === 'good' ? 'bg-income' : st.tone === 'info' ? 'bg-current' : 'bg-faint')} />{st.text}</Badge></td>
                       </tr>
                     );

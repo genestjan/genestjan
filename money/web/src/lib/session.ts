@@ -32,13 +32,15 @@ export interface AppState {
   toast: string | null;
   recoveryKey: string | null;
   pendingEmail: string | null;
+  /** Where the cloud screen goes after Connect: create an account or sign in. */
+  afterCloud: 'create' | 'signin';
   sync: SyncState;
   bio: BioStatus;
 }
 
 export const useApp = create<AppState>(() => ({
   phase: 'boot', meta: null, snap: null, demo: false, busy: null, error: null, toast: null,
-  recoveryKey: null, pendingEmail: null, sync: { state: 'off' }, bio: { available: false, enrolled: false, label: '' },
+  recoveryKey: null, pendingEmail: null, afterCloud: 'create', sync: { state: 'off' }, bio: { available: false, enrolled: false, label: '' },
 }));
 
 const set = useApp.setState;

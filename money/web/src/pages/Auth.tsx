@@ -46,8 +46,8 @@ export function Welcome() {
         <p className="mt-1 text-sm text-muted">Track. Plan. Save. Grow.</p>
       </div>
       <div className="mt-8 space-y-3">
-        <button className="btn-primary w-full" onClick={() => go(cloudConfig() ? 'create' : 'cloud')}>Get started</button>
-        <button className="btn-outline w-full" onClick={() => go(cloudConfig() ? 'signin' : 'cloud')}>Sign in</button>
+        <button className="btn-primary w-full" onClick={() => { useApp.setState({ afterCloud: 'create' }); go(cloudConfig() ? 'create' : 'cloud'); }}>Get started</button>
+        <button className="btn-outline w-full" onClick={() => { useApp.setState({ afterCloud: 'signin' }); go(cloudConfig() ? 'signin' : 'cloud'); }}>Sign in</button>
         <a href="#demo" onClick={() => setTimeout(() => location.reload(), 0)} className="block pt-2 text-center text-sm text-current hover:underline">Look around with sample data first</a>
       </div>
       <div className="mt-10 flex items-center justify-center gap-2 text-xs text-faint">
@@ -77,7 +77,7 @@ export function CloudSetup() {
           const problem = checkCloudConfig(url, key);
           if (problem) return setErr(problem);
           saveCloudConfig({ url: url.replace(/\/$/, ''), key });
-          go('create');
+          go(useApp.getState().afterCloud);
         }}><Cloud size={18} /> Connect</button>
       </div>
       <button className="btn-ghost mt-4 w-full text-muted" onClick={() => { saveCloudConfig(null); go('create'); }}>
