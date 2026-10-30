@@ -264,11 +264,13 @@ async function openLedger(key: Uint8Array, fresh: boolean) {
   ledger = new Ledger(db, await dataKey(key));
   const { unreadable } = await ledger.load();
   if (unreadable) toast(`${unreadable} saved item${unreadable > 1 ? 's' : ''} could not be opened and were skipped.`);
+  // Defaults are stamped as the oldest possible version, so on a second device the real
+  // categories and settings from the cloud always win over them.
   const snap = ledger.snapshot();
   const seed: AnyRecord[] = [];
-  if (!snap.categories.length) seed.push(...defaultCategories());
-  if (fresh || !ledger.get('settings')) seed.push({ ...defaultSettings(), ...(ledger.get<Settings>('settings') ?? {}) });
-  if (seed.length) await ledger.put(seed);
+  if (!snap.categories.length) seed.push(...defaultCategories(1));
+  if (fresh || !ledger.get('settings')) seed.push({ ...defaultSettings(1), ...(ledger.get<Settings>('settings') ?? {}) });
+  if (seed.length) await ledger.put(seed, 1);
   ledger.subscribe(() => {
     set({ snap: ledger!.snapshot() });
     if (ledger!.dirty().length) syncSoon();
@@ -315,14 +317,14 @@ let interval: ReturnType<typeof setInterval> | undefined;
 
 function startBackground() {
   stopBackground();
-  interval = setInterval(() => { void syncNow(); void takeCaptures(); }, 60_000);
+  interval = setInterval(() => { void syncNow().then(() => setUpCapture()).then(() => takeCaptures()); }, 60_000);
   const meta = get().meta;
   const c = sb();
   if (meta?.mode === 'cloud' && c && meta.userId) {
     stopWatch = watch(c, meta.userId, () => syncSoon(800), () => void takeCaptures());
   }
-  void setUpCapture().then(() => takeCaptures());
-  void refreshRates();
+  // Settings only change after the first sync, so a fresh device never replaces the real ones.
+  void syncNow().then(() => setUpCapture()).then(() => takeCaptures()).then(() => refreshRates());
 }
 
 function stopBackground() {
@@ -361,8 +363,10 @@ export function syncNow(): Promise<void> {
   return syncing;
 }
 
+const syncedOnce = () => get().meta?.mode !== 'cloud' || !!get().sync.at;
+
 async function setUpCapture() {
-  if (!ledger) return;
+  if (!ledger || !syncedOnce()) return;
   let s = ledger.snapshot().settings;
   if (!s.capturePublicKey || !s.capturePrivateKey) {
     const keys = await newCaptureKeys();
@@ -436,7 +440,7 @@ export async function takeCaptures(): Promise<number> {
 }
 
 async function refreshRates() {
-  if (!ledger) return;
+  if (!ledger || !syncedOnce()) return;
   const s = ledger.snapshot().settings;
   if (s.ratesUpdatedAt && Date.now() - s.ratesUpdatedAt < 12 * 3600_000) return;
   try {

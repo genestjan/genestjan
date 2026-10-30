@@ -1,7 +1,7 @@
 import { dataKey } from './crypto';
 import { memoryDB } from './db';
 import { Ledger, type Remote, type RemoteRow } from './ledger';
-import type { Txn } from './model';
+import { defaultCategories, defaultSettings, type Category, type Settings, type Txn } from './model';
 
 /** A stand-in for the Supabase table: rows keyed by id, each write gets the next sequence. */
 function fakeServer() {
@@ -76,5 +76,24 @@ describe('Ledger sync between two devices', () => {
     expect(b.get<Txn>('t9')?.amount).toBe(999);
     const wrong = new Ledger(db, await dataKey(crypto.getRandomValues(new Uint8Array(32))));
     expect(await wrong.load()).toEqual({ unreadable: 1 });
+  });
+
+  it('a new device never overwrites real settings or categories with its defaults', async () => {
+    const key = await dataKey(crypto.getRandomValues(new Uint8Array(32)));
+    const { remote } = fakeServer();
+    const phone = await device(key);
+    await phone.put([...defaultCategories(1), defaultSettings(1)], 1);
+    const food = phone.get<Category>('cat-food')!;
+    await phone.put([{ ...food, name: 'Pagkain' }, { ...phone.get<Settings>('settings')!, capturePublicKey: 'PUB', capturePrivateKey: 'PRIV' }], 5000);
+    await phone.sync(remote);
+
+    // The laptop signs in for the first time: it seeds defaults before its first download.
+    const laptop = await device(key);
+    await laptop.put([...defaultCategories(1), defaultSettings(1)], 1);
+    await laptop.sync(remote);
+    expect(laptop.get<Category>('cat-food')?.name).toBe('Pagkain');
+    expect(laptop.get<Settings>('settings')?.capturePrivateKey).toBe('PRIV');
+    await phone.sync(remote);
+    expect(phone.get<Settings>('settings')?.capturePrivateKey).toBe('PRIV');
   });
 });
