@@ -7,7 +7,7 @@ import { updateSettings } from '../lib/actions';
 import {
   billsFor, categoryName, changeThisMonth, insights, monthSummary, series, topSlices, totals,
 } from '../lib/compute';
-import { dayHeading, monthLabel, shortDate, thisMonth, todayISO } from '../lib/dates';
+import { addMonths, dayHeading, monthLabel, shortDate, thisMonth, todayISO } from '../lib/dates';
 import { OTHER_COLOUR } from '../lib/model';
 import { formatMoney } from '../lib/money';
 import { useApp } from '../lib/session';
@@ -48,7 +48,9 @@ export function Home() {
   const sum = monthSummary(snap, month);
   const change = changeThisMonth(snap, month);
   const slices = spendingSlices(snap, sum.byCategory);
-  const bills = billsFor(snap, month).filter((b) => b.state !== 'paid').slice(0, 4);
+  // The next two weeks, across the month end, plus anything overdue.
+  const bills = [...billsFor(snap, month), ...billsFor(snap, addMonths(month, 1))]
+    .filter((b) => b.state !== 'paid' && b.days <= 14).slice(0, 4);
   const tips = insights(snap, month, today, (n) => formatMoney(n));
   const recent = snap.txns.slice(0, 6);
   const review = snap.captures.filter((c) => c.status === 'review').length;
@@ -141,7 +143,7 @@ export function Home() {
           {bills.length ? (
             <ul className="space-y-1">
               {bills.map((b) => (
-                <li key={b.bill.id}>
+                <li key={b.bill.id + b.due}>
                   <button onClick={() => openPay(b)} className="flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left hover:bg-ink-4">
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium">{b.bill.name}</div>
