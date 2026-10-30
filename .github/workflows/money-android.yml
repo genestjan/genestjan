@@ -34,11 +34,13 @@ jobs:
           npm test
           npm run build
 
+      # GitHub's Ubuntu runners come with the Android SDK (ANDROID_HOME); Gradle fetches any
+      # missing platform itself. (android-actions/setup-android@v3 now fails asking for the
+      # retired "tools" package.)
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
 
       # Signs with the same key as Monggols VPN (MONGGOLS_KEYSTORE_BASE64 and
       # MONGGOLS_KEYSTORE_PASSWORD), unless MONEY_KEYSTORE_* secrets are added. The same key must
