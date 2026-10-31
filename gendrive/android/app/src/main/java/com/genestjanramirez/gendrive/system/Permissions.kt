@@ -54,6 +54,16 @@ object Permissions {
 
     fun openHomeSettings(context: Context): Boolean = start(context, Intent(Settings.ACTION_HOME_SETTINGS))
 
+    /** BYD's own "app start management" screen, where an app can be allowed to start with the car. */
+    private const val BYD_AUTOSTART = "com.byd.appstartmanagement"
+
+    fun hasBydAutostart(context: Context): Boolean = context.packageManager.getLaunchIntentForPackage(BYD_AUTOSTART) != null
+
+    fun openBydAutostart(context: Context): Boolean {
+        val intent = context.packageManager.getLaunchIntentForPackage(BYD_AUTOSTART) ?: return false
+        return start(context, intent)
+    }
+
     private fun start(context: Context, intent: Intent): Boolean = try {
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         true

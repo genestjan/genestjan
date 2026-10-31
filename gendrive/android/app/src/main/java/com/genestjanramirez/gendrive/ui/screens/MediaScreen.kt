@@ -41,7 +41,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -103,6 +106,7 @@ fun MediaScreen(graph: AppGraph, moving: Boolean, go: (Dest) -> Unit) {
 @Composable
 private fun PlayerCard(graph: AppGraph, track: NowPlaying?, now: Long, modifier: Modifier) {
     val c = Gd.colors
+    var dragging by remember { mutableStateOf<Float?>(null) }
     GdCard(modifier) {
         Column(Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
             val art = track?.art
@@ -122,8 +126,12 @@ private fun PlayerCard(graph: AppGraph, track: NowPlaying?, now: Long, modifier:
             if (track != null && track.durationMs > 0) {
                 val pos = track.positionAt(now)
                 Slider(
-                    value = (pos.toFloat() / track.durationMs).coerceIn(0f, 1f),
-                    onValueChange = { graph.media.seekTo((it * track.durationMs).toLong()) },
+                    value = dragging ?: (pos.toFloat() / track.durationMs).coerceIn(0f, 1f),
+                    onValueChange = { dragging = it },
+                    onValueChangeFinished = {
+                        dragging?.let { graph.media.seekTo((it * track.durationMs).toLong()) }
+                        dragging = null
+                    },
                     colors = SliderDefaults.colors(thumbColor = c.mint, activeTrackColor = c.mint, inactiveTrackColor = c.border),
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 )

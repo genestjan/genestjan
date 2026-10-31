@@ -34,8 +34,11 @@ internal class BydDevice(private val instance: Any, val name: String) {
 
     fun call(method: String, vararg args: Any): Any? {
         val key = "$method/${args.size}"
-        val m = methods.getOrPut(key) {
-            instance.javaClass.methods.firstOrNull { it.name == method && it.parameterTypes.size == args.size }
+        // Remember misses too: a trim without this method should not be re-scanned twice a second.
+        val m = if (methods.containsKey(key)) {
+            methods[key]
+        } else {
+            instance.javaClass.methods.firstOrNull { it.name == method && it.parameterTypes.size == args.size }.also { methods[key] = it }
         } ?: return null
         return try {
             m.invoke(instance, *args)

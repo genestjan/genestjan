@@ -24,6 +24,7 @@ class GenDriveApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        installCrashGuard()
         graph = AppGraph(this)
         graph.apps.refresh()
         registerReceiver(
@@ -37,6 +38,27 @@ class GenDriveApp : Application() {
                 addDataScheme("package")
             },
         )
+    }
+}
+
+/**
+ * If GenDrive is the home screen and crashes twice within a minute, hand the home
+ * screen back to BYD's launcher so a bad update can never trap the car screen.
+ */
+private fun Application.installCrashGuard() {
+    val previous = Thread.getDefaultUncaughtExceptionHandler()
+    Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+        try {
+            val prefs = getSharedPreferences("gendrive_crash", Context.MODE_PRIVATE)
+            val now = System.currentTimeMillis()
+            val last = prefs.getLong("lastCrash", 0L)
+            prefs.edit().putLong("lastCrash", now).commit()
+            if (now - last < 60_000L && com.genestjanramirez.gendrive.system.Permissions.isHomeEnabled(this)) {
+                com.genestjanramirez.gendrive.system.Permissions.setHomeEnabled(this, false)
+            }
+        } catch (ignored: Throwable) {
+        }
+        previous?.uncaughtException(thread, error)
     }
 }
 

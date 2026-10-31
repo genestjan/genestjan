@@ -40,7 +40,8 @@ class VideoGuard(private val context: Context) {
     /** The package most recently brought to the front, from usage events. */
     fun foregroundPackage(): String? {
         val now = System.currentTimeMillis()
-        val from = if (lastQueryMs == 0L) now - 60_000 else lastQueryMs - 1_000
+        // First look back far enough to catch a video app opened long before the service started.
+        val from = if (lastQueryMs == 0L) now - 6 * 3_600_000L else lastQueryMs - 1_000
         lastQueryMs = now
         try {
             val events = usage?.queryEvents(from, now) ?: return lastForeground

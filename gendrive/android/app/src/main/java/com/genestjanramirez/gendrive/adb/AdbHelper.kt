@@ -22,6 +22,7 @@ class AdbHelper(private val context: Context) {
     private val privateKey = File(keyDir, "adbkey")
     private val publicKey = File(keyDir, "adbkey.pub")
 
+    @Synchronized
     private fun keyPair(): AdbKeyPair {
         if (!privateKey.exists() || !publicKey.exists()) AdbKeyPair.generate(privateKey, publicKey)
         return AdbKeyPair.read(privateKey, publicKey)

@@ -24,6 +24,12 @@ android {
     }
 
     signingConfigs {
+        // minSdk 28 would normally drop the old v1 (JAR) signature, but BYD's
+        // installer on DiLink 3 / Android 10 expects both, so sign with v1 and v2.
+        getByName("debug") {
+            enableV1Signing = true
+            enableV2Signing = true
+        }
         create("release") {
             if (keystorePath != null) {
                 storeFile = file(keystorePath)
@@ -31,6 +37,8 @@ android {
                 keyAlias = System.getenv("GENDRIVE_KEY_ALIAS") ?: "gendrive"
                 keyPassword = System.getenv("GENDRIVE_KEY_PASSWORD") ?: System.getenv("GENDRIVE_KEYSTORE_PASSWORD")
             }
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 

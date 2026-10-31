@@ -6,14 +6,18 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.service.notification.NotificationListenerService
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.genestjanramirez.gendrive.R
-import com.genestjanramirez.gendrive.core.drive.VideoApps
 import com.genestjanramirez.gendrive.core.drive.VideoGuardPolicy
+import com.genestjanramirez.gendrive.core.vehicle.Gear
 import com.genestjanramirez.gendrive.graph
+import com.genestjanramirez.gendrive.notify.GenDriveNotificationListener
 import com.genestjanramirez.gendrive.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +29,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Runs while the car is on: reads the car, logs trips and charging, speaks
- * warnings, and applies the Park-only video rule.
+ * warnings, and applies the Park-only video rule. Takes no wake locks, so it can
+ * never keep the head unit awake after the car is switched off.
  */
 class DriveService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -41,30 +46,59 @@ class DriveService : Service() {
         val g = graph
         g.vehicle.start()
         g.media.refresh()
+        rebindNotificationListener()
         g.voice.greetIfDue()
         scope.launch {
             while (isActive) {
-                val state = g.vehicle.state.value
-                g.trips.onSample(state)
+                g.trips.onSample(g.vehicle.state.value)
                 g.voice.checkWarnings()
-                applyVideoRule()
                 delay(1_000)
+            }
+        }
+        // The video rule runs on its own faster loop so a gear change is acted on quickly.
+        scope.launch {
+            while (isActive) {
+                applyVideoRule()
+                delay(if (guard.isShowing) 250 else 400)
             }
         }
     }
 
     private fun applyVideoRule() {
         val state = graph.vehicle.state.value
-        val now = System.currentTimeMillis()
-        val speed = state.speedKmh
-        stoppedSinceMs = if (speed != null && speed < 1.0) stoppedSinceMs ?: now else null
-        val stoppedFor = stoppedSinceMs?.let { now - it } ?: 0L
-        val allowed = VideoGuardPolicy.pictureAllowed(state, stoppedFor, graph.settings.current.videoGuardOnDemoData)
-        if (allowed || !guard.canRun()) {
+        // Reverse: the camera must be visible. Hide first, ask questions later.
+        if (state.gear == Gear.R) {
             guard.hide()
             return
         }
-        if (VideoApps.isVideoApp(guard.foregroundPackage())) guard.show() else guard.hide()
+        val now = System.currentTimeMillis()
+        val speed = state.speedKmh
+        stoppedSinceMs = if (speed != null && speed < 1.0) stoppedSinceMs ?: now else null
+        if (!guard.canRun()) {
+            guard.hide()
+            return
+        }
+        val cover = VideoGuardPolicy.shouldCover(
+            state = state,
+            stoppedForMs = stoppedSinceMs?.let { now - it } ?: 0L,
+            foregroundPackage = guard.foregroundPackage(),
+            includeDemoData = graph.settings.current.videoGuardOnDemoData,
+        )
+        if (cover) guard.show() else guard.hide()
+    }
+
+    /**
+     * BYD's app-start gate can refuse to bind a third-party notification listener
+     * while the app is not running (documented by OverDrive). Now that we are
+     * running, ask Android to bind it again.
+     */
+    private fun rebindNotificationListener() {
+        if (!NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)) return
+        try {
+            NotificationListenerService.requestRebind(ComponentName(this, GenDriveNotificationListener::class.java))
+        } catch (e: Exception) {
+            // Not supported on this head unit; the listener binds on its own when allowed.
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY

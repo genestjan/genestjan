@@ -1,5 +1,11 @@
 package com.genestjanramirez.gendrive.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -90,6 +96,7 @@ fun GenDriveRoot(graph: AppGraph) {
         val c = Gd.colors
         val motion by graph.vehicle.motion.collectAsState()
         val moving = motion == Motion.MOVING
+        BackHandler(enabled = dest != Dest.HOME) { dest = Dest.HOME }
         Box(Modifier.fillMaxSize().background(c.bg)) {
             // A soft glow in two corners: depth without distracting movement.
             Canvas(Modifier.fillMaxSize()) {
@@ -136,7 +143,11 @@ fun GenDriveRoot(graph: AppGraph) {
 @Composable
 private fun NavRail(graph: AppGraph, current: Dest, onSelect: (Dest) -> Unit) {
     val c = Gd.colors
+    val context = LocalContext.current
     val assistant by graph.voice.ui.collectAsState()
+    val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) graph.voice.toggleListening() else graph.voice.say("I need the microphone to hear you. You can allow it in Settings, under Setup.")
+    }
     Column(
         Modifier
             .fillMaxHeight()
@@ -154,7 +165,10 @@ private fun NavRail(graph: AppGraph, current: Dest, onSelect: (Dest) -> Unit) {
         ) {
             Dest.entries.forEach { d -> RailItem(d, d == current) { onSelect(d) } }
         }
-        AssistantOrb(assistant, onClick = { graph.voice.toggleListening() }, diameter = 76.dp)
+        AssistantOrb(assistant, onClick = {
+            val hasMic = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+            if (hasMic) graph.voice.toggleListening() else micPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }, diameter = 76.dp)
     }
 }
 

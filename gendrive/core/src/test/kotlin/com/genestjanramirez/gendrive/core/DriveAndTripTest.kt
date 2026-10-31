@@ -57,6 +57,18 @@ class DriveAndTripTest {
     }
 
     @Test
+    fun neverCoversTheReversingCameraOrNonVideoApps() {
+        val youtube = "com.google.android.youtube"
+        val driving = car(0, 40.0, Gear.D)
+        assertTrue(VideoGuardPolicy.shouldCover(driving, 0, youtube))
+        assertFalse(VideoGuardPolicy.shouldCover(car(0, 3.0, Gear.R), 0, youtube)) // reverse: camera wins
+        assertFalse(VideoGuardPolicy.shouldCover(driving, 0, "com.byd.avc"))
+        assertFalse(VideoGuardPolicy.shouldCover(driving, 0, "com.spotify.music"))
+        assertFalse(VideoGuardPolicy.shouldCover(driving, 0, null))
+        assertFalse(VideoGuardPolicy.shouldCover(car(0, 0.0, Gear.P), 0, youtube))
+    }
+
+    @Test
     fun recordsATripFromOdometerAndSoc() {
         val rec = TripRecorder(capacityKwh = { 60.0 }, endAfterParkedMs = 60_000)
         var t = 0L

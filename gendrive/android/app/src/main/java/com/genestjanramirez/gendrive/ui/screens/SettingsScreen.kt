@@ -28,7 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Usb
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -117,6 +117,13 @@ fun SettingsScreen(graph: AppGraph, moving: Boolean) {
                     }
                 }
             }
+            if (Permissions.hasBydAutostart(context)) {
+                CheckRow(
+                    ok = false,
+                    title = "Let GenDrive start with the car",
+                    detail = "BYD's own autostart list. Find GenDrive and allow it, so the greeting and trip log start by themselves.",
+                ) { Permissions.openBydAutostart(context) }
+            }
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 GdButton("Fix everything with ADB", onClick = {
@@ -163,7 +170,7 @@ fun SettingsScreen(graph: AppGraph, moving: Boolean) {
             TextSetting("Gemini model", s.geminiModel, enabled = !moving) { v -> graph.settings.update { it.copy(geminiModel = v) } }
             Spacer(Modifier.height(14.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                GdButton("Choose voice", onClick = { pickVoice = true }, icon = Icons.Rounded.VolumeUp, enabled = !moving, modifier = Modifier.weight(1f))
+                GdButton("Choose voice", onClick = { pickVoice = true }, icon = Icons.AutoMirrored.Rounded.VolumeUp, enabled = !moving, modifier = Modifier.weight(1f))
                 GdButton("Hear a sample", onClick = { graph.voice.preview() }, modifier = Modifier.weight(1f))
             }
             SettingSwitch("Welcome greeting", "Says hello with your battery and range when the car starts.", s.spokenGreeting, { v -> graph.settings.update { it.copy(spokenGreeting = v) } }, enabled = !moving)

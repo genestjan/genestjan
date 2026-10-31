@@ -90,8 +90,8 @@ class VoiceAssistant(private val context: Context, private val graph: AppGraph) 
                 val s = graph.settings.current
                 if (!s.spokenTripSummaries) return@collect
                 when (event) {
-                    is Trip -> say(persona().tripSummary(event, s.cost))
-                    is ChargeSession -> say(persona().chargingComplete(event, s.cost))
+                    is Trip -> say(persona().tripSummary(event, s.cost), interrupt = false)
+                    is ChargeSession -> say(persona().chargingComplete(event, s.cost), interrupt = false)
                 }
             }
         }
@@ -159,6 +159,11 @@ class VoiceAssistant(private val context: Context, private val graph: AppGraph) 
                 throw e
             } catch (e: Exception) {
                 say("Something went wrong: ${e.message ?: "unknown error"}.")
+            } finally {
+                // Never leave the button spinning, for example when the car has no speech engine.
+                _ui.update {
+                    if (it.phase == AssistantPhase.LISTENING || it.phase == AssistantPhase.THINKING) it.copy(phase = AssistantPhase.IDLE, level = 0f) else it
+                }
             }
         }
     }
@@ -278,6 +283,8 @@ class VoiceAssistant(private val context: Context, private val graph: AppGraph) 
             GeminiProtocol.parse(text)
         } finally {
             conn.disconnect()
+            // The voice clip is only needed for this one request.
+            audio.delete()
         }
     }
 

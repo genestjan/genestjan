@@ -72,6 +72,30 @@ object VideoGuardPolicy {
         val speed = state.speedKmh ?: return true
         return speed < 1.0 && stoppedForMs >= STOPPED_HOLD_MS
     }
+
+    /**
+     * BYD's own screens that GenDrive must never draw over: the camera (360 view and
+     * reversing camera), warnings, the system UI and the launcher.
+     */
+    val neverCover: Set<String> = setOf(
+        "com.byd.avc",
+        "com.byd.warning",
+        "com.byd.systemui",
+        "com.byd.launcher",
+        "com.android.systemui",
+    )
+
+    /**
+     * Whether to draw the "audio only" cover right now. Safety first: in reverse the
+     * camera must always be visible, so the answer is no regardless of anything else.
+     * Only a known video app in the foreground is ever covered.
+     */
+    fun shouldCover(state: VehicleState?, stoppedForMs: Long, foregroundPackage: String?, includeDemoData: Boolean = false): Boolean {
+        if (state?.gear == Gear.R) return false
+        if (foregroundPackage == null || foregroundPackage in neverCover) return false
+        if (!VideoApps.isVideoApp(foregroundPackage)) return false
+        return !pictureAllowed(state, stoppedForMs, includeDemoData)
+    }
 }
 
 /** Apps whose picture is hidden while the car can move. Audio is never stopped. */

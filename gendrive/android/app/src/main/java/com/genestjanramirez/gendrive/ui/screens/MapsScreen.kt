@@ -35,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +72,8 @@ fun MapsScreen(graph: AppGraph, moving: Boolean, go: (Dest) -> Unit) {
     val mapsInstalled = MapsLauncher.isInstalled(context, MapsLinks.GOOGLE_MAPS_PACKAGE)
     val wazeInstalled = MapsLauncher.isInstalled(context, MapsLinks.WAZE_PACKAGE)
     val inSplitScreen = (context as? Activity)?.isInMultiWindowMode == true
+    // Typing is for parked moments: close the address box as soon as the car moves.
+    LaunchedEffect(moving) { if (moving) editing = null }
 
     fun navigate(destination: String) {
         if (destination.isNotBlank()) MapsLauncher.navigate(context, destination, adjacent = inSplitScreen)

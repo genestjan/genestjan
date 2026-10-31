@@ -34,7 +34,8 @@ internal class DemoVehicleSource(private val capacityKwh: () -> Double) {
         lastMs = nowMs
         val km = speed * dtHours
         odometer += km
-        soc = (soc - km * 0.14 / capacityKwh() * 100).coerceAtLeast(5.0)
+        soc -= km * 0.14 / capacityKwh() * 100
+        if (soc < 30.0) soc = 78.0 // keep the demo away from low-battery warnings
         return VehicleState(
             source = DataSource.DEMO,
             timestampMs = nowMs,
