@@ -173,6 +173,16 @@ fun SettingsScreen(graph: AppGraph, moving: Boolean) {
                 GdButton("Choose voice", onClick = { pickVoice = true }, icon = Icons.AutoMirrored.Rounded.VolumeUp, enabled = !moving, modifier = Modifier.weight(1f))
                 GdButton("Hear a sample", onClick = { graph.voice.preview() }, modifier = Modifier.weight(1f))
             }
+            val speechReady by graph.voice.speaker.ready.collectAsState()
+            if (!speechReady) {
+                Spacer(Modifier.height(8.dp))
+                Label(
+                    "No speech engine found on this car, so Gen can't talk yet. Its replies still show at the top of the screen. " +
+                        "A free text-to-speech app, such as Speech Services by Google, gives Gen a voice.",
+                    color = c.amber,
+                    maxLines = 4,
+                )
+            }
             SettingSwitch("Welcome greeting", "Says hello with your battery and range when the car starts.", s.spokenGreeting, { v -> graph.settings.update { it.copy(spokenGreeting = v) } }, enabled = !moving)
             SettingSwitch("Trip and charging summaries", "Tells you the distance, cost and savings when you park or finish charging.", s.spokenTripSummaries, { v -> graph.settings.update { it.copy(spokenTripSummaries = v) } }, enabled = !moving)
             SettingSwitch("Spoken warnings", "Low battery and low tyre pressure.", s.spokenWarnings, { v -> graph.settings.update { it.copy(spokenWarnings = v) } }, enabled = !moving)

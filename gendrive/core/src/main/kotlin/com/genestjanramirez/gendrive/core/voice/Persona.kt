@@ -91,7 +91,7 @@ class Persona(
         else -> pick("Setting course for $destination.", "Right away. Directions to $destination.", "Very good. Heading to $destination.")
     }
 
-    fun searching(query: String): String = pick("Showing $query nearby.", "Here's $query close by.")
+    fun searching(query: String): String = pick("Searching nearby for $query.", "Looking for $query close by.")
 
     fun media(action: String): String = when (action) {
         "pause" -> pick("Paused.", "Music paused.")

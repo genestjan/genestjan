@@ -214,7 +214,10 @@ private fun Header(graph: AppGraph, dest: Dest, moving: Boolean) {
             // While Gen is busy, this line shows what it is doing, so the driver never wonders if it heard.
             val sub = when (assistant.phase) {
                 AssistantPhase.LISTENING -> "Listening…"
-                AssistantPhase.THINKING -> assistant.heard?.takeIf { it.isNotBlank() && it != "…" }?.let { "“$it”" } ?: "One moment…"
+                // A reply can arrive without speech (no speech engine on the car): show it as soon as it exists.
+                AssistantPhase.THINKING -> assistant.reply
+                    ?: assistant.heard?.takeIf { it.isNotBlank() && it != "…" }?.let { "“$it”" }
+                    ?: "One moment…"
                 AssistantPhase.SPEAKING -> assistant.reply
                 AssistantPhase.IDLE -> null
             } ?: listOf(settings.carModel.substringBefore(" ("), if (moving) "Driving" else "Parked").joinToString(" · ")
