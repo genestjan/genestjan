@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GenDrive</string>
+    <string name="drive_service_channel">GenDrive running</string>
+    <string name="drive_service_text">Logging trips and watching the video rule</string>
+</resources>

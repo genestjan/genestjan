@@ -1,0 +1,7 @@
+# Build output and caches (both the core and android builds)
+build/
+.gradle/
+.kotlin/
+local.properties
+*.jks
+*.keystore

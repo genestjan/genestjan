@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose draws everything; this only sets the window colours before the first frame. -->
+    <style name="Theme.GenDrive" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/gendrive_night</item>
+        <item name="android:statusBarColor">@color/gendrive_night</item>
+        <item name="android:navigationBarColor">@color/gendrive_night</item>
+        <item name="android:colorAccent">@color/gendrive_mint</item>
+    </style>
+</resources>
