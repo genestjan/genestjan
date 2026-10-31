@@ -91,7 +91,7 @@ export function RemindersCard() {
           ) : undefined} />
         <Row icon={<CalendarDays size={18} />} title="Google Calendar"
           text={opts.calendar
-            ? calendarError ? <span className="text-expense">{calendarError}</span>
+            ? calendarError ? <span className="text-expense">{calendarError.message}</span>
               : <>All-day events in your <span className="text-paper">Money Hub bills</span> calendar{opts.calendar.lastSync ? `, updated ${ago(opts.calendar.lastSync)}` : ''}.</>
             : `An all-day event on the reminder day, ${opts.days} days before each bill.`}
           action={

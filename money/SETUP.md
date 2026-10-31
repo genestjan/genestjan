@@ -299,6 +299,10 @@ installed with the installer.) It starts off, so you are not reminded twice.
 15. Open Google Calendar. On the left there is a new calendar, **Money Hub bills**, with an
     all-day event 5 days before each bill. Only you can see it.
 
+**If you paste the script again later:** Google keeps running the old copy until you deploy again.
+Click **Deploy**, then **New deployment**, then **Deploy**, click **Copy** under **Web app URL**,
+and paste the new address into Money Hub. You do not need to run **setup** again.
+
 **To get a Google Calendar notification as well:** in Google Calendar, point at **Money Hub
 bills** on the left, click the three dots, **Settings and sharing**. Under
 **All-day event notifications**, click **Add notification** and choose **On the day at 9am**.
@@ -365,5 +369,6 @@ phone always shows a blank card instead of your balances.
 | "Sync problem" | Open supabase.com. If the project says **Paused**, click **Restore project**, wait two minutes, then tap **Sync** in Money Hub. |
 | Forgot your password | On the lock screen tap **Forgot password?** and use your spare key. |
 | No bill reminder arrived | Check Part 10: notifications allowed, Money Hub battery set to Unrestricted, and the bill has a due day. |
+| "The script in your Google account has a different secret" | In Money Hub, open the Google Calendar panel and tap **Copy the script**. In Apps Script, select everything, paste, save, then **Deploy > New deployment > Deploy**. Paste the new Web app URL into Money Hub and click **Connect and send**. |
 | Google Calendar shows a problem | Open Settings > Bill reminders > Google Calendar > Manage, click Copy the script, paste it over the old one at script.google.com, save, then Deploy > Manage deployments > edit > New version > Deploy. |
 | Lost phone | On the laptop: **Settings > Security > Change password**. The lost phone cannot open your data without your password or fingerprint, and a new password locks it out of the cloud. |

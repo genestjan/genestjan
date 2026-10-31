@@ -1,6 +1,7 @@
 import type { Book } from './compute';
 import { catId, defaultCategories, defaultSettings, type Account, type Bill, type Txn } from './model';
-import { calendarEvent, notificationText, upcomingReminders, syncCalendar } from './reminders';
+import { AppError } from './problems';
+import { calendarEvent, notificationText, testCalendar, upcomingReminders, syncCalendar } from './reminders';
 
 const acct = (id: string, extra: Partial<Account> = {}): Account => ({
   id, kind: 'account', updatedAt: 1, name: id, type: 'bank', institution: 'bpi', currency: 'PHP', openingBalance: 0, ...extra,
@@ -84,5 +85,26 @@ describe('reminder wording', () => {
     expect(await syncCalendar({ ...link, hash: first!.hash }, list, TODAY)).toBeNull();
     expect(calls).toHaveLength(1);
     vi.unstubAllGlobals();
+  });
+});
+
+describe('calendar script answers', () => {
+  const link = { url: 'https://script.google.com/macros/s/AKfycbzoePmAbCdEfGhIjKlMnOpQrStUv/exec', secret: 's' };
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('explains a secret that does not match, and keeps what the script said', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"ok":false,"error":"wrong secret"}')));
+    const e = await testCalendar(link).catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(AppError);
+    expect((e as AppError).message).toMatch(/different secret.*deploy again/);
+    expect((e as AppError).detail).toBe('script answered: wrong secret');
+  });
+
+  it('spots a deployment that still runs an old copy of the script', async () => {
+    const page = '<html><head><title>Error</title><style>p{}</style></head><body><div>Script function not found: doPost</div></body></html>';
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(page, { status: 200 })));
+    const e = (await testCalendar(link).catch((x: unknown) => x)) as AppError;
+    expect(e.message).toMatch(/old copy of the script/);
+    expect(e.detail).toBe('HTTP 200: Error Script function not found: doPost · https://script.google.com/macros/s/AKfycbzo…/exec');
   });
 });

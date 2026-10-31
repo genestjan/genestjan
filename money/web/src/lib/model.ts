@@ -146,6 +146,8 @@ export interface ReminderSettings {
   /** Time of day, "09:00". */
   time: string;
   calendar?: CalendarLink;
+  /** The secret inside the copied calendar script, kept so it still matches after the app locks. */
+  scriptSecret?: string;
 }
 
 export const DEFAULT_REMINDERS: ReminderSettings = { days: 5, time: '09:00' };

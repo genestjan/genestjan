@@ -41,8 +41,8 @@ export interface AppState {
   afterCloud: 'create' | 'signin';
   sync: SyncState;
   bio: BioStatus;
-  /** Last Google Calendar problem on this device (not synced). */
-  calendarError: string | null;
+  /** Last Google Calendar problem on this device (not synced), with its technical detail. */
+  calendarError: { message: string; detail?: string } | null;
 }
 
 export const useApp = create<AppState>(() => ({
@@ -509,8 +509,7 @@ export async function refreshReminders(force = false): Promise<void> {
         }
         set({ calendarError: null });
       } catch (e) {
-        logProblem('Google Calendar', e);
-        set({ calendarError: (e as Error).message });
+        set({ calendarError: logProblem('Google Calendar', e) });
       }
     }
   } finally {

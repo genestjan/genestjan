@@ -4,6 +4,7 @@ import { addDays, addMonths, fromISO, monthOf, shortDate, todayISO } from './dat
 import { DEFAULT_REMINDERS, type CalendarLink, type ReminderSettings } from './model';
 import { formatMoney } from './money';
 import { hasNative, native, platform } from './native';
+import { AppError } from './problems';
 
 // Bill reminders, N days before each due date (5 unless changed in Settings): a notification on
 // the phone (and the laptop, if switched on) and, if connected, an all-day event in Google
@@ -105,31 +106,43 @@ export const checkScriptUrl = (url: string) =>
 
 interface ScriptReply { ok: boolean; error?: string; created?: number; updated?: number; removed?: number; calendar?: string }
 
+// The web app address only shortened, for error details that may be screenshotted.
+const shortScriptUrl = (url: string) => url.replace(/(\/macros\/s\/[\w-]{8})[\w-]+/, '$1…');
+
 async function postToScript(url: string, body: unknown): Promise<ScriptReply> {
   const text = JSON.stringify(body);
   let raw: string;
+  let status: number;
   if (hasNative) {
     // Apps Script answers with a redirect to another Google domain, which a web page cannot
     // follow reliably; the Android and Windows apps make the call instead.
     const res = await native.http({ method: 'POST', url, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: text });
     raw = res.body;
+    status = res.status;
   } else {
-    raw = await (await fetch(url, { method: 'POST', body: text })).text();
+    const res = await fetch(url, { method: 'POST', body: text });
+    raw = await res.text();
+    status = res.status;
   }
   try {
     return JSON.parse(raw) as ScriptReply;
   } catch {
-    throw new Error(/<html/i.test(raw)
+    const page = raw.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>/gi, ' ').replace(/\s+/g, ' ').trim();
+    const detail = `HTTP ${status}: ${page.slice(0, 140)} · ${shortScriptUrl(url)}`;
+    if (/Script function not found/i.test(page)) {
+      throw new AppError('The web app runs an old copy of the script. In Apps Script click Deploy, then New deployment, then Deploy, and paste the new Web app URL here.', detail);
+    }
+    throw new AppError(/<html/i.test(raw)
       ? 'Google answered with a sign-in page. In the deployment, set "Who has access" to Anyone, then deploy again.'
-      : 'The calendar script did not answer properly. Check the Web app URL.');
+      : 'The calendar script did not answer properly. Check the Web app URL.', detail);
   }
 }
 
 function explain(r: ScriptReply): ScriptReply {
   if (r.ok) return r;
-  throw new Error(r.error === 'wrong secret'
-    ? 'The script and Money Hub do not match. Copy the script from Money Hub again and paste it over the old one.'
-    : r.error || 'The calendar script reported a problem.');
+  throw new AppError(r.error === 'wrong secret'
+    ? 'The script in your Google account has a different secret from Money Hub. Tap Copy the script, paste it over the old one in Apps Script and save, then deploy again (Deploy, New deployment) and paste the new Web app URL here.'
+    : r.error || 'The calendar script reported a problem.', `script answered: ${r.error ?? 'no reason given'}`);
 }
 
 export async function testCalendar(link: Pick<CalendarLink, 'url' | 'secret'>): Promise<string> {
