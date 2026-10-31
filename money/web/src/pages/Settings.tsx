@@ -144,15 +144,15 @@ function PasswordSheet({ open, onClose }: { open: boolean; onClose: () => void }
   const [cur, setCur] = useState('');
   const [next, setNext] = useState('');
   const [again, setAgain] = useState('');
-  const ok = next.length >= 12 && next === again && !!cur;
+  const ok = next.length >= 8 && next === again && !!cur;
   return (
     <Sheet open={open} onClose={onClose} title="Change password"
       footer={<button className="btn-primary w-full" disabled={!ok} onClick={async () => { if (await changePassword(cur, next)) { setCur(''); setNext(''); setAgain(''); onClose(); } }}>Change password</button>}>
       <div className="space-y-4">
         <Field label="Current password"><input className="field" type="password" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} /></Field>
-        <Field label="New password" hint="At least 12 characters."><input className="field" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></Field>
+        <Field label="New password" hint="At least 8 characters."><input className="field" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></Field>
         <Field label="New password again"><input className="field" type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} /></Field>
-        <p className="text-xs text-faint">Your recovery key keeps working. Other devices ask for the new password next time they unlock.</p>
+        <p className="text-xs text-faint">Your spare key keeps working. Other devices ask for the new password next time they unlock.</p>
         <ErrorText>{error}</ErrorText>
       </div>
     </Sheet>

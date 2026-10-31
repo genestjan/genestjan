@@ -147,6 +147,12 @@ async function finishSignIn(userId: string, email: string, master: Awaited<Retur
   await openLedger(key, !!recoveryKey);
   set(recoveryKey ? { recoveryKey, phase: 'recovery' } : { phase: 'ready' });
   void syncNow();
+  if (!recoveryKey) {
+    // Signed in on another device: from now on the fingerprint or Windows Hello opens it.
+    const bio = get().bio;
+    if (bio.available && !bio.enrolled) await enableBio();
+    if (platform === 'android') await native.notifyPermission().catch(() => undefined);
+  }
 }
 
 export async function unlockWithPassword(password: string) {

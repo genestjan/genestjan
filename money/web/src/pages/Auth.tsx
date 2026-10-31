@@ -1,4 +1,4 @@
-import { Check, Cloud, Copy, Download, Fingerprint, HardDrive, KeyRound, LockKeyhole, ShieldCheck } from 'lucide-react';
+import { Check, Cloud, Copy, Download, Eye, EyeOff, Fingerprint, HardDrive, KeyRound, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { checkCloudConfig, cloudConfig, saveCloudConfig } from '../lib/cloud';
@@ -89,17 +89,28 @@ export function CloudSetup() {
   );
 }
 
-function PasswordRules({ pw }: { pw: string }) {
-  const rules = [
-    { ok: pw.length >= 12, text: 'At least 12 characters' },
-    { ok: /[a-z]/i.test(pw) && /[^a-z]/i.test(pw), text: 'Letters plus a number or symbol' },
-  ];
+export const goodPassword = (pw: string) => pw.length >= 8;
+
+function PasswordHint({ pw }: { pw: string }) {
   return (
-    <ul className="space-y-1">
-      {rules.map((r) => (
-        <li key={r.text} className={cx('flex items-center gap-2 text-xs', r.ok ? 'text-income' : 'text-faint')}><Check size={13} /> {r.text}</li>
-      ))}
-    </ul>
+    <span className={cx('flex items-center gap-2', goodPassword(pw) ? 'text-income' : 'text-faint')}>
+      <Check size={13} /> At least 8 characters. A short sentence is easy to remember, like "jollibee every friday".
+    </span>
+  );
+}
+
+function PasswordInput({ value, onChange, autoComplete, autoFocus }: {
+  value: string; onChange: (v: string) => void; autoComplete: string; autoFocus?: boolean;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="field flex items-center gap-2 py-0 pr-1 focus-within:border-current focus-within:ring-2 focus-within:ring-current/25">
+      <input className="w-full bg-transparent py-3 outline-none focus-visible:outline-none" type={show ? 'text' : 'password'} autoComplete={autoComplete}
+        autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)} />
+      <button type="button" className="rounded-lg p-2 text-muted hover:text-paper" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'}>
+        {show ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
   );
 }
 
@@ -108,28 +119,17 @@ export function CreateAccount() {
   const { error, busy } = useAuth();
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
-  const [pw2, setPw2] = useState('');
-  const [ack, setAck] = useState(false);
-  const strong = pw.length >= 12 && /[a-z]/i.test(pw) && /[^a-z]/i.test(pw);
-  const ready = (!cloud || /.+@.+\..+/.test(email)) && strong && pw === pw2 && ack && !busy;
+  const ready = (!cloud || /.+@.+\..+/.test(email)) && goodPassword(pw) && !busy;
   return (
     <Frame>
-      <Head title="Create your vault" text={cloud ? 'One password opens Money Hub on every device you sign in to.' : 'Kept on this device only. You can turn on sync later.'} />
+      <Head title="Create your account" text="You type this password once on each device. After that, your fingerprint opens Money Hub." />
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); if (ready) void createAccount(email, pw, cloud); }}>
         {cloud && <Field label="Email"><input className="field" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>}
-        <Field label="Password" hint={<PasswordRules pw={pw} />}>
-          <input className="field" type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} />
+        <Field label="Password" hint={<PasswordHint pw={pw} />}>
+          <PasswordInput value={pw} onChange={setPw} autoComplete="new-password" />
         </Field>
-        <Field label="Password again">
-          <input className="field" type="password" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} />
-          {pw2 && pw !== pw2 && <span className="mt-1.5 block text-xs text-expense">The two passwords are different.</span>}
-        </Field>
-        <label className="flex items-start gap-3 rounded-xl border border-signal/25 bg-signal/5 p-3 text-xs leading-relaxed text-paper/85">
-          <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#FFB03A]" />
-          I understand my data is encrypted with this password. If I forget it, only my recovery key (shown next) can get me back in. Nobody else can, not even the developer.
-        </label>
         <ErrorText>{error}</ErrorText>
-        <button className="btn-primary w-full" disabled={!ready}><LockKeyhole size={18} /> Create vault</button>
+        <button className="btn-primary w-full" disabled={!ready}><LockKeyhole size={18} /> Create my account</button>
       </form>
       <button className="mt-4 text-center text-sm text-muted hover:text-paper" onClick={() => go(cloud ? 'signin' : 'welcome')}>
         {cloud ? 'I already have an account' : 'Back'}
@@ -144,10 +144,10 @@ export function SignIn() {
   const [pw, setPw] = useState('');
   return (
     <Frame>
-      <Head title="Sign in" text="Sign in on this device. Your data downloads and unlocks here." />
+      <Head title="Sign in" text="Only this once on this device. After that, your fingerprint or face opens Money Hub." />
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); void signInAccount(email, pw); }}>
         <Field label="Email"><input className="field" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
-        <Field label="Password"><input className="field" type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} /></Field>
+        <Field label="Password"><PasswordInput value={pw} onChange={setPw} autoComplete="current-password" /></Field>
         <ErrorText>{error}</ErrorText>
         <button className="btn-primary w-full" disabled={busy || !email || !pw}>Sign in</button>
       </form>
@@ -155,7 +155,6 @@ export function SignIn() {
         <button className="text-muted hover:text-paper" onClick={() => go('create')}>Create an account</button>
         <button className="text-current hover:underline" onClick={() => go('forgot')}>Forgot password?</button>
       </div>
-      <button className="mt-6 text-center text-xs text-faint hover:text-muted" onClick={() => go('cloud')}>Change cloud connection</button>
     </Frame>
   );
 }
@@ -173,35 +172,40 @@ export function ConfirmEmail() {
 export function RecoveryKey() {
   const key = useApp((s) => s.recoveryKey) ?? '';
   const bio = useApp((s) => s.bio);
-  const [saved, setSaved] = useState(false);
+  const [kept, setKept] = useState(false);
   const [copied, setCopied] = useState(false);
   return (
     <Frame wide>
-      <Head title="Your recovery key" text="Write this down or save it in your password manager. It is the only way back in if you forget your password. It is shown once." />
+      <Head title="Save your spare key" text="If you ever forget your password, this key gets you back in. Save it once, somewhere safe like your Google Drive." />
       <div className="card p-5">
         <div className="rounded-2xl border border-signal/30 bg-ink-2 px-4 py-5 text-center font-mono text-[17px] leading-loose tracking-wider text-signal sm:text-lg">
           {key.split('-').map((g, i) => <span key={i} className="inline-block px-1.5">{g}</span>)}
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <button className="btn-outline" onClick={async () => { await navigator.clipboard.writeText(key); setCopied(true); setTimeout(() => void navigator.clipboard.writeText(''), 60_000); }}>
+          <button className="btn-primary" onClick={async () => {
+            await saveTextFile('Money Hub spare key.txt', 'text/plain',
+              `Money Hub spare key\r\n\r\n${key}\r\n\r\nKeep this private. With your email it resets your Money Hub password.\r\n`);
+            setKept(true);
+          }}>
+            <Download size={16} /> Save it
+          </button>
+          <button className="btn-outline" onClick={async () => {
+            await navigator.clipboard.writeText(key);
+            setCopied(true);
+            setKept(true);
+            setTimeout(() => void navigator.clipboard.writeText(''), 60_000);
+          }}>
             <Copy size={16} /> {copied ? 'Copied' : 'Copy'}
           </button>
-          <button className="btn-outline" onClick={() => saveTextFile('Money Hub recovery key.txt', 'text/plain',
-            `Money Hub recovery key\r\n\r\n${key}\r\n\r\nKeep this private. With your email it can reset your password.\r\n`)}>
-            <Download size={16} /> Save as file
-          </button>
         </div>
-        <label className="mt-5 flex items-start gap-3 text-sm">
-          <input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#FFB03A]" />
-          I have saved my recovery key somewhere safe.
-        </label>
-        <button className="btn-primary mt-4 w-full" disabled={!saved} onClick={async () => {
+        {!kept && <button className="mt-3 w-full text-center text-xs text-muted hover:text-paper" onClick={() => setKept(true)}>I wrote it down on paper</button>}
+        <button className="btn-primary mt-4 w-full" disabled={!kept} onClick={async () => {
           if (bio.available && !bio.enrolled) await enableBio();
           // Bill reminders are on for the phone; Android 13 and later ask once before notifying.
           if (platform === 'android') await native.notifyPermission().catch(() => undefined);
           useApp.setState({ recoveryKey: null, phase: 'ready' });
         }}>
-          {bio.available && !bio.enrolled ? <><Fingerprint size={18} /> Continue and turn on {bio.label || 'fingerprint'} unlock</> : 'Continue'}
+          {bio.available && !bio.enrolled ? <><Fingerprint size={18} /> Continue and use my {bio.label === 'Windows Hello' ? 'Windows Hello' : 'fingerprint'}</> : 'Continue'}
         </button>
       </div>
     </Frame>
@@ -222,7 +226,7 @@ export function Locked() {
         </button>
       )}
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); void unlockWithPassword(pw); }}>
-        <Field label="Password"><input className="field" type="password" autoComplete="current-password" autoFocus={!bio.enrolled} value={pw} onChange={(e) => setPw(e.target.value)} /></Field>
+        <Field label="Password"><PasswordInput value={pw} onChange={setPw} autoComplete="current-password" autoFocus={!bio.enrolled} /></Field>
         <ErrorText>{error}</ErrorText>
         <button className={bio.enrolled ? 'btn-outline w-full' : 'btn-primary w-full'} disabled={busy || !pw}><KeyRound size={18} /> Unlock with password</button>
       </form>
@@ -242,15 +246,15 @@ export function Forgot() {
   const [email, setEmail] = useState(meta?.email ?? '');
   const [rk, setRk] = useState('');
   const [pw, setPw] = useState('');
-  const strong = pw.length >= 12 && /[a-z]/i.test(pw) && /[^a-z]/i.test(pw);
+  const strong = goodPassword(pw);
   const needsEmail = meta?.mode !== 'local';
   return (
     <Frame>
-      <Head title="Reset your password" text="Use the recovery key you saved when you created your vault." />
+      <Head title="Reset your password" text="Use the spare key you saved when you created your account." />
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); if (strong) void recoverAccount(email, rk, pw); }}>
         {needsEmail && <Field label="Email"><input className="field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>}
-        <Field label="Recovery key"><input className="field font-mono uppercase" placeholder="XXXX-XXXX-XXXX-..." value={rk} onChange={(e) => setRk(e.target.value)} autoCapitalize="characters" spellCheck={false} /></Field>
-        <Field label="New password" hint={<PasswordRules pw={pw} />}><input className="field" type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} /></Field>
+        <Field label="Spare key"><input className="field font-mono uppercase" placeholder="XXXX-XXXX-XXXX-..." value={rk} onChange={(e) => setRk(e.target.value)} autoCapitalize="characters" spellCheck={false} /></Field>
+        <Field label="New password" hint={<PasswordHint pw={pw} />}><PasswordInput value={pw} onChange={setPw} autoComplete="new-password" /></Field>
         <ErrorText>{error}</ErrorText>
         <button className="btn-primary w-full" disabled={busy || !strong || !rk || (needsEmail && !email)}>Set new password</button>
       </form>

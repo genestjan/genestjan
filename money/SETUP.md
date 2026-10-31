@@ -87,15 +87,32 @@ first: Supabase only ever sees scrambled data.
 17. On the left, click **Authentication**, then **Sign In / Providers**.
 18. Click **Email**. Turn **Confirm email** OFF. Click **Save**.
 
-**Copy the two values the app needs:**
+**Give the two connection values to GitHub (so the apps never ask for them):**
 
-19. At the bottom left, click **Project Settings** (the gear).
-20. Click **Data API**. Copy the **Project URL** (it looks like `https://abcdefghijk.supabase.co`).
-21. Click **API Keys**. Copy the **Publishable key** (it starts with `sb_publishable_`).
-    Never copy the **Secret key**. If you only see a key called **anon public** (it starts with
-    `eyJ`), use that one.
-22. Email both values to yourself, so you can paste them on your phone. They are not secret on
-    their own: they only open the door, and your data behind it is locked.
+19. At the bottom left of Supabase, click **Project Settings** (the gear).
+20. Click **Data API**. Next to **Project URL** (it looks like `https://abcdefghijk.supabase.co`),
+    click the **copy** icon.
+21. Open a new Chrome tab (**Ctrl + T**), paste this in the address bar and press **Enter**:
+    https://github.com/genestjan/genestjan/settings/secrets/actions
+22. Click the green **New repository secret** button. In **Name**, type exactly
+    `MONEY_SUPABASE_URL`. Click inside **Secret** and press **Ctrl + V**. Click **Add secret**.
+23. Go back to the Supabase tab. Click **API Keys**. Next to **Publishable key** (it starts with
+    `sb_publishable_`), click the **copy** icon. Never copy the **Secret key**. (If you only see a
+    key called **anon public**, starting with `eyJ`, copy that one.)
+24. Go back to the GitHub tab. Click **New repository secret**. In **Name**, type exactly
+    `MONEY_SUPABASE_KEY`. Click inside **Secret**, press **Ctrl + V**, click **Add secret**.
+25. The list now shows four secrets: `MONEY_KEYSTORE_BASE64`, `MONEY_KEYSTORE_PASSWORD`,
+    `MONEY_SUPABASE_URL` and `MONEY_SUPABASE_KEY`. The last two also keep your free cloud awake.
+
+**Rebuild both apps so they know your cloud:**
+
+26. Open https://github.com/genestjan/genestjan/actions/workflows/money-android.yml
+27. Click the words of the **first line** in the list of runs.
+28. At the top right of the page that opens, click **Re-run all jobs** (or **Re-run jobs**, then
+    **Re-run all jobs**), then the green **Re-run jobs** in the box that pops up.
+29. Wait about 2 minutes until the yellow circle becomes a **green tick**.
+30. Do steps 26 to 29 again with this page for the laptop app:
+    https://github.com/genestjan/genestjan/actions/workflows/money-windows.yml
 
 ---
 
@@ -112,17 +129,17 @@ first: Supabase only ever sees scrambled data.
      it off, install, then turn it back on.
    - If **Play Protect** warns you: tap **More details**, then **Install anyway**. (It warns about
      every app that is not from the Play Store.)
-6. Tap **Open**.
+6. Tap **Open**. (If you installed Money Hub before, this updates it. Your data is kept.)
 7. Tap **Get started**.
-8. Paste the **Project URL** and **Publishable key** from Part 2, step 22. Tap **Connect**.
-9. Type your email and a password of at least 12 characters. This one password opens Money Hub
-   on every device, so make it strong and keep it in your password manager.
-10. Tick the box that says you understand, and tap **Create vault**.
-11. **Your recovery key appears. This is important.** Tap **Save as file** and also copy it into
-    your password manager. If you ever forget your password, this key is the only way back in.
-    Nobody can reset it for you, not Supabase, not Claude.
-12. Tick **I have saved my recovery key**, then tap **Continue and turn on fingerprint unlock**,
-    and touch the fingerprint sensor.
+8. Type your **email** and a **password** of at least 8 characters. Tap the eye to see what you
+   typed. You only type this password once on each device; after that your fingerprint opens
+   Money Hub. Keep it in your password manager too.
+9. Tap **Create my account**.
+10. **Your spare key appears.** Tap **Save it** and save the file somewhere safe (for example your
+    Google Drive). If you ever forget your password, this key gets you back in. Nobody else can
+    reset it for you.
+11. Tap **Continue and use my fingerprint**, then touch the fingerprint sensor.
+12. If the phone asks whether Money Hub may send notifications, tap **Allow** (for bill reminders).
 
 **Now lock the cloud's front door:**
 
@@ -164,11 +181,10 @@ are dropped on the phone and never stored.
 3. If Windows says **Windows protected your PC**: click **More info**, then **Run anyway**.
    (Windows shows this for any program without a paid signing certificate.)
 4. Click **Next**, **Install**, then **Finish**. Money Hub opens.
-5. Click **Sign in**. If it asks for the cloud first, paste the same **Project URL** and
-   **Publishable key**, and click **Connect**.
-6. Type the same email and password as on the phone. Your data appears.
-7. Go to **Settings > Security** and turn on **Windows Hello unlock**, then confirm with your PIN,
-   face or fingerprint.
+5. Click **Sign in**.
+6. Type the same email and password as on the phone, and click **Sign in**. Your data appears.
+7. Windows asks to use **Windows Hello** (your PIN, face or fingerprint). Confirm it. From now on
+   that opens Money Hub, without the password.
 
 If the window stays blank, install the free **Microsoft Edge WebView2 Runtime** from
 https://developer.microsoft.com/microsoft-edge/webview2/ (click **Download**, then
@@ -176,18 +192,11 @@ https://developer.microsoft.com/microsoft-edge/webview2/ (click **Download**, th
 
 ---
 
-## Part 6. Keep the free cloud awake (3 minutes)
+## Part 6. Keep the free cloud awake
 
-Supabase pauses a free project after a week of no use (for example, a holiday). A small job on
-GitHub pokes it once a day so that never happens.
-
-1. Open https://github.com/genestjan/genestjan/settings/secrets/actions
-2. Click **New repository secret**. Name: `MONEY_SUPABASE_URL`. Secret: your **Project URL**.
-   Click **Add secret**.
-3. Click **New repository secret**. Name: `MONEY_SUPABASE_KEY`. Secret: your
-   **Publishable key**. Click **Add secret**.
-
-The daily job starts once Money Hub is merged into the main branch of the website repo.
+Nothing to do: the `MONEY_SUPABASE_URL` and `MONEY_SUPABASE_KEY` secrets from Part 2 also run a
+small daily job that stops Supabase pausing your free project. It starts once Money Hub is merged
+into the main branch of the website repo.
 
 ---
 
@@ -301,7 +310,7 @@ the phone.
 | Nothing is captured | Redo Part 4. Check notification access is on, battery is Unrestricted, and the bank app's notifications are on. |
 | A capture waits in **To review** | Usually a card you have not added yet. Add the account (with its last 4 digits) and tap **Add it**. |
 | "Sync problem" | Open supabase.com. If the project says **Paused**, click **Restore project**, wait two minutes, then tap **Sync** in Money Hub. |
-| Forgot your password | On the lock screen tap **Forgot password?** and use your recovery key. |
+| Forgot your password | On the lock screen tap **Forgot password?** and use your spare key. |
 | No bill reminder arrived | Check Part 10: notifications allowed, Money Hub battery set to Unrestricted, and the bill has a due day. |
 | Google Calendar shows a problem | Open Settings > Bill reminders > Google Calendar > Manage, click Copy the script, paste it over the old one at script.google.com, save, then Deploy > Manage deployments > edit > New version > Deploy. |
 | Lost phone | On the laptop: **Settings > Security > Change password**. The lost phone cannot open your data without your password or fingerprint, and a new password locks it out of the cloud. |
