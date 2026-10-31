@@ -69,12 +69,12 @@ your branding, so Money Hub was built.
 
 ## 3. How Money Hub is built, and why
 
-- **One shared screen, two thin apps.** The same pattern as Monggols VPN in this repo: the screen
+- **One shared screen, two thin apps.** The screen
   is a web app (Vite, React, TypeScript, Tailwind, the RideWise stack), shown inside an Android
   app (WebView) and a Windows app (WebView2). One codebase for every screen; the native apps only
   do what a web page cannot (notification capture, fingerprint, Windows Hello, files, PayPal).
 - **Builds on GitHub.** Each push builds the APK and the Windows installer and publishes them at
-  fixed download links, like Monggols.
+  fixed download links.
 - **Supabase for sync**, with only ciphertext stored. Free tier; a daily keep-awake job stops the
   free plan pausing it.
 - **Local-first.** Everything works offline; changes sync when there is internet.

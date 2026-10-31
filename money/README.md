@@ -46,8 +46,8 @@ npm run build       # dist/, packed into both apps by their builds
 ```
 
 Both apps are built by GitHub Actions on every push to `money/**`:
-`.github/workflows/money-android.yml` and `money-windows.yml`. The Android app is signed with the
-`MONGGOLS_KEYSTORE_*` secrets (or `MONEY_KEYSTORE_*` if added).
+`.github/workflows/money-android.yml` and `money-windows.yml`. The Android app is signed with
+Money Hub's key from the `MONEY_KEYSTORE_BASE64` and `MONEY_KEYSTORE_PASSWORD` secrets.
 
 Screenshots of every screen with the sample data:
 

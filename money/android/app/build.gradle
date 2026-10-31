@@ -2,9 +2,8 @@ plugins {
     id "com.android.application"
 }
 
-// Release signing comes from environment variables set by the GitHub workflow (the same key as
-// Monggols VPN, so no new secret is needed). Without them, a local build is signed with the
-// debug key.
+// Release signing comes from environment variables set by the GitHub workflow, from Money Hub's
+// MONEY_KEYSTORE_* secrets. Without them, a local build is signed with the debug key.
 def ks = System.getenv("MONEY_KEYSTORE")
 def build = System.getenv("MONEY_VERSION_CODE") ?: "1"
 
@@ -25,7 +24,7 @@ android {
             if (ks) {
                 storeFile file(ks)
                 storePassword System.getenv("MONEY_KEYSTORE_PASSWORD")
-                keyAlias System.getenv("MONEY_KEY_ALIAS") ?: "monggols"
+                keyAlias "money"
                 keyPassword System.getenv("MONEY_KEYSTORE_PASSWORD")
             }
         }

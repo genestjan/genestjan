@@ -24,29 +24,27 @@ Now only people you add by name can open it.
 
 ---
 
-## Part 1. Give GitHub the app's signing key (5 minutes)
+## Part 1. Give GitHub Money Hub's signing key (5 minutes)
 
 Android only installs an update if it is signed with the same key as the app already on the
-phone. Claude made a key for you and sent you two small text files:
-`MONGGOLS_KEYSTORE_BASE64.txt` and `MONGGOLS_KEYSTORE_PASSWORD.txt`.
-(The names start with MONGGOLS because Monggols VPN's Android build looks for the same two
-secrets, so one key can sign both apps.)
+phone. Claude made Money Hub's key for you and sent you three files:
+`MONEY_KEYSTORE_BASE64.txt`, `MONEY_KEYSTORE_PASSWORD.txt` and `money-hub-signing.jks`.
 
 1. On the laptop, open this page:
    https://github.com/genestjan/genestjan/settings/secrets/actions
 2. Click the green button **New repository secret**.
-3. In the **Name** box, type exactly: `MONGGOLS_KEYSTORE_BASE64`
-4. Open the file `MONGGOLS_KEYSTORE_BASE64.txt` (double-click it; it opens in Notepad).
+3. In the **Name** box, type exactly: `MONEY_KEYSTORE_BASE64`
+4. Open the file `MONEY_KEYSTORE_BASE64.txt` (double-click it; it opens in Notepad).
 5. Press **Ctrl + A** (selects everything), then **Ctrl + C** (copies it).
 6. Go back to GitHub, click inside the big **Secret** box, press **Ctrl + V**.
 7. Click **Add secret**.
 8. Click **New repository secret** again.
-9. In **Name**, type exactly: `MONGGOLS_KEYSTORE_PASSWORD`
-10. Open `MONGGOLS_KEYSTORE_PASSWORD.txt`, press **Ctrl + A**, **Ctrl + C**, then paste it into
+9. In **Name**, type exactly: `MONEY_KEYSTORE_PASSWORD`
+10. Open `MONEY_KEYSTORE_PASSWORD.txt`, press **Ctrl + A**, **Ctrl + C**, then paste it into
     the **Secret** box with **Ctrl + V**.
 11. Click **Add secret**.
-12. Keep a backup: put both text files (and `android-signing.jks`) into a private folder in your
-    Google Drive or your password manager. Then delete them from your Downloads folder.
+12. Keep a backup: put all three files into a private folder in your Google Drive or your
+    password manager. Then delete them from your Downloads folder.
 13. Rebuild the app with the key. Open
     https://github.com/genestjan/genestjan/actions/workflows/money-android.yml
 14. Click **Run workflow** (grey button on the right), choose the branch
