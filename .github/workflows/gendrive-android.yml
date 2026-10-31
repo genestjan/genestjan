@@ -35,23 +35,18 @@ jobs:
       - name: Test core logic
         run: ./gradlew --no-daemon -p ../core test
 
-      # Signs with GENDRIVE_KEYSTORE_BASE64 / GENDRIVE_KEYSTORE_PASSWORD if set,
-      # otherwise with the existing Monggols key, so every build installs over
-      # the last one. The same key must be used every time.
+      # Signs with GENDRIVE_KEYSTORE_BASE64 / GENDRIVE_KEYSTORE_PASSWORD (GenDrive's
+      # own key, never shared with other apps) so every build installs over the
+      # last one. The same key must be used every time.
       - name: Build APK
         env:
           GENDRIVE_VERSION_CODE: ${{ github.run_number }}
           GD_KS: ${{ secrets.GENDRIVE_KEYSTORE_BASE64 }}
           GD_PW: ${{ secrets.GENDRIVE_KEYSTORE_PASSWORD }}
-          MG_KS: ${{ secrets.MONGGOLS_KEYSTORE_BASE64 }}
-          MG_PW: ${{ secrets.MONGGOLS_KEYSTORE_PASSWORD }}
         run: |
           if [ -n "$GD_KS" ]; then
             echo "$GD_KS" | base64 -d > "$RUNNER_TEMP/gendrive.jks"
             export GENDRIVE_KEYSTORE="$RUNNER_TEMP/gendrive.jks" GENDRIVE_KEYSTORE_PASSWORD="$GD_PW" GENDRIVE_KEY_ALIAS=gendrive
-          elif [ -n "$MG_KS" ]; then
-            echo "$MG_KS" | base64 -d > "$RUNNER_TEMP/gendrive.jks"
-            export GENDRIVE_KEYSTORE="$RUNNER_TEMP/gendrive.jks" GENDRIVE_KEYSTORE_PASSWORD="$MG_PW" GENDRIVE_KEY_ALIAS=monggols
           else
             echo "::warning::No signing key secret found. This APK uses a throwaway key; updating will need an uninstall first."
           fi

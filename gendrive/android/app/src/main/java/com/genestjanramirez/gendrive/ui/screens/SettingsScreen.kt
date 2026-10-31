@@ -344,6 +344,8 @@ private fun TextSetting(label: String, value: String, enabled: Boolean, secret: 
         enabled = enabled,
         textStyle = MaterialTheme.typography.bodyLarge,
         visualTransformation = if (secret) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
+        // Tell the keyboard this is a password, so a learning or cloud keyboard won't keep the key.
+        keyboardOptions = if (secret) KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false) else KeyboardOptions.Default,
         modifier = Modifier.fillMaxWidth(),
     )
 }
