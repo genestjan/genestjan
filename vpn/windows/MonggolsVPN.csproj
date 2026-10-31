@@ -27,7 +27,7 @@
     <!-- The shared screen. -->
     <Content Include="..\ui\**\*" LinkBase="ui" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <!-- tunnel.dll (built from wireguard-windows) and wireguard.dll (wireguard-nt), put here by the build workflow. -->
-    <None Include="native\*.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="native\*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

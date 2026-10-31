@@ -70,7 +70,11 @@ namespace MonggolsVpn
                     SendState(goHome: false);
                     break;
                 case "connect":
-                    await Run(() => Tunnel.Service.Add(ConfigFile));
+                    await Run(() =>
+                    {
+                        File.Delete(Path.Combine(DataDir, "service-error.log"));
+                        Tunnel.Service.Add(ConfigFile);
+                    });
                     break;
                 case "disconnect":
                     await Run(() => Tunnel.Service.Remove(ConfigFile, true));
@@ -102,7 +106,9 @@ namespace MonggolsVpn
             }
             catch (Exception ex)
             {
-                Toast("Wala ka-connect: " + ex.Message);
+                var log = Path.Combine(DataDir, "service-error.log");
+                var detail = File.Exists(log) ? File.ReadAllText(log).Split('\n')[0] : ex.Message;
+                Toast("Wala ka-connect: " + detail);
             }
             busy = false;
             SendState();
