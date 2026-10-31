@@ -2,6 +2,7 @@ import { Check, Cloud, Copy, Download, Fingerprint, HardDrive, KeyRound, LockKey
 import { useState, type ReactNode } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { checkCloudConfig, cloudConfig, saveCloudConfig } from '../lib/cloud';
+import { native, platform } from '../lib/native';
 import { saveTextFile } from '../lib/actions';
 import {
   createAccount, enableBio, go, recoverAccount, signInAccount, signOutEverywhereOnThisDevice, unlockWithBio, unlockWithPassword, useApp,
@@ -196,6 +197,8 @@ export function RecoveryKey() {
         </label>
         <button className="btn-primary mt-4 w-full" disabled={!saved} onClick={async () => {
           if (bio.available && !bio.enrolled) await enableBio();
+          // Bill reminders are on for the phone; Android 13 and later ask once before notifying.
+          if (platform === 'android') await native.notifyPermission().catch(() => undefined);
           useApp.setState({ recoveryKey: null, phase: 'ready' });
         }}>
           {bio.available && !bio.enrolled ? <><Fingerprint size={18} /> Continue and turn on {bio.label || 'fingerprint'} unlock</> : 'Continue'}
