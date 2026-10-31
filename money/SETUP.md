@@ -91,7 +91,8 @@ first: Supabase only ever sees scrambled data.
 
 19. At the bottom left of Supabase, click **Project Settings** (the gear).
 20. Click **Data API**. Next to **Project URL** (it looks like `https://abcdefghijk.supabase.co`),
-    click the **copy** icon.
+    click the **copy** icon. (If what you copied has `/rest/v1/` on the end, that is fine: the app
+    removes it.)
 21. Open a new Chrome tab (**Ctrl + T**), paste this in the address bar and press **Enter**:
     https://github.com/genestjan/genestjan/settings/secrets/actions
 22. Click the green **New repository secret** button. In **Name**, type exactly
@@ -140,6 +141,9 @@ first: Supabase only ever sees scrambled data.
     reset it for you.
 11. Tap **Continue and use my fingerprint**, then touch the fingerprint sensor.
 12. If the phone asks whether Money Hub may send notifications, tap **Allow** (for bill reminders).
+
+If an error appears at any step, take a screenshot and send it (see **Sending a screenshot or the
+exact error**, near the end of this guide).
 
 **Now lock the cloud's front door:**
 
@@ -302,10 +306,55 @@ the phone.
 
 ---
 
+## Sending a screenshot or the exact error (when you need help)
+
+Every error box in Money Hub shows the problem in plain words, then a line of small text with the
+exact technical error, and a **Copy the details** link. Send either a screenshot or the copied
+text, and whoever helps you can see exactly what went wrong.
+
+**Take a screenshot on the phone (Samsung Galaxy S24 Ultra):**
+
+1. Make the problem show on the screen.
+2. Find the two buttons on the right edge of the phone: the long **Volume** button at the top and
+   the **Side button** under it.
+3. Press the **Side button** and the bottom end of the **Volume** button (**Volume down**) at the
+   same time, then let go straight away. The screen flashes and a small bar appears at the bottom:
+   the screenshot is saved.
+   - If that is hard: open **Settings > Advanced features > Motions and gestures**, turn on
+     **Palm swipe to capture**. From then on, slide the side of your hand across the screen.
+4. Your screenshots are in the **Gallery** app, under **Albums > Screenshots**. Attach one to your
+   message the same way you attach any photo.
+
+If the screen shows your money, tap the **eye** next to **Total balance** on Home first. The
+amounts turn into dots, and stay hidden until you tap the eye again.
+
+**Copy the exact error instead of a screenshot:**
+
+1. Under the error, tap **Copy the details**. It changes to **Copied**.
+2. Go to your message, press and hold inside the message box, then tap **Paste**.
+
+**Copy everything that went wrong lately:**
+
+1. In Money Hub, tap **More** (bottom right), then **Settings & security**.
+2. Scroll to the bottom, to **Problems on this device**.
+3. Tap **Copy the problem report**, then paste it into your message. It holds the app version,
+   phone model and error messages, never your amounts, names or passwords.
+
+**Take a screenshot on the laptop:** press the **Windows key**, **Shift** and **S** together. The
+screen goes grey. Drag a box around the problem with the mouse. Click inside your message box and
+press **Ctrl + V**.
+
+Screenshots of Money Hub are allowed so you can do this. To block them again later, open
+**Settings & security > Security** and untick **Allow screenshots**. The recent apps list on the
+phone always shows a blank card instead of your balances.
+
+---
+
 ## If something goes wrong
 
 | What you see | What to do |
 |---|---|
+| "Invalid path specified in request URL" when creating your account | That build had the wrong cloud address. Install the latest APK (Part 9); it fixes the address itself. |
 | "App not installed" on the phone | The APK was signed with a different key (before Part 1). Uninstall Money Hub, install the new one, sign in. Your data comes back from the cloud. |
 | Nothing is captured | Redo Part 4. Check notification access is on, battery is Unrestricted, and the bank app's notifications are on. |
 | A capture waits in **To review** | Usually a card you have not added yet. Add the account (with its last 4 digits) and tap **Add it**. |

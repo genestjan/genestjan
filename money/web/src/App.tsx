@@ -3,6 +3,7 @@ import { AccountSheet, BillSheet, BudgetSheet, PaySheet, TxnSheet } from './comp
 import { ImportSheet } from './components/importer';
 import { Shell } from './components/Shell';
 import { BusyOverlay, Logo, Toast } from './components/ui';
+import { native } from './lib/native';
 import { boot, useApp } from './lib/session';
 import { Accounts } from './pages/Accounts';
 import { Analytics } from './pages/Analytics';
@@ -44,6 +45,10 @@ function DemoBanner() {
 export function App() {
   const phase = useApp((s) => s.phase);
   const demo = useApp((s) => s.demo);
+  const blockScreenshots = useApp((s) => s.phase === 'ready' && !!s.snap?.settings.blockScreenshots);
+
+  // Sign-in screens hold no money data, so they can always be screenshotted.
+  useEffect(() => { void native.screenSecure(blockScreenshots).catch(() => undefined); }, [blockScreenshots]);
 
   useEffect(() => {
     void boot({ demo: /demo/.test(location.hash) || new URLSearchParams(location.search).has('demo') });

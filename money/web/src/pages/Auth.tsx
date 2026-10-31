@@ -1,7 +1,7 @@
 import { Check, Cloud, Copy, Download, Eye, EyeOff, Fingerprint, HardDrive, KeyRound, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { checkCloudConfig, cloudConfig, saveCloudConfig } from '../lib/cloud';
+import { checkCloudConfig, cleanCloudKey, cleanCloudUrl, cloudConfig, saveCloudConfig } from '../lib/cloud';
 import { native, platform } from '../lib/native';
 import { saveTextFile } from '../lib/actions';
 import {
@@ -31,7 +31,7 @@ function Head({ title, text }: { title: string; text?: string }) {
   );
 }
 
-const useAuth = () => useApp(useShallow((s) => ({ error: s.error, busy: !!s.busy })));
+const useAuth = () => useApp(useShallow((s) => ({ error: s.error, errorDetail: s.errorDetail, busy: !!s.busy })));
 
 export function Welcome() {
   return (
@@ -75,9 +75,10 @@ export function CloudSetup() {
         </Field>
         <ErrorText>{err}</ErrorText>
         <button className="btn-primary w-full" onClick={() => {
-          const problem = checkCloudConfig(url, key);
+          const cfg = { url: cleanCloudUrl(url), key: cleanCloudKey(key) };
+          const problem = checkCloudConfig(cfg.url, cfg.key);
           if (problem) return setErr(problem);
-          saveCloudConfig({ url: url.replace(/\/$/, ''), key });
+          saveCloudConfig(cfg);
           go(useApp.getState().afterCloud);
         }}><Cloud size={18} /> Connect</button>
       </div>
@@ -116,7 +117,7 @@ function PasswordInput({ value, onChange, autoComplete, autoFocus }: {
 
 export function CreateAccount() {
   const cloud = !!cloudConfig();
-  const { error, busy } = useAuth();
+  const { error, errorDetail, busy } = useAuth();
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const ready = (!cloud || /.+@.+\..+/.test(email)) && goodPassword(pw) && !busy;
@@ -128,7 +129,7 @@ export function CreateAccount() {
         <Field label="Password" hint={<PasswordHint pw={pw} />}>
           <PasswordInput value={pw} onChange={setPw} autoComplete="new-password" />
         </Field>
-        <ErrorText>{error}</ErrorText>
+        <ErrorText detail={errorDetail}>{error}</ErrorText>
         <button className="btn-primary w-full" disabled={!ready}><LockKeyhole size={18} /> Create my account</button>
       </form>
       <button className="mt-4 text-center text-sm text-muted hover:text-paper" onClick={() => go(cloud ? 'signin' : 'welcome')}>
@@ -139,7 +140,7 @@ export function CreateAccount() {
 }
 
 export function SignIn() {
-  const { error, busy } = useAuth();
+  const { error, errorDetail, busy } = useAuth();
   const [email, setEmail] = useState(useApp.getState().pendingEmail ?? '');
   const [pw, setPw] = useState('');
   return (
@@ -148,7 +149,7 @@ export function SignIn() {
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); void signInAccount(email, pw); }}>
         <Field label="Email"><input className="field" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
         <Field label="Password"><PasswordInput value={pw} onChange={setPw} autoComplete="current-password" /></Field>
-        <ErrorText>{error}</ErrorText>
+        <ErrorText detail={errorDetail}>{error}</ErrorText>
         <button className="btn-primary w-full" disabled={busy || !email || !pw}>Sign in</button>
       </form>
       <div className="mt-4 flex justify-between text-sm">
@@ -213,7 +214,7 @@ export function RecoveryKey() {
 }
 
 export function Locked() {
-  const { error, busy } = useAuth();
+  const { error, errorDetail, busy } = useAuth();
   const meta = useApp((s) => s.meta);
   const bio = useApp((s) => s.bio);
   const [pw, setPw] = useState('');
@@ -227,7 +228,7 @@ export function Locked() {
       )}
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); void unlockWithPassword(pw); }}>
         <Field label="Password"><PasswordInput value={pw} onChange={setPw} autoComplete="current-password" autoFocus={!bio.enrolled} /></Field>
-        <ErrorText>{error}</ErrorText>
+        <ErrorText detail={errorDetail}>{error}</ErrorText>
         <button className={bio.enrolled ? 'btn-outline w-full' : 'btn-primary w-full'} disabled={busy || !pw}><KeyRound size={18} /> Unlock with password</button>
       </form>
       <div className="mt-4 flex justify-between text-sm">
@@ -241,7 +242,7 @@ export function Locked() {
 }
 
 export function Forgot() {
-  const { error, busy } = useAuth();
+  const { error, errorDetail, busy } = useAuth();
   const meta = useApp((s) => s.meta);
   const [email, setEmail] = useState(meta?.email ?? '');
   const [rk, setRk] = useState('');
@@ -255,7 +256,7 @@ export function Forgot() {
         {needsEmail && <Field label="Email"><input className="field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>}
         <Field label="Spare key"><input className="field font-mono uppercase" placeholder="XXXX-XXXX-XXXX-..." value={rk} onChange={(e) => setRk(e.target.value)} autoCapitalize="characters" spellCheck={false} /></Field>
         <Field label="New password" hint={<PasswordHint pw={pw} />}><PasswordInput value={pw} onChange={setPw} autoComplete="new-password" /></Field>
-        <ErrorText>{error}</ErrorText>
+        <ErrorText detail={errorDetail}>{error}</ErrorText>
         <button className="btn-primary w-full" disabled={busy || !strong || !rk || (needsEmail && !email)}>Set new password</button>
       </form>
       <button className="mt-4 text-center text-sm text-muted hover:text-paper" onClick={() => go(meta ? 'locked' : 'signin')}>Back</button>

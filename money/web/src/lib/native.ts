@@ -107,6 +107,7 @@ export const native = {
   notifyPermission: () => call<{ granted: boolean }>('notify.permission', {}, 300_000),
   notifySchedule: (items: NotifyItem[]) => call<{ scheduled: number }>('notify.schedule', { items }),
   notifyTest: () => call<void>('notify.test'),
+  screenSecure: (on: boolean) => (hasNative ? call<void>('screen.secure', { on }) : Promise.resolve()),
   http: (req: { method: string; url: string; headers?: Record<string, string>; body?: string }) => call<HttpResult>('http', req, 60_000),
   saveFile: (name: string, mime: string, data: string, encoding: 'text' | 'base64' = 'text') =>
     call<{ saved: boolean }>('file.save', { name, mime, data, encoding }, 300_000),

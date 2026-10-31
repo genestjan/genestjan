@@ -12,6 +12,7 @@ import { idbDB, memoryDB, type LocalDB } from './db';
 import { Ledger, type Snapshot } from './ledger';
 import { defaultCategories, defaultSettings, type AnyRecord, type Settings } from './model';
 import { native, on, platform, type BioStatus } from './native';
+import { logProblem } from './problems';
 import { reminderSettings, scheduleOnDevice, syncCalendar, upcomingReminders } from './reminders';
 import { todayISO } from './dates';
 
@@ -31,6 +32,8 @@ export interface AppState {
   demo: boolean;
   busy: string | null;
   error: string | null;
+  /** The exact technical error behind `error`, shown small under it for screenshots. */
+  errorDetail: string | null;
   toast: string | null;
   recoveryKey: string | null;
   pendingEmail: string | null;
@@ -43,7 +46,7 @@ export interface AppState {
 }
 
 export const useApp = create<AppState>(() => ({
-  phase: 'boot', meta: null, snap: null, demo: false, busy: null, error: null, toast: null,
+  phase: 'boot', meta: null, snap: null, demo: false, busy: null, error: null, errorDetail: null, toast: null,
   recoveryKey: null, pendingEmail: null, afterCloud: 'create', sync: { state: 'off' }, bio: { available: false, enrolled: false, label: '' },
   calendarError: null,
 }));
@@ -67,12 +70,18 @@ export function toast(message: string) {
   setTimeout(() => { if (get().toast === message) set({ toast: null }); }, 3500);
 }
 
-async function work<T>(label: string, fn: () => Promise<T>): Promise<T | undefined> {
-  set({ busy: label, error: null });
+/** Shows a problem on the current screen and writes it down for the problem report. */
+function showProblem(where: string, e: unknown) {
+  const p = logProblem(where, e);
+  set({ error: p.message, errorDetail: p.detail ?? null });
+}
+
+async function work<T>(label: string, fn: () => Promise<T>, where = label.replace(/…$/, '')): Promise<T | undefined> {
+  set({ busy: label, error: null, errorDetail: null });
   try {
     return await fn();
   } catch (e) {
-    set({ error: (e as Error).message || 'Something went wrong.' });
+    showProblem(where, e);
     return undefined;
   } finally {
     set({ busy: null });
@@ -93,7 +102,7 @@ export async function boot(opts: { demo?: boolean } = {}) {
 }
 
 export function go(phase: Phase) {
-  set({ phase, error: null });
+  set({ phase, error: null, errorDetail: null });
 }
 
 // ---- Creating, signing in, unlocking --------------------------------------------------------
@@ -116,7 +125,7 @@ export async function createAccount(email: string, password: string, useCloud: b
       return;
     }
     await finishSignIn(res.userId, email, master);
-  });
+  }, 'Create account');
 }
 
 export async function signInAccount(email: string, password: string) {
@@ -188,11 +197,10 @@ export async function unlockWithBio() {
   try {
     const { secret } = await native.bioUnlock();
     await openLedger(unb64(secret), false);
-    set({ phase: 'ready', error: null });
+    set({ phase: 'ready', error: null, errorDetail: null });
     void syncNow();
   } catch (e) {
-    const msg = (e as Error).message;
-    if (!/cancel/i.test(msg)) set({ error: msg });
+    if (!/cancel/i.test((e as Error).message)) showProblem('Fingerprint unlock', e);
   }
 }
 
@@ -204,7 +212,8 @@ export async function enableBio(): Promise<boolean> {
     toast(`${get().bio.label || 'Fingerprint'} unlock is on for this device.`);
     return true;
   } catch (e) {
-    set({ error: (e as Error).message });
+    const p = logProblem('Turning on fingerprint unlock', e);
+    toast(`${get().bio.label || 'Fingerprint'} unlock did not turn on: ${p.message}`);
     return false;
   }
 }
@@ -215,7 +224,7 @@ export async function disableBio() {
 }
 
 export async function recoverAccount(email: string, recoveryKey: string, newPassword: string) {
-  await work('Checking your recovery key…', async () => {
+  await work('Checking your spare key…', async () => {
     const meta = get().meta;
     const local = meta?.mode === 'local';
     const master = await deriveMaster(newPassword, local ? localSalt(meta!.email) : email);
@@ -312,7 +321,7 @@ export function lock() {
   ledger = null;
   dek?.fill(0);
   dek = null;
-  set({ phase: 'locked', snap: null, recoveryKey: null, error: null });
+  set({ phase: 'locked', snap: null, recoveryKey: null, error: null, errorDetail: null });
 }
 
 export async function signOutEverywhereOnThisDevice() {
@@ -370,6 +379,7 @@ export function syncNow(): Promise<void> {
       await ledger!.sync(remoteFor(c, uid));
       set({ sync: { state: 'idle', at: Date.now() } });
     } catch (e) {
+      if (navigator.onLine) logProblem('Sync', e);
       set({ sync: { state: navigator.onLine ? 'error' : 'offline', at: get().sync.at, detail: (e as Error).message } });
     } finally {
       syncing = null;
@@ -403,8 +413,9 @@ async function setUpCapture() {
     } else {
       await native.captureConfigure({ publicKey: s.capturePublicKey! });
     }
-  } catch {
+  } catch (e) {
     // Offline: try again next time the app opens.
+    if (navigator.onLine) logProblem('Setting up phone capture', e);
   }
 }
 
@@ -420,7 +431,7 @@ export async function takeCaptures(): Promise<number> {
   try {
     const found: { item?: CaptureItem; queueId?: string; inboxId?: string }[] = [];
     if (platform === 'android') {
-      const { items } = await native.captureRead().catch(() => ({ items: [] }));
+      const { items } = await native.captureRead().catch((e) => { logProblem('Reading captured notifications', e); return { items: [] }; });
       for (const q of items) {
         try { found.push({ item: JSON.parse(await openCapture(priv, q.box)), queueId: q.id }); }
         catch { found.push({ queueId: q.id }); } // sealed for an older key: nothing to do with it
@@ -428,7 +439,7 @@ export async function takeCaptures(): Promise<number> {
     }
     const c = sb();
     if (get().meta?.mode === 'cloud' && c && navigator.onLine) {
-      const rows = await fetchInbox(c).catch(() => []);
+      const rows = await fetchInbox(c).catch((e) => { logProblem('Reading captures from the cloud', e); return []; });
       for (const r of rows) {
         try { found.push({ item: JSON.parse(await openCapture(priv, r.payload)), inboxId: r.id }); }
         catch { found.push({ inboxId: r.id }); }
@@ -487,7 +498,7 @@ export async function refreshReminders(force = false): Promise<void> {
     const s = ledger.snapshot();
     const opts = reminderSettings(s.settings);
     const list = upcomingReminders(s, todayISO(), opts);
-    await scheduleOnDevice(list, opts.days).catch(() => undefined);
+    await scheduleOnDevice(list, opts.days).catch((e) => logProblem('Bill reminders on this device', e));
     const link = opts.calendar;
     if (link && navigator.onLine) {
       try {
@@ -498,6 +509,7 @@ export async function refreshReminders(force = false): Promise<void> {
         }
         set({ calendarError: null });
       } catch (e) {
+        logProblem('Google Calendar', e);
         set({ calendarError: (e as Error).message });
       }
     }

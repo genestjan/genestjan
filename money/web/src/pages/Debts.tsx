@@ -38,7 +38,7 @@ export function Debts() {
       <Segmented value={tab} onChange={setTab} className="mb-4 max-w-md" options={[{ value: 'overview', label: 'Overview' }, { value: 'schedule', label: 'Payment schedule' }]} />
 
       {tab === 'overview' ? (
-        <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
           <Card className="h-fit">
             <div className="grid grid-cols-2 gap-4">
               <div>

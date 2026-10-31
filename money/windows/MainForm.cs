@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -122,6 +123,10 @@ namespace MoneyHub
                         Reminders.Test();
                         Reply(id, null);
                         break;
+                    case "screen.secure":
+                        SetSecure(p["on"]?.GetValue<bool>() == true);
+                        Reply(id, null);
+                        break;
                     case "http":
                         Reply(id, await HttpCall(p));
                         break;
@@ -142,6 +147,17 @@ namespace MoneyHub
             {
                 Fail(id, ex.Message);
             }
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint affinity);
+
+        // Settings > Security > Allow screenshots off: the window is left out of screenshots and
+        // screen recordings (WDA_EXCLUDEFROMCAPTURE, or black on Windows older than 10 2004).
+        // base.Handle, because this class's Handle is the message handler.
+        private void SetSecure(bool on)
+        {
+            if (!SetWindowDisplayAffinity(base.Handle, on ? 0x11u : 0u) && on) SetWindowDisplayAffinity(base.Handle, 0x1u);
         }
 
         // PayPal and Apps Script do not accept calls from a web page, so the app makes them. Allowed hosts only.

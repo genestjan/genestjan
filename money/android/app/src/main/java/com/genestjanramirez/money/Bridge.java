@@ -150,6 +150,10 @@ final class Bridge implements WebViewCompat.WebMessageListener {
                         "You will get a note like this before each bill is due.");
                 reply(id, null);
                 break;
+            case "screen.secure":
+                activity.setSecure(p.optBoolean("on"));
+                reply(id, null);
+                break;
             case "http":
                 http(id, p);
                 break;

@@ -92,7 +92,8 @@ your branding, so Money Hub was built.
 | Supabase sees your password | It does not. The app turns your password into a separate sign-in secret (PBKDF2 then HKDF), so the real password never leaves the device. |
 | Someone guesses your account | Sign-ups are switched off after you create yours; Row Level Security limits every row to its owner. Two-factor rules are already in the database for later. |
 | Lost or stolen phone | The app locks after 3 minutes. Opening it needs your fingerprint or password. Changing your password signs every other device out of the cloud. |
-| Screenshots or the recent-apps preview | Blocked on Android (FLAG_SECURE). |
+| Screenshots or the recent-apps preview | The recent-apps preview is always blank on Android 13 and later. Screenshots are allowed by default so problems can be sent for help; **Settings & security > Allow screenshots** blocks them and screen recording (FLAG_SECURE on Android, capture exclusion on Windows). |
+| Problem reports leaking data | The problem log stays on the device and holds error messages, app version and phone model only. It is copied only when you tap Copy. |
 | Notification capture reading private things | Only apps you tick are read. One-time PINs, promos and texts from people are dropped on the phone. Captured text is sealed with the app's public key before it touches storage, so even the phone's own queue is unreadable without unlocking. |
 | A malicious web page talking to the app | The Android bridge is injected only into Money Hub's own page (origin check); the Windows app accepts messages only from its own virtual host; no outside page can load inside either app. |
 | Phone backups leaking data | Android cloud backup and device transfer are switched off for the app. |

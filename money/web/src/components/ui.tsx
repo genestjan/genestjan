@@ -2,6 +2,7 @@ import { Loader2, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { formatMoney, parseAmount, symbol, type Currency } from '../lib/money';
 import { institution, type Category, type InstitutionId } from '../lib/model';
+import { appTag, copyText } from '../lib/problems';
 import { useApp } from '../lib/session';
 import { iconFor } from './icons';
 
@@ -231,9 +232,25 @@ export function Spinner({ size = 18 }: { size?: number }) {
   return <Loader2 size={size} className="animate-spin" aria-hidden />;
 }
 
-export function ErrorText({ children }: { children?: ReactNode }) {
+/** A problem in plain words. With `detail`, the exact technical error sits under it, so a screenshot or Copy carries everything needed to fix it. */
+export function ErrorText({ children, detail }: { children?: ReactNode; detail?: string | null }) {
+  const [copied, setCopied] = useState<string | null>(null);
   if (!children) return null;
-  return <p role="alert" className="rounded-xl border border-expense/30 bg-expense/10 px-3.5 py-2.5 text-sm text-expense">{children}</p>;
+  const tech = detail ? `${detail} · ${appTag()}` : null;
+  return (
+    <div role="alert" className="rounded-xl border border-expense/30 bg-expense/10 px-3.5 py-2.5 text-sm text-expense">
+      <p>{children}</p>
+      {tech && (
+        <>
+          <p className="mt-1.5 break-words font-mono text-[11px] leading-snug text-expense/75">{tech}</p>
+          <button type="button" className="mt-1.5 text-xs font-semibold underline underline-offset-2"
+            onClick={async () => { if (await copyText(`${typeof children === 'string' ? `${children}\n` : ''}${tech}`)) setCopied(tech); }}>
+            {copied === tech ? 'Copied. Paste it into your message.' : 'Copy the details'}
+          </button>
+        </>
+      )}
+    </div>
+  );
 }
 
 export function Toast() {

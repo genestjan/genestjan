@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { b64url, sha256Hex, type CaptureBox, type VaultBoxes } from './crypto';
 import type { Remote, RemoteRow } from './ledger';
+import { AppError } from './problems';
 
 // Supabase holds the encrypted copies so every device stays in step. Tables and rules are in
 // money/supabase/schema.sql. The URL and publishable key are public by design: Row Level
@@ -10,12 +11,38 @@ export interface CloudConfig { url: string; key: string }
 
 const STORE = 'mh-cloud';
 
+/**
+ * Just https://<project>.supabase.co, whatever was copied: a /rest/v1/ ending (which sent sign-up
+ * to the wrong service: "Invalid path specified in request URL"), spaces, quotes, no https:// or
+ * the dashboard's own address.
+ */
+export function cleanCloudUrl(raw: string): string {
+  const s = raw.trim().replace(/^["'<]+|["'>]+$/g, '').trim();
+  try {
+    const u = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(s) ? s : `https://${s}`);
+    const ref = /(^|\.)supabase\.com$/.test(u.hostname) ? /\/project\/([a-z0-9]+)/i.exec(u.pathname)?.[1] : undefined;
+    if (ref) return `https://${ref.toLowerCase()}.supabase.co`;
+    return u.hostname.endsWith('.supabase.co') ? `https://${u.hostname}` : u.origin;
+  } catch {
+    return s;
+  }
+}
+
+/** The key without the spaces, line breaks or quotes picked up while copying. */
+export const cleanCloudKey = (raw: string) => raw.replace(/\s+/g, '').replace(/^["']+|["']+$/g, '');
+
+function tidy(url: string, key: string): CloudConfig {
+  // Pasted the wrong way round: swap them back.
+  if (/supabase\.com?\b/i.test(key) && !/supabase\.com?\b/i.test(url)) [url, key] = [key, url];
+  return { url: cleanCloudUrl(url), key: cleanCloudKey(key) };
+}
+
 export function cloudConfig(): CloudConfig | null {
   const env = import.meta.env;
-  if (env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY) return { url: env.VITE_SUPABASE_URL, key: env.VITE_SUPABASE_ANON_KEY };
+  if (env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY) return tidy(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
   try {
     const v = JSON.parse(localStorage.getItem(STORE) || 'null');
-    if (v && typeof v.url === 'string' && typeof v.key === 'string') return v;
+    if (v && typeof v.url === 'string' && typeof v.key === 'string') return tidy(v.url, v.key);
   } catch { /* none saved */ }
   return null;
 }
@@ -26,9 +53,10 @@ export function saveCloudConfig(cfg: CloudConfig | null) {
   client = null;
 }
 
+/** Checks values already passed through cleanCloudUrl and cleanCloudKey. */
 export function checkCloudConfig(url: string, key: string): string | null {
-  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url.trim())) return 'The Project URL looks like https://abcdefgh.supabase.co';
-  if (!/^(sb_publishable_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/.test(key.trim()))
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(url)) return 'The Project URL looks like https://abcdefgh.supabase.co';
+  if (!/^(sb_publishable_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/.test(key))
     return 'Paste the publishable key (it starts with sb_publishable_). Never paste the secret key.';
   return null;
 }
@@ -45,16 +73,31 @@ export function sb(): SupabaseClient | null {
   return client.sb;
 }
 
-const friendly = (msg: string) =>
-  /invalid login credentials/i.test(msg) ? 'That email and password do not match an account.'
-    : /email not confirmed/i.test(msg) ? 'Confirm your email first: open the link Supabase sent you, then sign in.'
-      : /signups not allowed|signup is disabled/i.test(msg) ? 'New accounts are switched off for this cloud. Sign in instead.'
-        : /already registered/i.test(msg) ? 'That email already has an account. Sign in instead.'
-          : /failed to fetch|network/i.test(msg) ? 'No internet connection. Try again when you are online.'
-            : msg;
+const FRIENDLY: [RegExp, string | (() => string)][] = [
+  [/invalid login credentials/i, 'That email and password do not match an account.'],
+  [/email not confirmed/i, 'Confirm your email first: open the link Supabase sent you, then sign in.'],
+  [/signups not allowed|signup is disabled/i, 'New accounts are switched off for this cloud. Sign in instead.'],
+  [/already registered/i, 'That email already has an account. Sign in instead.'],
+  [/invalid path specified|requested path is invalid/i, 'Money Hub has the wrong cloud address. Check MONEY_SUPABASE_URL in GitHub (setup guide, part 2).'],
+  [/invalid api key|no api key/i, 'Money Hub has the wrong cloud key. Check MONEY_SUPABASE_KEY in GitHub (setup guide, part 2).'],
+  [/failed to fetch|network|load failed/i, () => (navigator.onLine
+    ? 'Money Hub could not reach your cloud. Try again in a minute.'
+    : 'No internet connection. Try again when you are online.')],
+];
+
+function friendly(msg: string): string {
+  const hit = FRIENDLY.find(([re]) => re.test(msg));
+  return !hit ? msg : typeof hit[1] === 'string' ? hit[1] : hit[1]();
+}
+
+/** A Supabase error as a plain message, keeping the exact error and the cloud address as detail. */
+export function cloudError(error: { message: string; name?: string; status?: number; code?: string }, message = friendly(error.message)): AppError {
+  const tag = [error.name !== 'Error' && error.name, error.status, error.code].filter(Boolean).join(' ');
+  return new AppError(message, `${tag ? `${tag}: ` : ''}${error.message} · ${cloudConfig()?.url ?? 'no cloud'}`);
+}
 
 function fail(error: { message: string } | null): asserts error is null {
-  if (error) throw new Error(friendly(error.message));
+  if (error) throw cloudError(error);
 }
 
 export async function signUp(c: SupabaseClient, email: string, auth: string): Promise<{ userId: string } | 'confirm-email'> {
@@ -89,7 +132,7 @@ export async function signOut(c: SupabaseClient) {
 /** Resets a forgotten password using the recovery key (checked by the server against a hash). */
 export async function resetWithRecovery(c: SupabaseClient, email: string, proof: string, auth: string) {
   const { error } = await c.rpc('money_recover', { p_email: email.trim().toLowerCase(), p_proof: proof, p_new_password: auth });
-  if (error) throw new Error(/recovery/i.test(error.message) ? 'That email and recovery key do not match.' : friendly(error.message));
+  if (error) throw /recovery/i.test(error.message) ? cloudError(error, 'That email and spare key do not match.') : cloudError(error);
 }
 
 export async function fetchVault(c: SupabaseClient): Promise<VaultBoxes | null> {

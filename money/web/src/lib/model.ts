@@ -158,6 +158,8 @@ export interface Settings extends Base {
   ratesUpdatedAt?: number;
   autoAdd: boolean;
   hideBalances: boolean;
+  /** Stops screenshots and screen recording of the unlocked app (off by default, so problems can be sent). */
+  blockScreenshots?: boolean;
   lockMinutes: number;
   capturePublicKey?: string;
   capturePrivateKey?: string;

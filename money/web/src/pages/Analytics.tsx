@@ -52,7 +52,7 @@ export function Analytics() {
       ]} />
 
       {view === 'spending' && (
-        <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
           <Card title="Monthly spending">
             <Bars data={shown.map((p) => ({ key: p.month, label: shortMonth(p.month), value: p.expenses, highlight: p.month === month }))} format={money} axisFormat={axis} />
           </Card>
@@ -76,7 +76,7 @@ export function Analytics() {
       )}
 
       {view === 'income' && (
-        <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
           <Card title="Monthly income">
             <Bars data={shown.map((p) => ({ key: p.month, label: shortMonth(p.month), value: p.income, highlight: p.month === month }))} format={money} axisFormat={axis} colour="#3DD68C" />
           </Card>
@@ -124,7 +124,7 @@ export function Analytics() {
     const upcoming = [...billsFor(snap, month), ...billsFor(snap, addMonths(month, 1))].filter((b) => b.state !== 'paid' && b.days >= 0 && b.days <= 30);
     const due = upcoming.reduce((s, b) => s + Math.max(0, b.amount - b.paid), 0);
     return (
-      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Card title="Money you hold, six months ahead">
           <LineChart data={line} format={money} axisFormat={axis} />
           <p className="mt-3 text-xs leading-relaxed text-faint">The dashed line carries forward your average monthly net from the last three full months. It is a guide, not a promise.</p>

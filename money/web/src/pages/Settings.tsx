@@ -1,7 +1,8 @@
 import {
-  Cloud, Download, ExternalLink, FileSpreadsheet, Fingerprint, KeyRound, Link2, Lock, LogOut, RefreshCw, ShieldCheck, Upload,
+  Camera, Cloud, Download, ExternalLink, FileSpreadsheet, Fingerprint, KeyRound, Link2, Lock, LogOut, RefreshCw, ShieldCheck, Upload,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { ProblemsCard } from '../components/problems';
 import { RemindersCard } from '../components/remindersCard';
 import { PageHeader } from '../components/Shell';
 import { Avatar, Badge, Card, ErrorText, Field, Sheet, Spinner } from '../components/ui';
@@ -44,7 +45,7 @@ export function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings & security" />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="lg:col-span-2">
           <div className="flex flex-wrap items-center gap-4">
             <Avatar name={name || meta?.email || 'Jan'} size={56} />
@@ -81,6 +82,9 @@ export function SettingsPage() {
                   {[1, 3, 5, 10, 30].map((m) => <option key={m} value={m}>{m} min</option>)}
                 </select>
               } />
+            {hasNative && <Row icon={<Camera size={18} />} title="Allow screenshots"
+              text="So you can screenshot a problem and send it. Turn off to block screenshots and screen recording of Money Hub."
+              action={<input type="checkbox" className="h-5 w-5 accent-[#FFB03A]" checked={!s.blockScreenshots} onChange={(e) => void updateSettings({ blockScreenshots: !e.target.checked })} />} />}
             {!demo && <Row icon={<KeyRound size={18} />} title="Change password" text="Re-locks your data key; your data is not re-uploaded."
               action={<button className="btn-outline px-3 py-2 text-sm" onClick={() => setPwOpen(true)}>Change</button>} />}
             {!demo && <Row icon={<Lock size={18} />} title="Lock now" action={<button className="btn-outline px-3 py-2 text-sm" onClick={lock}>Lock</button>} />}
@@ -131,6 +135,8 @@ export function SettingsPage() {
               action={<button className="btn-danger px-3 py-2 text-sm" onClick={() => { if (confirm('Remove Money Hub data from this device?')) void signOutEverywhereOnThisDevice(); }}>Remove</button>} />}
           </div>
         </Card>
+
+        <ProblemsCard />
       </div>
 
       <PasswordSheet open={pwOpen} onClose={() => setPwOpen(false)} />
@@ -141,6 +147,7 @@ export function SettingsPage() {
 
 function PasswordSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const error = useApp((s) => s.error);
+  const errorDetail = useApp((s) => s.errorDetail);
   const [cur, setCur] = useState('');
   const [next, setNext] = useState('');
   const [again, setAgain] = useState('');
@@ -153,7 +160,7 @@ function PasswordSheet({ open, onClose }: { open: boolean; onClose: () => void }
         <Field label="New password" hint="At least 8 characters."><input className="field" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></Field>
         <Field label="New password again"><input className="field" type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} /></Field>
         <p className="text-xs text-faint">Your spare key keeps working. Other devices ask for the new password next time they unlock.</p>
-        <ErrorText>{error}</ErrorText>
+        <ErrorText detail={errorDetail}>{error}</ErrorText>
       </div>
     </Sheet>
   );

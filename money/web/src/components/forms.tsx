@@ -94,7 +94,7 @@ function TxnForm({ draft }: { draft: Partial<Txn> }) {
       <div className="space-y-4">
         <Segmented value={type} onChange={setType} options={[{ value: 'expense', label: 'Expense' }, { value: 'income', label: 'Income' }, { value: 'transfer', label: 'Transfer' }]} />
         <MoneyInput value={amount} onChange={setAmount} currency={acct?.currency} large autoFocus={!existing} />
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={type === 'transfer' ? 'From' : type === 'income' ? 'Into' : 'Paid with'}>
             <AccountSelect value={accountId} onChange={setAccountId} accounts={snap.accounts} />
           </Field>
@@ -129,7 +129,7 @@ function TxnForm({ draft }: { draft: Partial<Txn> }) {
           <Field label="Date"><input type="date" className="field" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
           <Field label="Time"><input type="time" className="field" value={time} onChange={(e) => setTime(e.target.value)} /></Field>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Fee (optional)" hint="InstaPay, PayPal or other charges on top.">
             <MoneyInput value={fee} onChange={setFee} currency={acct?.currency} />
           </Field>

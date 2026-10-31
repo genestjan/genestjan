@@ -69,8 +69,10 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // No screenshots or screen recording, and a blank preview in the recent apps list.
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+        // Screenshots are allowed, so a problem can be captured and sent; Settings > Security >
+        // Allow screenshots turns them off (setSecure). The recent apps list still shows a blank
+        // card instead of your balances (Android 13 and later).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) setRecentsScreenshotEnabled(false);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView()).setAppearanceLightStatusBars(false);
 
@@ -166,6 +168,14 @@ public class MainActivity extends FragmentActivity {
         setIntent(intent);
         String route = intent.getStringExtra("route");
         if (route != null && route.matches("/[a-z]+") && web != null) web.evaluateJavascript("location.hash='" + route + "'", null);
+    }
+
+    /** Blocks screenshots and screen recording while on (Settings > Security > Allow screenshots off). */
+    void setSecure(boolean on) {
+        runOnUiThread(() -> {
+            if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        });
     }
 
     /** Android 13 and later ask once before an app may show notifications. */

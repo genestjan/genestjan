@@ -75,7 +75,7 @@ export function Inbox() {
           <RefreshCw size={17} className={busy ? 'animate-spin' : ''} /> Check now
         </button>
       } />
-      <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-4">
           <Card title={`To review${review.length ? ` (${review.length})` : ''}`}>
             {review.length ? (

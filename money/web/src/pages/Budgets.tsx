@@ -35,7 +35,7 @@ export function Budgets() {
       {b.lines.length === 0 ? (
         <Card><Empty title="No budgets yet" text="Give each spending category a monthly limit. Money Hub tracks every captured and added expense against it." action={<button className="btn-primary" onClick={() => openBudgets(month)}>Set budgets</button>} /></Card>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
           <Card className="h-fit">
             <div className="flex items-center gap-5">
               <Ring value={b.pct} size={108} stroke={10}>
