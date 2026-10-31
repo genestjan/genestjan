@@ -25,7 +25,11 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      # The default package list includes "tools", which current SDK command-line
+      # tools no longer ship, so ask only for platform-tools.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       # Signs with the key in the MONGGOLS_KEYSTORE_BASE64 and
       # MONGGOLS_KEYSTORE_PASSWORD repository secrets. The same key must be used
