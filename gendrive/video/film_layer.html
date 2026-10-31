@@ -1,0 +1,395 @@
+<style>
+/* Film mode: the app screen at 1.2x (1536x864) with a title band above and captions below. */
+html.film, html.film body { background: #04060c; margin: 0; padding: 0; overflow: hidden; }
+html.film body { width: 1920px; height: 1080px; }
+html.film .page-head, html.film .fine, html.film .section-title, html.film .notes { display: none !important; }
+html.film .wrap { max-width: none; display: block; }
+html.film .screen-wrap { position: absolute; z-index: 5; left: 192px; top: 96px; width: 1536px !important; border-radius: 26px; box-shadow: 0 40px 120px -30px rgba(0,0,0,.9), 0 0 0 12px #0c0f16, 0 0 0 13px #2b3140; transform-origin: 50% 50%; }
+#filmbg { position: absolute; inset: 0; z-index: 0; background:
+  radial-gradient(900px 600px at 15% 0%, rgba(46,230,166,.10), transparent 70%),
+  radial-gradient(900px 700px at 100% 100%, rgba(77,163,255,.10), transparent 70%), #04060c; }
+#band { position: absolute; left: 192px; right: 192px; top: 0; height: 96px; display: flex; align-items: center; gap: 18px; font-family: Inter, sans-serif; color: #F2F6FC; z-index: 20; }
+#band .step { font: 800 22px Inter; color: #04140E; background: #2EE6A6; border-radius: 999px; padding: 8px 18px; white-space: nowrap; }
+#band .title { font: 800 40px Inter; letter-spacing: -0.01em; white-space: nowrap; }
+#band .mark { margin-left: auto; display: flex; align-items: center; gap: 10px; font: 800 24px Inter; color: #F2F6FC; opacity: .9; }
+#band .mark svg { width: 40px; height: 40px; }
+#cap { position: absolute; left: 192px; right: 192px; top: 984px; height: 96px; display: flex; align-items: center; justify-content: center; text-align: center; font: 700 34px/1.25 Inter, sans-serif; color: #F2F6FC; z-index: 20; text-wrap: balance; }
+#cap b { color: #2EE6A6; font-weight: 800; }
+#cover { position: absolute; left: 192px; top: 96px; width: 1536px; height: 864px; border-radius: 26px; overflow: hidden; z-index: 15; display: none; font-family: Inter, sans-serif; color: #F2F6FC;
+  background: radial-gradient(1000px 700px at 20% 10%, #12203a, #070B14 70%); }
+#full { position: absolute; inset: 0; z-index: 30; display: none; font-family: Inter, sans-serif; color: #F2F6FC; background: #04060c; }
+#ring { position: absolute; z-index: 18; border: 5px solid #2EE6A6; border-radius: 28px; box-shadow: 0 0 0 6px rgba(46,230,166,.18), 0 0 40px rgba(46,230,166,.55); display: none; pointer-events: none; }
+#fade { position: absolute; inset: 0; background: #000; z-index: 40; opacity: 0; pointer-events: none; }
+#finger { position: absolute; z-index: 19; width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 0 0 10px rgba(255,255,255,.25); display: none; transform: translate(-50%, -50%); }
+/* Illustrations */
+.ill { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 48px; }
+.ill-card { background: linear-gradient(180deg, #15223A, #0E1626); border: 1px solid #1F2E4A; border-radius: 32px; padding: 34px; display: flex; flex-direction: column; align-items: center; gap: 18px; width: 380px; }
+.ill-card h4 { margin: 0; font: 800 34px Inter; }
+.ill-card p { margin: 0; font: 400 24px Inter; color: #9AABC4; text-align: center; }
+.phone { width: 430px; height: 760px; border-radius: 54px; background: #0b0f17; border: 12px solid #1c2230; box-shadow: 0 30px 80px rgba(0,0,0,.6); position: relative; overflow: hidden; }
+.phone .bar { margin: 36px 22px 0; height: 62px; border-radius: 31px; background: #1b2436; display: flex; align-items: center; padding: 0 20px; font: 400 21px Inter; color: #c9d4e6; white-space: nowrap; overflow: hidden; }
+.win { width: 1100px; height: 640px; border-radius: 22px; background: #f3f6fb; box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; color: #0b1220; position: relative; }
+.win .tb { height: 58px; background: #dfe6f1; display: flex; align-items: center; gap: 12px; padding: 0 22px; font: 700 22px Inter; color: #22324a; }
+.win .tb i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; background: #ff5f57; }
+.win .tb i:nth-child(2) { background: #febc2e; } .win .tb i:nth-child(3) { background: #28c840; }
+.win .side { position: absolute; left: 0; top: 58px; bottom: 0; width: 250px; background: #e8edf5; padding: 22px; font: 400 22px Inter; color: #22324a; display: flex; flex-direction: column; gap: 16px; }
+.win .main { position: absolute; left: 250px; top: 58px; right: 0; bottom: 0; padding: 34px; display: flex; flex-wrap: wrap; gap: 34px; align-content: flex-start; }
+.fico { width: 170px; display: flex; flex-direction: column; align-items: center; gap: 10px; font: 600 21px Inter; text-align: center; }
+.fico .f { width: 120px; height: 96px; border-radius: 12px; background: #f6c445; position: relative; }
+.fico .f::before { content: ""; position: absolute; left: 0; top: -14px; width: 54px; height: 22px; border-radius: 8px 8px 0 0; background: #f6c445; }
+.fico .a { width: 92px; height: 112px; border-radius: 12px; background: #2EE6A6; display: grid; place-items: center; font: 800 26px Inter; color: #04140E; }
+.dialog { width: 760px; border-radius: 30px; background: #f5f7fb; color: #0b1220; box-shadow: 0 30px 80px rgba(0,0,0,.6); padding: 40px; display: flex; flex-direction: column; gap: 22px; }
+.dialog h4 { margin: 0; font: 800 34px Inter; }
+.dialog .field { border: 3px solid #9aabc4; border-radius: 16px; padding: 18px 22px; font: 700 38px "JetBrains Mono", monospace; letter-spacing: .12em; min-height: 84px; }
+.dialog .btn { align-self: flex-end; background: #1F6FE5; color: #fff; font: 800 28px Inter; padding: 16px 40px; border-radius: 16px; }
+.big-check { width: 120px; height: 120px; border-radius: 50%; background: #2EE6A6; display: grid; place-items: center; color: #04140E; font: 800 70px Inter; }
+.logo-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; }
+.logo-wrap h1 { margin: 0; font: 800 120px Inter; letter-spacing: -0.03em; }
+.logo-wrap h2 { margin: 0; font: 400 40px Inter; color: #9AABC4; }
+.logo-wrap .small { font: 400 22px Inter; color: #6B7F9E; }
+#cap .who { display: inline-block; font: 800 19px Inter; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 6px 14px; margin-right: 14px; vertical-align: 5px; }
+#cap .who.you { background: #9B8CFF; color: #0b0f1a; }
+#cap .who.gen { background: #2EE6A6; color: #04140E; }
+#cap .said { font-style: italic; color: #E4DEFF; }
+.sysrow { display: flex; align-items: center; justify-content: space-between; background: #0b1424; border: 2px solid #1F2E4A; border-radius: 18px; padding: 18px 24px; font: 700 30px Inter; color: #F2F6FC; }
+.toggle { width: 86px; height: 46px; border-radius: 23px; background: #33415c; position: relative; display: inline-block; flex: none; }
+.toggle::after { content: ""; position: absolute; top: 5px; left: 5px; width: 36px; height: 36px; border-radius: 50%; background: #fff; }
+.toggle.on { background: #2EE6A6; }
+.toggle.on::after { left: 45px; }
+.spin2 { display: block; width: 70px; height: 70px; border-radius: 50%; border: 8px solid #1F2E4A; border-top-color: #2EE6A6; animation: spin .9s linear infinite; }
+.sp { color: #2EE6A6; font-weight: 800; padding: 0 3px; }
+.hl { color: #2EE6A6; font-weight: 800; }
+</style>
+
+<div id="filmbg"></div>
+<div id="band"><span class="step" id="b-step"></span><span class="title" id="b-title"></span>
+  <span class="mark"><svg viewBox="0 0 108 108"><path d="M70.85,39.86 A22,22 0 1,0 76,54 L58,54" fill="none" stroke="#2EE6A6" stroke-width="9" stroke-linecap="round"/></svg>GenDrive</span></div>
+<div id="cover"></div>
+<div id="ring"></div>
+<div id="finger"></div>
+<div id="cap"></div>
+<div id="full"></div>
+<div id="fade"></div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const G = () => window.gd;
+  let TL = null, mode = "marketing";
+  const lerp = (a, b, p) => a + (b - a) * Math.max(0, Math.min(1, p));
+  const ease = (p) => p < 0 ? 0 : p > 1 ? 1 : p * p * (3 - 2 * p);
+  const G_PATH = 'M70.85,39.86 A22,22 0 1,0 76,54 L58,54';
+
+  function sceneAt(t) {
+    let s = TL.scenes[0];
+    for (const x of TL.scenes) if (t >= x.start) s = x;
+    return s;
+  }
+
+  function app(o) { Object.assign(G().state, o); }
+  function reset() {
+    app({ page: "home", moving: false, driving: false, speed: 0, gear: "P", nav: false, video: false, banner: false, assistant: null, day: false, right: false, playing: true });
+  }
+
+  const pending = { ring: null, finger: null };
+  function ringOn(sel, pad = 12) { pending.ring = [sel, pad]; }
+  function fingerOn(sel, show) { pending.finger = show ? sel : null; }
+  // Rings and the finger are placed after the frame renders, so they follow the new layout.
+  function applyPointers() {
+    const ring = $("#ring"), f = $("#finger");
+    const target = pending.ring && document.querySelector("#screen " + pending.ring[0]);
+    if (target) {
+      const r = target.getBoundingClientRect(), pad = pending.ring[1];
+      Object.assign(ring.style, { display: "block", left: (r.left - pad) + "px", top: (r.top - pad) + "px", width: (r.width + pad * 2) + "px", height: (r.height + pad * 2) + "px" });
+    } else ring.style.display = "none";
+    const sel = pending.finger;
+    const el = sel && document.querySelector(sel.startsWith("#") ? sel : "#screen " + sel);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      Object.assign(f.style, { display: "block", left: (r.left + r.width / 2) + "px", top: (r.top + r.height / 2) + "px" });
+    } else f.style.display = "none";
+  }
+
+  function cover(html) { const c = $("#cover"); c.style.display = html ? "block" : "none"; if (html !== null && c.innerHTML !== html) c.innerHTML = html || ""; }
+  function full(html) { const c = $("#full"); c.style.display = html ? "block" : "none"; if (html && c.innerHTML !== html) c.innerHTML = html; }
+
+  const esc = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  // Captions follow the voice sentence by sentence; the driver's words are labelled You.
+  function caption(s, local) {
+    const cap = $("#cap");
+    if (s.you_file && local >= s.you_start - 0.1 && local < s.voice_start - 0.2) {
+      cap.innerHTML = `<span class="who you">You</span><span class="said">“${esc(s.you_say)}”</span>`;
+      return;
+    }
+    if (!s.caps || local < s.voice_start - 0.2) { cap.innerHTML = ""; return; }
+    let text = s.caps[0][1];
+    for (const [o, x] of s.caps) if (local >= s.voice_start + o - 0.2) text = x;
+    cap.innerHTML = (s.you_file ? '<span class="who gen">Gen</span>' : "") + esc(text);
+  }
+
+  function band(s, local) {
+    $("#b-step").style.display = s.step ? "inline-block" : "none";
+    $("#b-step").textContent = s.step || "";
+    $("#b-title").textContent = s.title || "";
+    $("#b-title").style.opacity = s.cont ? "1" : String(ease(local / 0.35));
+  }
+
+  // ---------- full-screen scenes ----------
+  function logo(p, sub) {
+    const draw = ease(p / 0.45);
+    const len = 160;
+    return `<div class="logo-wrap">
+      <svg viewBox="0 0 108 108" width="260" height="260" style="filter:drop-shadow(0 0 ${20 + 30 * draw}px rgba(46,230,166,${0.25 + 0.4 * draw}))">
+        <path d="${G_PATH}" fill="none" stroke="#2EE6A6" stroke-width="8" stroke-linecap="round" stroke-dasharray="${len}" stroke-dashoffset="${len * (1 - draw)}"/>
+        <circle cx="54" cy="46" r="3" fill="#2EE6A6" opacity="${ease((p - 0.4) / 0.15)}"/></svg>
+      <h1 style="opacity:${ease((p - 0.35) / 0.2)};transform:translateY(${lerp(30, 0, (p - 0.35) / 0.25)}px)">GenDrive</h1>
+      <h2 style="opacity:${ease((p - 0.55) / 0.2)}">${sub}</h2></div>`;
+  }
+  function endCard(p) {
+    return `<div class="logo-wrap">
+      <svg viewBox="0 0 108 108" width="200" height="200" style="filter:drop-shadow(0 0 40px rgba(46,230,166,.6))"><path d="${G_PATH}" fill="none" stroke="#2EE6A6" stroke-width="8" stroke-linecap="round"/><circle cx="54" cy="46" r="3" fill="#2EE6A6"/></svg>
+      <h1 style="font-size:104px">GenDrive</h1>
+      <h2>Built for BYD drivers</h2>
+      <div style="margin-top:22px;font:800 34px Inter;color:#2EE6A6;opacity:${ease((p - 0.25) / 0.2)}">Want it in your BYD? genestjanramirez.com</div>
+      <div class="small" style="margin-top:40px;text-align:center;line-height:1.6">Demo screens and demo voices. In your car, Gen speaks with the car's own text-to-speech voice.<br>Voices: Mimic 3 VCTK by MycroftAI, CC BY 4.0. Music: original. Not affiliated with or endorsed by BYD.</div></div>`;
+  }
+
+  // ---------- tutorial illustrations ----------
+  const USB = '<svg width="150" height="150" viewBox="0 0 64 64"><rect x="22" y="4" width="20" height="16" rx="2" fill="#9AABC4"/><rect x="26" y="8" width="4" height="4" fill="#0E1626"/><rect x="34" y="8" width="4" height="4" fill="#0E1626"/><rect x="16" y="20" width="32" height="40" rx="8" fill="#2EE6A6"/></svg>';
+  const PHONE = '<svg width="150" height="150" viewBox="0 0 64 64"><rect x="18" y="4" width="28" height="56" rx="6" fill="#4DA3FF"/><rect x="21" y="10" width="22" height="40" rx="2" fill="#0E1626"/></svg>';
+  const CARP = '<svg width="150" height="150" viewBox="0 0 64 64"><path d="M8 40l6-16a6 6 0 0 1 6-4h24a6 6 0 0 1 6 4l6 16v12H8z" fill="#9B8CFF"/><circle cx="18" cy="50" r="6" fill="#0E1626"/><circle cx="46" cy="50" r="6" fill="#0E1626"/><text x="32" y="38" text-anchor="middle" font-family="Inter" font-weight="800" font-size="16" fill="#fff">P</text></svg>';
+
+  // S(i) = seconds into the scene when spoken sentence i starts.
+  function illus(visual, p, local, S) {
+    const after = (i, d = 0.35, lead = 0.1) => ease((local - S(i) + lead) / d);
+    switch (visual) {
+      case "tut_title": return null;
+      case "needs":
+        return `<div class="ill">${[[USB, "USB stick", "Any size"], [PHONE, "Phone or computer", "With internet"], [CARP, "Your car", "Parked, in P"]].map(([i, h, d], k) =>
+          `<div class="ill-card" style="opacity:${after(k + 1)};transform:translateY(${lerp(30, 0, after(k + 1, 0.45))}px)">${i}<h4>${h}</h4><p>${d}</p></div>`).join("")}</div>`;
+      case "download": {
+        const prog = ease((local - S(2)) / 1.6);
+        return `<div class="ill"><div class="phone"><div class="bar">github.com/genestjan/…/GenDrive.apk</div>
+          <div style="position:absolute;left:30px;right:30px;top:260px;display:flex;flex-direction:column;gap:22px;align-items:center">
+            <div class="fico"><div class="a">APK</div></div>
+            <div style="font:800 32px Inter">GenDrive.apk</div>
+            <div style="width:100%;height:14px;border-radius:7px;background:#1F2E4A"><div style="height:100%;width:${prog * 100}%;border-radius:7px;background:#2EE6A6"></div></div>
+            <div style="font:400 24px Inter;color:#9AABC4">${prog >= 1 ? "Downloaded ✓" : "Downloading…"}</div></div></div></div>`;
+      }
+      case "folder": {
+        const name = "Third Party Apps 63";
+        const t2 = S(2), t3 = S(3), t4 = S(4), t5 = S(5);
+        const typed = name.slice(0, Math.floor(ease((local - t3 - 0.5) / Math.max(0.8, t4 - t3 - 0.8)) * name.length));
+        // While Gen says "put a space between each word", the spaces show; then 63 lights up.
+        const label = local >= t5 ? 'Third Party Apps <span class="hl">63</span>' : local >= t4 ? name.split(" ").join('<span class="sp">␣</span>') : typed;
+        return `<div class="ill"><div class="win"><div class="tb"><i></i><i></i><i></i>&nbsp;USB stick</div>
+          <div class="side"><b>Places</b><span>Desktop</span><span>Downloads</span><span style="color:#1F6FE5;font-weight:800">USB stick</span></div>
+          <div class="main"><div class="fico" style="width:auto;opacity:${local >= t2 + 0.2 ? 1 : 0}"><div class="f"></div><span style="background:${local >= t3 ? "#cfe0ff" : "transparent"};padding:4px 10px;border-radius:8px;min-height:30px;font-size:26px;white-space:nowrap">${local >= t3 ? (label || "|") : "New folder"}${local >= t3 && local < t4 ? "|" : ""}</span></div></div></div></div>`;
+      }
+      case "copy": {
+        const mv = ease((local - S(1) - 0.3) / 1.2);
+        return `<div class="ill"><div class="win"><div class="tb"><i></i><i></i><i></i>&nbsp;USB stick</div>
+          <div class="side"><b>Places</b><span>Desktop</span><span>Downloads</span><span style="color:#1F6FE5;font-weight:800">USB stick</span>
+            <span style="margin-top:auto;background:${local >= S(2) + 0.5 ? "#1F6FE5" : "#cfd8e6"};color:${local >= S(2) + 0.5 ? "#fff" : "#22324a"};padding:10px 14px;border-radius:12px;font-weight:800;text-align:center">⏏ Eject</span></div>
+          <div class="main"><div class="fico"><div class="f"></div><span>Third Party Apps 63</span></div>
+            <div class="fico" style="position:absolute;left:${lerp(560, 70, mv)}px;top:${lerp(330, 40, mv)}px;opacity:${mv >= 1 ? 0 : 1}"><div class="a">APK</div><span>GenDrive.apk</span></div></div></div></div>`;
+      }
+      case "car_plug": {
+        const plug = ease((local - S(3) - 0.2) / 1.0);
+        return `<div class="ill"><svg width="1100" height="620" viewBox="0 0 1100 620">
+          <rect x="60" y="60" width="980" height="500" rx="40" fill="#0E1626" stroke="#1F2E4A" stroke-width="4"/>
+          <rect x="320" y="110" width="460" height="260" rx="20" fill="#070B14" stroke="#2EE6A6" stroke-opacity=".5" stroke-width="3"/>
+          <text x="550" y="255" text-anchor="middle" font-family="Inter" font-weight="800" font-size="44" fill="#F2F6FC">${plug >= 1 ? "USB connected" : "Car screen"}</text>
+          <rect x="480" y="440" width="140" height="56" rx="12" fill="#1F2E4A"/><rect x="515" y="458" width="70" height="20" rx="4" fill="#04060c"/>
+          <g opacity="${ease((local - S(3)) / 0.25)}" transform="translate(0, ${lerp(-150, 0, plug)})"><rect x="520" y="300" width="60" height="120" rx="14" fill="#2EE6A6"/><rect x="530" y="420" width="40" height="40" fill="#9AABC4"/></g>
+          <g><rect x="860" y="400" width="120" height="120" rx="24" fill="#1F2E4A" stroke="#2EE6A6" stroke-width="${local >= S(2) && local < S(3) ? 8 : 0}"/><text x="920" y="478" text-anchor="middle" font-family="Inter" font-weight="800" font-size="64" fill="#2EE6A6">P</text></g></svg></div>`;
+      }
+      case "password": {
+        const pw = "BYD6125F";
+        const t3 = S(3), t4 = S(4);
+        const typed = pw.slice(0, Math.floor(ease((local - t3 - 0.3) / Math.max(1, t4 - t3 - 0.5)) * pw.length));
+        const tapped = local >= t4 + 0.5;
+        if (local < S(2)) return `<div class="ill"><div class="ill-card" style="width:560px"><i class="spin2"></i><h4>Please wait…</h4><p>About 10 seconds</p></div></div>`;
+        return `<div class="ill"><div class="dialog"><h4>Enter password</h4><div style="font:400 24px Inter;color:#44546C">To install apps from USB</div>
+          <div class="field">${typed}<span style="opacity:${local >= t3 && local < t4 ? 1 : 0}">|</span></div>
+          <div class="btn" style="${tapped ? "box-shadow:0 0 0 8px rgba(31,111,229,.35)" : ""}">OK</div></div></div>`;
+      }
+      case "install": {
+        const stage = local < S(2) ? 0 : local < S(3) ? 1 : local < S(3) + 1.0 ? 2 : 3;
+        const inner = [
+          `<h4>Install apps</h4><div style="display:flex;align-items:center;gap:18px;border:3px solid #1F6FE5;border-radius:16px;padding:16px"><div class="fico" style="width:auto"><div class="a" style="width:60px;height:72px;font-size:18px">APK</div></div><b style="font:800 30px Inter">GenDrive.apk</b></div>`,
+          `<h4>Install GenDrive?</h4><div style="font:400 24px Inter;color:#44546C">Do you want to install this app?</div><div class="btn">Install</div>`,
+          `<h4>Installing…</h4><div style="height:14px;border-radius:7px;background:#d5dfec"><div style="height:100%;width:${ease((local - S(3)) / 1.0) * 100}%;border-radius:7px;background:#1F6FE5"></div></div>`,
+          `<div style="display:flex;align-items:center;gap:24px"><div class="big-check" style="width:84px;height:84px;font-size:48px">✓</div><h4>App installed</h4></div><div class="btn">Open</div>`,
+        ][stage];
+        return `<div class="ill"><div class="dialog">${inner}</div></div>`;
+      }
+      case "you": {
+        const rows = [["Your name", "Jan"], ["Car", "eMAX 7 / M6 Standard (55.4 kWh)"], ["Electricity price per kWh", "12"], ["Petrol price per litre", "60"]];
+        return `<div class="ill"><div class="ill-card" style="width:980px;align-items:stretch;gap:22px">
+          <h4 style="font-size:36px">You and your car</h4>${rows.map(([l, v], k) => {
+            const q = ease((local - [S(1), S(2), S(3), S(3) + 1.6][k]) / 1.0);
+            return `<div style="border:2px solid ${q > 0 && q < 1 ? "#2EE6A6" : "#1F2E4A"};border-radius:16px;padding:14px 20px"><div style="font:400 20px Inter;color:#9AABC4">${l}</div><div style="font:800 32px Inter;min-height:40px">${v.slice(0, Math.floor(q * v.length))}</div></div>`;
+          }).join("")}</div></div>`;
+      }
+      case "gemini": {
+        const stage = local < S(3) ? 0 : 1;
+        return `<div class="ill"><div class="phone" style="opacity:${stage === 0 ? 1 : 0.35}"><div class="bar">aistudio.google.com/apikey</div>
+            <div style="position:absolute;left:30px;right:30px;top:240px;display:flex;flex-direction:column;gap:24px;align-items:center">
+            <div style="font:800 30px Inter">API keys</div><div style="background:#1F6FE5;color:#fff;font:800 26px Inter;padding:16px 26px;border-radius:14px;box-shadow:${local >= S(2) && local < S(3) ? "0 0 0 8px rgba(46,230,166,.55)" : "none"}">Create API key</div>
+            <div style="font:400 22px Inter;color:#9AABC4;font-family:'JetBrains Mono'">AIza••••••••••••••</div></div></div>
+          <div class="ill-card" style="width:560px;opacity:${stage === 1 ? 1 : 0.35}"><h4>GenDrive Settings</h4><p>Gemini API key</p>
+            <div style="border:2px solid #2EE6A6;border-radius:14px;padding:16px;width:100%;font:800 28px 'JetBrains Mono';text-align:center">${stage === 1 ? "••••••••••••••" : ""}</div></div></div>`;
+      }
+      case "update":
+        return `<div class="ill"><div class="ill-card" style="width:600px"><div class="fico"><div class="a">APK</div></div><h4>New GenDrive</h4><p>Download it again and repeat steps 1 to 6.</p></div>
+          <div class="ill-card" style="width:600px;opacity:${after(1)}"><div class="big-check">✓</div><h4>Trips kept</h4><p>Your trips and settings stay.</p></div></div>`;
+      default: return null;
+    }
+  }
+
+  function tutTitle(s, p, end) {
+    const sub = s.sub || "";
+    return `<div class="logo-wrap">
+      <svg viewBox="0 0 108 108" width="180" height="180" style="filter:drop-shadow(0 0 40px rgba(46,230,166,.55))"><path d="${G_PATH}" fill="none" stroke="#2EE6A6" stroke-width="8" stroke-linecap="round"/><circle cx="54" cy="46" r="3" fill="#2EE6A6"/></svg>
+      <h1 style="font-size:${end ? 120 : 80}px;text-align:center;max-width:1500px">${s.title}</h1><h2>${sub}</h2>
+      ${end ? '<div class="small" style="margin-top:30px;text-align:center;line-height:1.6">Screens shown with demo data. Not affiliated with or endorsed by BYD.<br>Voices: Mimic 3 VCTK by MycroftAI, CC BY 4.0. Music: original.</div>' : ""}</div>`;
+  }
+
+  // ---------- per-frame driver ----------
+  // Which spoken sentence is playing, and when sentence i starts (seconds into the scene).
+  function sentenceAt(s, local) {
+    if (!s.sents || local < s.voice_start - 0.05) return -1;
+    let i = 0;
+    s.sents.forEach((o, k) => { if (local >= s.voice_start + o - 0.05) i = k; });
+    return i;
+  }
+  function sentenceStart(s, i) {
+    if (!s.sents || i >= s.sents.length) return Infinity;
+    return s.voice_start + s.sents[i];
+  }
+
+  // A spoken exchange, as the app shows it: listening while the driver talks,
+  // then thinking with what Gen heard, then Gen's reply in the header line.
+  function converse(s, local, navOnReply) {
+    if (!s.you_file) return;
+    const l0 = s.cont ? 0 : s.you_start - 0.45, l1 = s.you_start + s.you_dur + 0.15;
+    if (local >= l0 && local < l1) { app({ assistant: { phase: "listening" } }); ringOn(".orb-wrap", 2); }
+    else if (local >= l1 && local < s.voice_start) app({ assistant: { phase: "thinking", heard: s.heard } });
+    else if (local >= s.voice_start) app({ assistant: { phase: "speaking", heard: s.heard, reply: s.reply || s.caption }, nav: navOnReply || G().state.nav });
+  }
+
+  // Android's own settings page, where GenDrive gets switched on.
+  function sysSettings(k) {
+    const on = k > 1.1;
+    return `<div class="ill"><div class="ill-card" style="width:820px;align-items:stretch;gap:16px">
+      <h4 style="text-align:center">Android settings</h4>
+      <div class="sysrow" style="opacity:.45"><span>Calendar</span><i class="toggle"></i></div>
+      <div class="sysrow" style="border-color:${on ? "#2EE6A6" : "#4DA3FF"}"><span>GenDrive</span><i class="toggle ${on ? "on" : ""}"></i></div>
+      <div class="sysrow" style="opacity:.45"><span>Weather</span><i class="toggle"></i></div>
+      <p style="margin-top:8px">${on ? "Now press the car's Back button." : "Find GenDrive and switch it on."}</p></div></div>`;
+  }
+
+  function at(t) {
+    const s = sceneAt(t);
+    const local = t - s.start;
+    const p = local / s.dur;
+    const si = sentenceAt(s, local);
+    const S = (i) => sentenceStart(s, i);
+    reset();
+    pending.ring = null;
+    pending.finger = null;
+    cover(null);
+    full(null);
+    band(s, local);
+    caption(s, local);
+    const v = s.visual;
+    const wrapEl = document.querySelector(".screen-wrap");
+    wrapEl.style.transform = mode === "marketing" ? `scale(${1 + 0.018 * p})` : "none";
+
+    if (v === "logo") { full(logo(p, "Your BYD, upgraded.")); }
+    else if (v === "end") { full(endCard(p)); }
+    else if (v === "tut_title" || v === "tut_end") { full(tutTitle(s, p, v === "tut_end")); }
+    else if (v === "home") { app({ page: "home" }); }
+    else if (v === "drive") {
+      const sp = local < 3 ? lerp(0, 52, local / 3) : 52 + 4 * Math.sin(local * 1.3);
+      app({ page: "home", gear: "D", speed: sp, moving: sp >= 5 });
+    }
+    else if (v === "ask") { app({ page: "home", gear: "D", speed: 48 + 3 * Math.sin(local), moving: true }); converse(s, local, true); }
+    else if (v === "chat") { app({ page: "home" }); converse(s, local, false); }
+    else if (v === "talk") {
+      app({ page: "home" });
+      const tapAt = S(2) + 1.2;
+      ringOn(".orb-wrap", 6);
+      fingerOn(".orb", si >= 2 && local < tapAt + 0.35);
+      if (local >= tapAt) app({ assistant: { phase: "listening" } });
+    }
+    else if (v === "talk_reply") { app({ page: "home" }); converse(s, local, true); }
+    else if (v === "talk_after") { app({ page: "home", nav: true }); if (local > 0.25) ringOn(".turncard", 8); }
+    else if (v === "music" || v === "tour_music") {
+      app({ page: "music", songT: 2 + local * 1.15 });
+      if (v === "tour_music") ringOn(".lyrics", 6);
+    }
+    else if (v === "maps") { app({ page: "maps", nav: true }); }
+    else if (v === "tour_maps") {
+      app({ page: "maps" });
+      if (si <= 0) ringOn("[data-go=maps]", 6);
+      else ringOn(local < S(1) + 1.6 ? ".scroll > .tiles" : ".scroll > .tiles ~ .tiles", 10);
+    }
+    else if (v === "car" || v === "tour_car") { app({ page: "car" }); if (v === "tour_car") ringOn(".tyres", 8); }
+    else if (v === "save") { if (si < 3) app({ page: "home", banner: true }); else app({ page: "trips" }); }
+    else if (v === "video") {
+      const moving = si >= 1;
+      app({ page: "home", video: true, gear: moving ? "D" : "P", speed: moving ? 30 : 0, moving });
+    }
+    else if (v === "tour_safety") {
+      if (si <= 1) app({ page: "home", video: true, gear: "D", speed: 30, moving: true });
+      else if (si === 2) app({ page: "home", video: true });
+      else { app({ page: "maps", gear: "D", speed: 30, moving: true }); ringOn(".scroll > .card", 8); }
+    }
+    else if (v === "apps" || v === "tour_apps") { app({ page: "apps" }); if (v === "tour_apps") ringOn(".grid-apps", 8); }
+    else if (v === "tour_trips") { app({ page: "trips" }); ringOn(".scroll > .row:nth-child(2)", 8); }
+    else if (v === "modes") { app({ page: "home", day: local > 1.4, right: local > 3.0 }); }
+    else if (v === "tour_home") {
+      app({ page: "home" });
+      const target = [null, ".drive .grow", ".ring", "[data-go=music]", ".wherecard"][Math.max(0, si)];
+      if (target) ringOn(target, 10);
+    }
+    else if (v === "setup") {
+      if (si < 2) { app({ page: "home" }); ringOn("[data-go=settings]", 6); fingerOn("[data-go=settings]", si === 1 && local > S(1) + 0.5); }
+      else if (si === 2) { app({ page: "settings" }); ringOn(".scroll > .card", 8); }
+      else if (si === 3) { app({ page: "settings" }); ringOn(".check:nth-child(4) .gbtn", 8); fingerOn(".check:nth-child(4) .gbtn", local > S(3) + 0.7); }
+      else if (si === 4) { app({ page: "settings" }); cover(sysSettings(local - S(4))); }
+      else { app({ page: "settings" }); ringOn(".check:nth-child(6) .gbtn", 8); fingerOn(".check:nth-child(6) .gbtn", local > S(5) + 1.2); }
+    }
+    else {
+      const html = illus(v, p, local, S);
+      if (html) { app({ page: "home" }); cover(html); }
+    }
+
+    // A short dip to black between scenes, but not inside a continuing exchange.
+    let dip = 0;
+    for (const x of TL.scenes) {
+      const d = Math.abs(t - x.start);
+      if (x.start > 0 && !x.cont && d < 0.18) dip = Math.max(dip, (1 - d / 0.18) * 0.65);
+    }
+    $("#fade").style.opacity = String(dip);
+    G().render();
+    applyPointers();
+    // Freeze CSS animations to the film clock so every render is identical.
+    for (const a of document.getAnimations()) { try { a.currentTime = (t * 1000) % 100000; } catch (e) {} }
+  }
+
+  window.film = {
+    load(tl) {
+      TL = tl;
+      mode = tl.name;
+      document.documentElement.classList.add("film");
+      const w = document.querySelector(".screen-wrap");
+      w.style.width = "1536px";
+      G().fit();
+    },
+    at,
+  };
+})();
+</script>

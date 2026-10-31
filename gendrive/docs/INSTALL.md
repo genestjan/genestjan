@@ -169,6 +169,12 @@ BYD stops apps from starting by themselves until you allow it. Do Part 4, step 6
 (the autostart list), or open GenDrive once after starting the car. Setting
 GenDrive as the home screen (Settings, Units and display) also starts it with the car.
 
+**Gen doesn't talk.**
+Gen speaks with the car's own text-to-speech engine, and some cars don't have one.
+GenDrive still shows Gen's replies at the top of the screen, and **Settings**,
+**Voice assistant** says "No speech engine found". A free text-to-speech app, such
+as Speech Services by Google, gives Gen a voice. After installing one, restart GenDrive.
+
 **Can GenDrive cause an accident or stop the car?**
 No. GenDrive only reads information. Braking, steering and the motor are run by
 separate computers that GenDrive cannot send commands to. If GenDrive closed

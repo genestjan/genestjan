@@ -1,0 +1,539 @@
+<title>GenDrive Screen Preview</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap">
+<style>
+/* Layout: page chrome frames a fixed 1280x720 car screen that scales to fit; the screen mirrors the Compose app. */
+:root {
+  /* Page chrome (theme-aware) */
+  --page: #eef2f7; --page-ink: #0b1220; --page-mid: #4a5a72; --page-line: #d3dce8; --page-card: #ffffff;
+  /* App palette: GenDrive Night Glass (matches Theme.kt) */
+  --bg: #070B14; --card: #0E1626; --card-top: #15223A; --border: #1F2E4A;
+  --text: #F2F6FC; --mid: #9AABC4; --low: #6B7F9E;
+  --mint: #2EE6A6; --blue: #4DA3FF; --amber: #FFB547; --coral: #FF6B6B; --violet: #9B8CFF; --on-accent: #04140E;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --page: #05080f; --page-ink: #e8eef8; --page-mid: #93a4bd; --page-line: #1c2740; --page-card: #0c1322; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --page: #05080f; --page-ink: #e8eef8; --page-mid: #93a4bd; --page-line: #1c2740; --page-card: #0c1322; color-scheme: dark; }
+
+/* Day mode for the app screen only (matches LightGd) */
+.screen.day {
+  --bg: #EEF3F9; --card: #FFFFFF; --card-top: #F6F9FD; --border: #D5DFEC;
+  --text: #0B1220; --mid: #44546C; --low: #66768F;
+  --mint: #00936D; --blue: #1F6FE5; --amber: #A85F00; --coral: #C93C3C; --violet: #5B4BD6; --on-accent: #FFFFFF;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--page); color: var(--page-ink); }
+body { font-family: var(--font); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 48px; }
+.wrap { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+
+.page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand svg { width: 44px; height: 44px; flex: none; }
+.brand h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; }
+.brand p { margin: 2px 0 0; color: var(--page-mid); font-size: 14px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.controls button {
+  font: 600 14px/1 var(--font); color: var(--page-ink); background: var(--page-card); border: 1px solid var(--page-line);
+  border-radius: 999px; padding: 10px 14px; cursor: pointer;
+}
+.controls button[aria-pressed="true"] { background: var(--page-ink); color: var(--page); border-color: var(--page-ink); }
+.controls button:focus-visible, .screen [role="button"]:focus-visible { outline: 3px solid #2EE6A6; outline-offset: 2px; }
+
+.screen-wrap { width: 100%; position: relative; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 80px -30px rgba(0,0,0,.55), 0 0 0 10px #0d0f14, 0 0 0 11px #2a2f3a; background: #000; }
+.screen { width: 1280px; height: 720px; transform-origin: 0 0; position: absolute; left: 0; top: 0; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; display: flex; font-variant-numeric: tabular-nums; }
+.screen.right { flex-direction: row-reverse; }
+.glow { position: absolute; inset: 0; pointer-events: none; background:
+  radial-gradient(700px 700px at 0 0, color-mix(in srgb, var(--mint) 11%, transparent), transparent 70%),
+  radial-gradient(640px 640px at 100% 100%, color-mix(in srgb, var(--blue) 9%, transparent), transparent 70%); }
+
+/* Rail */
+.rail { position: relative; z-index: 1; width: 112px; flex: none; display: flex; flex-direction: column; align-items: center; padding: 12px 0; background: color-mix(in srgb, var(--card) 70%, transparent); }
+.rail .logo { font-weight: 800; font-size: 30px; color: var(--mint); margin-bottom: 6px; }
+.rail nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.rail-item { width: 96px; min-height: 70px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--mid); font-size: 14px; cursor: pointer; user-select: none; }
+.rail-item svg { width: 28px; height: 28px; }
+.rail-item.on { background: color-mix(in srgb, var(--mint) 16%, transparent); color: var(--mint); }
+.orb-wrap { width: 100px; height: 100px; display: grid; place-items: center; position: relative; }
+.orb { width: 74px; height: 74px; border-radius: 50%; background: linear-gradient(135deg, var(--violet), var(--blue)); display: grid; place-items: center; color: #fff; cursor: pointer; position: relative; z-index: 1; }
+.orb svg { width: 32px; height: 32px; }
+.orb-ring { position: absolute; inset: 0; border-radius: 50%; background: color-mix(in srgb, var(--violet) 45%, transparent); opacity: 0; }
+.active .orb-ring { animation: ring 1.4s linear infinite; }
+.listening .orb { animation: level .45s ease-in-out infinite alternate; }
+@keyframes level { from { box-shadow: 0 0 0 3px color-mix(in srgb, var(--violet) 35%, transparent); } to { box-shadow: 0 0 0 13px color-mix(in srgb, var(--violet) 35%, transparent); } }
+.spin { display: block; width: 30px; height: 30px; border-radius: 50%; border: 4px solid rgba(255,255,255,.35); border-top-color: #fff; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes ring { from { transform: scale(.7); opacity: .6; } to { transform: scale(1.05); opacity: 0; } }
+
+/* Content */
+.content { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 14px 22px 16px 18px; gap: 14px; }
+.head { display: flex; align-items: center; gap: 18px; }
+.head .t { flex: 1; min-width: 0; }
+.head h2 { margin: 0; font-size: 28px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.head .sub { color: var(--mid); font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clock { font-size: 28px; font-weight: 800; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; font-weight: 800; font-size: 16px; white-space: nowrap; }
+.pill.mint { color: var(--mint); background: color-mix(in srgb, var(--mint) 16%, transparent); }
+.pill.amber { color: var(--amber); background: color-mix(in srgb, var(--amber) 16%, transparent); }
+.pill.blue { color: var(--blue); background: color-mix(in srgb, var(--blue) 16%, transparent); }
+.body { flex: 1; min-height: 0; position: relative; }
+
+.card { background: linear-gradient(180deg, var(--card-top), var(--card)); border: 1px solid var(--border); border-radius: 26px; padding: 20px; min-width: 0; }
+.card.accent-mint { border-color: color-mix(in srgb, var(--mint) 60%, transparent); }
+.card.accent-blue { border-color: color-mix(in srgb, var(--blue) 60%, transparent); }
+.card.accent-amber { border-color: color-mix(in srgb, var(--amber) 60%, transparent); }
+.label { color: var(--mid); font-size: 16px; }
+.lowtext { color: var(--low); font-size: 15px; }
+.title-m { font-size: 22px; font-weight: 800; }
+.title-l { font-size: 28px; font-weight: 800; }
+.row { display: flex; gap: 16px; min-width: 0; }
+.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.grow { flex: 1; min-width: 0; }
+.ellip { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Home */
+.home { position: absolute; inset: 0; display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; }
+.home.has-banner { grid-template-rows: auto 1fr; }
+.banner { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 12px 18px; }
+.drive { display: flex; align-items: center; gap: 10px; }
+.speed { font-size: 112px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
+.unit { font-size: 22px; font-weight: 800; color: var(--mid); margin: 0 0 14px 8px; align-self: flex-end; }
+.gears { display: flex; gap: 6px; margin-top: 10px; }
+.gear { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; font-size: 22px; color: var(--low); }
+.gear.on { color: var(--mint); background: color-mix(in srgb, var(--mint) 18%, transparent); }
+.ring { position: relative; flex: none; }
+.ring svg { display: block; }
+.ring .mid { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring .pct { font-size: 50px; font-weight: 800; line-height: 1; }
+.ring .pct small { font-size: 22px; color: var(--mid); margin-left: 2px; }
+.np { display: flex; align-items: center; gap: 14px; }
+.art { width: 84px; height: 84px; border-radius: 18px; flex: none; background: radial-gradient(circle at 30% 30%, #ff8a5c, #b33f7a 45%, #3b2a8f 80%); position: relative; overflow: hidden; }
+.art::after { content: ""; position: absolute; left: 0; right: 0; bottom: 12px; height: 26px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.75) 0 3px, transparent 3px 7px); clip-path: polygon(0 100%, 8% 40%, 16% 70%, 24% 20%, 34% 60%, 44% 10%, 55% 55%, 66% 25%, 76% 65%, 86% 30%, 100% 100%); opacity: .7; }
+.btn-round { width: 62px; height: 62px; border-radius: 50%; background: var(--card-top); border: 1px solid var(--border); display: grid; place-items: center; color: var(--text); flex: none; cursor: pointer; }
+.btn-round.big { width: 74px; height: 74px; background: var(--mint); color: var(--on-accent); border: 0; }
+.btn-round svg { width: 30px; height: 30px; }
+.lyric-now { color: var(--mint); font-weight: 800; font-size: 22px; margin-top: 12px; min-height: 30px; transition: opacity .3s; }
+.where { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 12px; }
+.place { background: color-mix(in srgb, var(--blue) 12%, transparent); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+.place svg { width: 32px; height: 32px; color: var(--blue); }
+.wherecard, .turncard { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.nearby { margin-top: auto; padding-top: 18px; }
+.near { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.nb { min-height: 72px; border-radius: 18px; background: color-mix(in srgb, var(--blue) 12%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px 8px; font-size: 16px; cursor: pointer; text-align: center; min-width: 0; }
+.nb svg { width: 28px; height: 28px; color: var(--blue); flex: none; }
+.nb span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.turn { display: flex; align-items: center; gap: 18px; margin-top: 8px; }
+.turn svg { width: 96px; height: 96px; flex: none; }
+.dist { font-size: 64px; font-weight: 800; line-height: 1; }
+.dock { display: flex; gap: 8px; justify-content: space-between; }
+.app { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 92px; font-size: 15px; text-align: center; }
+.app i { width: 66px; height: 66px; border-radius: 18px; display: grid; place-items: center; font-style: normal; font-weight: 800; color: #fff; font-size: 26px; }
+.savings { font-size: 44px; font-weight: 800; color: var(--mint); line-height: 1.1; }
+
+/* Car */
+.two { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.tyres { position: relative; height: 100%; }
+.tyre { position: absolute; display: flex; flex-direction: column; }
+.tyre b { font-size: 34px; font-weight: 800; }
+.tyre b small { font-size: 16px; color: var(--mid); font-weight: 400; margin-left: 4px; }
+.stat { display: flex; align-items: center; gap: 12px; }
+.stat svg { width: 26px; height: 26px; color: var(--mint); flex: none; }
+.stat .v { font-size: 22px; font-weight: 800; }
+
+/* Music */
+.player { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.player .art { width: 250px; height: 250px; border-radius: 26px; }
+.bar { width: 100%; height: 6px; border-radius: 3px; background: var(--border); position: relative; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--mint); }
+.lyrics { display: flex; flex-direction: column; gap: 14px; overflow: hidden; height: 100%; }
+.lyrics p { margin: 0; font-size: 22px; font-weight: 800; color: var(--mid); transition: color .4s, font-size .3s; }
+.lyrics p.past { color: var(--low); }
+.lyrics p.now { color: var(--mint); font-size: 28px; }
+
+/* Lists and tiles */
+.scroll { position: absolute; inset: 0; overflow: hidden; display: flex; flex-direction: column; gap: 14px; }
+.tiles { display: flex; flex-wrap: wrap; gap: 14px; }
+.tile { width: 176px; min-height: 112px; display: flex; flex-direction: column; gap: 8px; padding: 16px; cursor: pointer; }
+.tile svg { width: 34px; height: 34px; color: var(--blue); }
+.field { flex: 1; border: 1px solid var(--border); border-radius: 14px; padding: 18px; color: var(--mid); font-size: 20px; background: transparent; }
+.gbtn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 64px; padding: 0 22px; border-radius: 22px; font-weight: 800; font-size: 18px; background: var(--card-top); border: 1px solid var(--border); color: var(--text); cursor: pointer; white-space: nowrap; }
+.gbtn.primary { background: var(--mint); color: var(--on-accent); border: 0; }
+.gbtn svg { width: 26px; height: 26px; }
+.seg { display: inline-flex; padding: 5px; border-radius: 22px; background: var(--card); gap: 2px; }
+.seg span { padding: 16px 22px; border-radius: 18px; font-weight: 800; font-size: 17px; color: var(--mid); cursor: pointer; }
+.seg span.on { background: var(--mint); color: var(--on-accent); }
+.grid-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
+.check { display: flex; align-items: center; gap: 14px; min-height: 62px; }
+.check svg { width: 28px; height: 28px; flex: none; }
+.ok { color: var(--mint); } .warn { color: var(--amber); }
+
+/* Video guard */
+.guard { position: absolute; inset: 0; z-index: 6; background: rgba(7,11,20,.96); display: grid; place-content: center; text-align: center; gap: 10px; color: #F2F6FC; }
+.guard .gicon { font-size: 64px; color: #2EE6A6; font-weight: 800; }
+.guard h3 { margin: 0; font-size: 34px; }
+.guard p { margin: 0; color: #9AABC4; font-size: 22px; }
+.yt { position: absolute; inset: 0; z-index: 4; background: #000; display: grid; place-items: center; }
+.yt .frame { width: 70%; aspect-ratio: 16/9; border-radius: 16px; background: linear-gradient(120deg, #1d3b6b, #0f7a6b 50%, #e1a43a); position: relative; overflow: hidden; }
+.yt .frame::after { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.85); font-size: 80px; }
+
+/* Notes */
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.note { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 16px; padding: 16px 18px; min-width: 0; }
+.note h3 { margin: 0 0 6px; font-size: 16px; font-weight: 800; letter-spacing: .01em; }
+.note p { margin: 0; color: var(--page-mid); font-size: 14.5px; line-height: 1.5; }
+.section-title { margin: 6px 0 0; font-size: 18px; font-weight: 800; text-wrap: balance; }
+.fine { color: var(--page-mid); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="page-head">
+    <div class="brand">
+      <svg viewBox="0 0 108 108" aria-hidden="true"><rect width="108" height="108" rx="26" fill="#0B1220"/><path d="M70.85,39.86 A22,22 0 1,0 76,54 L58,54" fill="none" stroke="#2EE6A6" stroke-width="8" stroke-linecap="round"/><circle cx="54" cy="46" r="3" fill="#2EE6A6"/></svg>
+      <div>
+        <h1>GenDrive</h1>
+        <p>The real layout of v0.1 at the eMAX 7's 12.8" screen size. Tap anything on the screen.</p>
+      </div>
+    </div>
+    <div class="controls" role="group" aria-label="Preview controls">
+      <button id="btn-drive" aria-pressed="false">Start demo drive</button>
+      <button id="btn-video" aria-pressed="false">Play a video</button>
+      <button id="btn-talk">Talk to Gen</button>
+      <button id="btn-day" aria-pressed="false">Day mode</button>
+      <button id="btn-side" aria-pressed="false">Right-hand drive</button>
+    </div>
+  </header>
+
+  <div class="screen-wrap" id="wrap"><div class="screen" id="screen"></div></div>
+  <p class="fine">Preview made from the app's own layout and colours. Car numbers here come from the built-in demo drive. Song and lyrics are made up for the demo.</p>
+
+  <h2 class="section-title">Why it looks like this</h2>
+  <div class="notes">
+    <div class="note"><h3>Controls on your side</h3><p>The rail sits on the driver's side and the assistant button is at the bottom of it, where your hand already rests. Right-hand-drive cars get a mirrored layout.</p></div>
+    <div class="note"><h3>Readable in a two-second glance</h3><p>One big number per card. Nothing you need to read is smaller than 16 points, and every target is at least 72 points tall.</p></div>
+    <div class="note"><h3>It calms down when you drive</h3><p>Moving hides the savings card, cuts lyrics to the current and next line, locks typing and settings, and keeps video apps to sound only until you shift to P.</p></div>
+    <div class="note"><h3>Money you can feel</h3><p>Every trip ends with a "Trip complete" card and a spoken summary of what it cost and how much you saved against petrol, in pesos.</p></div>
+    <div class="note"><h3>Colours that mean something</h3><p>Mint means good or go. Blue is navigation. Amber and coral appear only when something needs attention. Violet is the assistant.</p></div>
+    <div class="note"><h3>Gen shows what it's doing</h3><p>Tap the purple button and the line under the greeting says Listening, then what Gen heard, then its reply. You never wonder whether it heard you.</p></div>
+    <div class="note"><h3>Honest data</h3><p>The pill at the top says whether numbers are live from the car or from the demo drive. Anything the car doesn't report shows a dash, never a guess.</p></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (s, el = document) => el.querySelector(s);
+  const screen = $("#screen"), wrap = $("#wrap");
+
+  // ---------- icons (Material-style, drawn inline) ----------
+  const I = {
+    home: '<path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z" fill="currentColor"/>',
+    car: '<path d="M5 11l1.6-4.3A2 2 0 0 1 8.5 5.4h7a2 2 0 0 1 1.9 1.3L19 11v7.5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V17H8v1.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zm2.4-.6h9.2l-1-3h-7.2zM7.5 15a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6zm9 0a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z" fill="currentColor"/>',
+    music: '<path d="M9 18.5a3 3 0 1 1-2-2.83V6l11-2.5v11a3 3 0 1 1-2-2.83V7.6L9 9.2z" fill="currentColor"/>',
+    map: '<path d="M9 4 3.8 6a1 1 0 0 0-.8 1v12.3a.6.6 0 0 0 .8.6L9 18l6 2 5.2-2a1 1 0 0 0 .8-1V4.7a.6.6 0 0 0-.8-.6L15 6zm0 2.2 6 2v9.6l-6-2z" fill="currentColor"/>',
+    apps: '<path d="M5 5h4v4H5zm5 0h4v4h-4zm5 0h4v4h-4zM5 10h4v4H5zm5 0h4v4h-4zm5 0h4v4h-4zM5 15h4v4H5zm5 0h4v4h-4zm5 0h4v4h-4z" fill="currentColor"/>',
+    trips: '<path d="M3 17.3 9 11l4 4 8-8.2-1.4-1.4-6.6 6.8-4-4-7.4 7.7z" fill="currentColor"/>',
+    settings: '<path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm8.4 4.6-.1-1.1 2-1.6-2-3.4-2.4 1a8 8 0 0 0-1.9-1.1L15.6 4h-4l-.4 2.6a8 8 0 0 0-1.9 1.1l-2.4-1-2 3.4 2 1.6a8 8 0 0 0 0 2.2l-2 1.6 2 3.4 2.4-1a8 8 0 0 0 1.9 1.1l.4 2.6h4l.4-2.6a8 8 0 0 0 1.9-1.1l2.4 1 2-3.4z" fill="currentColor"/>',
+    mic: '<path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11z" fill="currentColor"/>',
+    eq: '<path d="M7 18h2V6H7zm4 4h2V2h-2zm-8-8h2v-4H3zm12 4h2V6h-2zm4-8v4h2v-4z" fill="currentColor"/>',
+    prev: '<path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" fill="currentColor"/>',
+    next: '<path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z" fill="currentColor"/>',
+    play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>',
+    pause: '<path d="M7 5h4v14H7zm6 0h4v14h-4z" fill="currentColor"/>',
+    work: '<path d="M10 4h4a2 2 0 0 1 2 2v1h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3V6a2 2 0 0 1 2-2zm0 3h4V6h-4z" fill="currentColor"/>',
+    search: '<path d="M10.5 4a6.5 6.5 0 0 1 5.2 10.4l4.4 4.4-1.4 1.4-4.4-4.4A6.5 6.5 0 1 1 10.5 4zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z" fill="currentColor"/>',
+    ev: '<path d="M14 3H6a1 1 0 0 0-1 1v16h10v-6h1.5v4a2.5 2.5 0 0 0 5 0V8.6l-3-3-1.1 1 1.6 1.7V18a.5.5 0 0 1-1 0v-4.5A1.5 1.5 0 0 0 16.5 12H15V4a1 1 0 0 0-1-1zm-2.8 3.5L8 12h2.4l-.6 4.5L13 10h-2.4z" fill="currentColor"/>',
+    food: '<path d="M8 3v7a2 2 0 0 1-1.5 1.9V21h-2v-9.1A2 2 0 0 1 3 10V3h1.2v5h1V3h1.2v5h1V3zm8 0c2.2 0 4 2.2 4 5v5h-2v8h-2z" fill="currentColor"/>',
+    cafe: '<path d="M4 5h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zm13 1h1.5a2.5 2.5 0 0 1 0 5H17V9h1.5a.5.5 0 0 0 0-1H17zM3 19h16v2H3z" fill="currentColor"/>',
+    park: '<path d="M6 3h7a6 6 0 0 1 0 12h-3v6H6zm4 4v4h3a2 2 0 0 0 0-4z" fill="currentColor"/>',
+    hosp: '<path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm5 4v3H7v4h3v3h4v-3h3v-4h-3V7z" fill="currentColor"/>',
+    wrench: '<path d="M21 6.5 17.5 10l-3-3L18 3.5a5 5 0 0 0-6.7 6.2L3.5 17.5 6.5 20.5l7.8-7.8A5 5 0 0 0 21 6.5z" fill="currentColor"/>',
+    star: '<path d="m12 3.5 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 17l-5.3 2.9 1.2-6L3.4 9.8l6-.7z" fill="currentColor"/>',
+    check: '<path d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19zm-1.2 13.2 6.4-6.4-1.4-1.4-5 5-2.2-2.2-1.4 1.4z" fill="currentColor"/>',
+    alert: '<path d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19zM11 7v7h2V7zm0 9v2h2v-2z" fill="currentColor"/>',
+    bolt: '<path d="M7 2h10l-3 7h4L9 22l2-9H7z" fill="currentColor"/>',
+    sun: '<path d="M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM11 1h2v3h-2zm0 19h2v3h-2zM1 11h3v2H1zm19 0h3v2h-3zM4.2 5.6l1.4-1.4 2.1 2.1-1.4 1.4zm12.1 12.1 1.4-1.4 2.1 2.1-1.4 1.4zM4.2 18.4l2.1-2.1 1.4 1.4-2.1 2.1zM16.3 6.3l2.1-2.1 1.4 1.4-2.1 2.1z" fill="currentColor"/>',
+    speed: '<path d="M12 4a9 9 0 0 1 7.8 13.5l-1.7-1A7 7 0 1 0 5.9 16.5l-1.7 1A9 9 0 0 1 12 4zm4.2 4.4-3.1 5.4a1.6 1.6 0 1 1-1.8-1.1z" fill="currentColor"/>',
+    usb: '<path d="M11 2h2l2 3h-1.5v8.4l3-2.2V9H15V7h4v2h-1v3.2l-4.5 3.3v2.2a2.5 2.5 0 1 1-2 0v-1.2L7 13.3V11H6V9h4v2H9v1.3l2.5 1.9V5H10z" fill="currentColor"/>',
+    get: '<path d="M11 3h2v9.2l3.3-3.3 1.4 1.4L12 16l-5.7-5.7 1.4-1.4L11 12.2zM5 18h14v2H5z" fill="currentColor"/>',
+    nav: '<path d="m12 2 7.5 19-7.5-4.2L4.5 21z" fill="currentColor"/>',
+    close: '<path d="m6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4z" fill="currentColor"/>',
+    plus: '<path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" fill="currentColor"/>',
+    sub: '<path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm2 7v2h3v-2zm5 0v2h7v-2zm-5 3v2h9v-2zm11 0v2h1v-2z" fill="currentColor"/>'
+  };
+  const svg = (name, extra = "") => `<svg viewBox="0 0 24 24" aria-hidden="true" ${extra}>${I[name]}</svg>`;
+
+  // ---------- demo data ----------
+  const LYRICS = [
+    [0, "Headlights on the coastal road"],
+    [4.2, "Every mile a lighter load"],
+    [8.4, "Windows down, the night is warm"],
+    [12.6, "Singing through the summer storm"],
+    [16.8, "Hold the line, the city glows"],
+    [21, "Charging up where the river flows"],
+    [25.2, "Southern lights and open sky"],
+    [29.4, "We don't need a reason why"]
+  ];
+  const TRIPS = [
+    ["Fri 31 Oct · 7:11 PM", "24.6 km", "31 min", "12.1 kWh/100 km", "83% → 78%", "₱40"],
+    ["Thu 30 Oct · 5:58 PM", "42.7 km", "51 min", "13.4 kWh/100 km", "91% → 81%", "₱76"],
+    ["Thu 30 Oct · 8:05 AM", "41.9 km", "47 min", "12.8 kWh/100 km", "100% → 91%", "₱72"],
+    ["Wed 29 Oct · 6:20 PM", "9.6 km", "17 min", "14.9 kWh/100 km", "64% → 62%", "₱19"]
+  ];
+  const state = {
+    page: "home", moving: false, driving: false, t: 0, speed: 0, gear: "P", soc: 78, range: 352,
+    nav: false, playing: true, songT: 6, day: false, right: false, video: false,
+    assistant: null, banner: false
+  };
+  const NAME = "Jan";
+
+  // ---------- render helpers ----------
+  function ring(soc, d = 210, caption = "") {
+    const sw = d * 0.075, r = (d - sw) / 2, c = d / 2, circ = 2 * Math.PI * r, arc = circ * 0.75;
+    const col = soc < 15 ? "var(--coral)" : soc < 30 ? "var(--amber)" : "var(--mint)";
+    const on = arc * Math.max(0, Math.min(1, soc / 100));
+    return `<div class="ring" style="width:${d}px;height:${d}px">
+      <svg width="${d}" height="${d}" viewBox="0 0 ${d} ${d}" style="transform:rotate(135deg)">
+        <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${arc} ${circ}"/>
+        <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${on} ${circ}" style="transition:stroke-dasharray .9s"/>
+      </svg>
+      <div class="mid"><div class="pct" style="font-size:${Math.round(d * 0.25)}px">${Math.round(soc)}<small>%</small></div><div class="label">${caption}</div></div>
+    </div>`;
+  }
+  const gears = (g) => `<div class="gears">${["P", "R", "N", "D"].map(x => `<div class="gear ${x === g ? "on" : ""}">${x}</div>`).join("")}</div>`;
+  const lyricIndex = (t) => { let i = -1; LYRICS.forEach((l, k) => { if (l[0] <= t) i = k; }); return i; };
+  const appIcon = (label, bg, glyph) => `<div class="app"><i style="background:${bg}">${glyph}</i><span>${label}</span></div>`;
+  const eta = () => new Date(Date.now() + 9 * 60000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const greeting = () => { const h = new Date().getHours(); return (h >= 5 && h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening") + ", " + NAME; };
+
+  function renderHome() {
+    const li = lyricIndex(state.songT);
+    const turn = state.nav
+      ? `<div class="card accent-blue grow turncard"><div class="label">Next turn · Google Maps</div>
+          <div style="margin:auto 0"><div class="turn"><svg viewBox="0 0 96 96" aria-hidden="true"><path d="M30 86V46a10 10 0 0 1 10-10h26" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round"/><path d="M58 20l20 16-20 16z" fill="var(--blue)"/></svg>
+            <div><div class="dist">${state.moving ? Math.max(50, Math.round(400 - (state.t * 7) % 350)) : 250} m</div><div class="title-m">Turn right onto Pioneer Avenue</div></div></div>
+          <div class="label" style="margin-top:10px">9 min · 4.2 km · arrive ${eta()}</div></div></div>`
+      : `<div class="card grow wherecard"><div class="label">Where to?</div><div class="where">
+          <div class="place" data-act="home-nav">${svg("home")}<div class="title-m">Home</div><div class="label ellip">Lagao, GenSan</div></div>
+          <div class="place" data-act="work-nav">${svg("work")}<div class="title-m">Work</div><div class="label ellip">KCC Mall</div></div>
+          <div class="place" data-go="maps">${svg("search")}<div class="title-m">Search</div><div class="label">Any place</div></div></div>
+          <div class="nearby"><div class="label">Nearby</div><div class="near">${[["EV charging", "ev"], ["Food", "food"], ["Coffee", "cafe"], ["Parking", "park"]].map(([l, ic]) => `<div class="nb" data-go="maps">${svg(ic)}<span>${l}</span></div>`).join("")}</div></div></div>`;
+    return `<div class="home ${state.banner ? "has-banner" : ""}">
+      ${state.banner ? `<div class="card accent-mint banner"><div class="grow"><div class="title-m" style="color:var(--mint)">Trip complete</div><div class="label ellip">24.6 km  ·  12.1 kWh/100 km  ·  cost ₱40  ·  saved ₱78 vs petrol</div></div><div class="btn-round" data-act="banner-x">${svg("close")}</div></div>` : ""}
+      <div class="col" style="min-height:0">
+        <div class="card grow drive">
+          <div class="grow"><div class="label">Speed</div>
+            <div style="display:flex"><span class="speed">${Math.round(state.speed)}</span><span class="unit">km/h</span></div>
+            ${gears(state.gear)}
+            <div class="label" style="margin-top:14px">32°C outside</div></div>
+          ${ring(state.soc, 210, state.range + " km range")}
+        </div>
+        <div class="card" data-go="music">
+          <div class="np"><div class="art"></div><div class="grow"><div class="title-m ellip">City Stars</div><div class="label ellip">Night Drive Club · Spotify</div></div>
+            <div class="btn-round" data-act="prev">${svg("prev")}</div><div class="btn-round big" data-act="play">${svg(state.playing ? "pause" : "play")}</div><div class="btn-round" data-act="next">${svg("next")}</div></div>
+          <div class="lyric-now" style="font-size:${state.moving ? 28 : 22}px">${li >= 0 ? LYRICS[li][1] : "♪"}</div>
+        </div>
+      </div>
+      <div class="col" style="min-height:0">
+        ${turn}
+        ${state.moving ? "" : `<div class="card" data-go="trips"><div class="label">Saved this month vs petrol</div><div class="savings">₱2,340</div><div class="label">412 km · electricity ₱702</div><div class="label" style="color:var(--mint);margin-top:6px">Great driving: 9% less energy per km than last week.</div></div>`}
+        <div class="dock">${appIcon("Spotify", "#1DB954", "♪")}${appIcon("Maps", "#4285F4", "➤")}${appIcon("Waze", "#33CCFF", "W")}${appIcon("YouTube", "#FF0033", "▶")}<div class="app"><div class="btn-round" data-go="apps">${svg("plus")}</div></div></div>
+      </div>
+    </div>`;
+  }
+
+  function renderCar() {
+    return `<div class="two">
+      <div class="card" style="display:flex;flex-direction:column">
+        <div class="row" style="align-items:center"><div class="title-m grow">Tyres</div><span class="pill mint">All good</span></div>
+        <div class="tyres grow">
+          <svg viewBox="0 0 400 420" style="position:absolute;inset:10px 0;margin:auto;height:92%;width:100%" aria-hidden="true">
+            <rect x="122" y="62" width="22" height="64" rx="11" fill="var(--low)"/><rect x="256" y="62" width="22" height="64" rx="11" fill="var(--low)"/>
+            <rect x="122" y="292" width="22" height="64" rx="11" fill="var(--low)"/><rect x="256" y="292" width="22" height="64" rx="11" fill="var(--low)"/>
+            <rect x="134" y="16" width="132" height="388" rx="44" fill="var(--card-top)" stroke="var(--mint)" stroke-opacity=".6" stroke-width="3"/>
+            <rect x="150" y="100" width="100" height="52" rx="16" fill="var(--bg)" opacity=".85"/>
+            <rect x="153" y="160" width="94" height="140" rx="12" fill="var(--card)"/>
+            <rect x="153" y="308" width="94" height="36" rx="12" fill="var(--bg)" opacity=".85"/>
+          </svg>
+          <div class="tyre" style="left:6px;top:6px"><b>36<small>psi</small></b><span class="label">Front left</span></div>
+          <div class="tyre" style="right:6px;top:6px;text-align:right"><b>36<small>psi</small></b><span class="label">Front right</span></div>
+          <div class="tyre" style="left:6px;bottom:6px"><b>35<small>psi</small></b><span class="label">Rear left</span></div>
+          <div class="tyre" style="right:6px;bottom:6px;text-align:right"><b>36<small>psi</small></b><span class="label">Rear right</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card row" style="align-items:center">${ring(state.soc, 150)}<div class="col" style="gap:10px">
+          <div class="stat">${svg("speed")}<div><div class="label">Range</div><div class="v">${state.range} km</div></div></div>
+          <div class="stat">${svg("bolt")}<div><div class="label">Battery temperature</div><div class="v">31°C</div></div></div>
+          <div class="stat">${svg("bolt")}<div><div class="label">Last 50 km</div><div class="v">14.2 kWh/100 km</div></div></div></div></div>
+        <div class="card"><div class="title-m">Charging</div><div class="label" style="margin-top:8px;font-size:20px">Not plugged in</div></div>
+        <div class="card row" style="justify-content:space-between;flex-wrap:wrap">
+          <div class="stat">${svg("sun")}<div><div class="label">Outside</div><div class="v">32°C</div></div></div>
+          <div class="stat">${svg("bolt")}<div><div class="label">12 V battery</div><div class="v">13.1 V</div></div></div>
+          <div class="stat">${svg("speed")}<div><div class="label">Odometer</div><div class="v">12,480 km</div></div></div></div>
+        <div class="lowtext">Read only. GenDrive never changes how the car drives.</div>
+      </div></div>`;
+  }
+
+  function renderMusic() {
+    const li = lyricIndex(state.songT);
+    const lines = state.moving
+      ? `<div style="display:flex;flex-direction:column;justify-content:center;height:100%;gap:16px"><div style="font-size:36px;font-weight:800;color:var(--mint)">${li >= 0 ? LYRICS[li][1] : "♪"}</div><div class="title-m" style="color:var(--mid)">${LYRICS[li + 1] ? LYRICS[li + 1][1] : ""}</div></div>`
+      : `<div class="lyrics" style="transform:translateY(${-Math.max(0, li - 2) * 46}px);transition:transform .5s">${LYRICS.map((l, k) => `<p class="${k === li ? "now" : k < li ? "past" : ""}">${l[1]}</p>`).join("")}</div>`;
+    return `<div class="two" style="grid-template-columns:.9fr 1.1fr">
+      <div class="card player"><div class="art"></div><div class="title-l">City Stars</div><div class="label">Night Drive Club · Spotify</div>
+        <div class="bar"><i style="width:${(state.songT / 34) * 100}%"></i></div>
+        <div class="row" style="width:100%;justify-content:space-between"><span class="label">0:${String(Math.floor(state.songT)).padStart(2, "0")}</span><span class="label">3:34</span></div>
+        <div class="row" style="align-items:center"><div class="btn-round" data-act="prev">${svg("prev")}</div><div class="btn-round big" data-act="play">${svg(state.playing ? "pause" : "play")}</div><div class="btn-round" data-act="next">${svg("next")}</div></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;overflow:hidden"><div class="row" style="align-items:center;gap:10px"><span style="color:var(--mint);display:flex">${svg("sub", 'width="24" height="24"')}</span><div class="title-m grow">Lyrics</div><span class="lowtext">from LRCLIB</span></div>
+        <div class="grow" style="margin-top:14px;overflow:hidden;position:relative">${lines}</div></div></div>`;
+  }
+
+  function renderMaps() {
+    const tiles = [["EV charging", "ev"], ["Food", "food"], ["Coffee", "cafe"], ["Parking", "park"], ["Hospital", "hosp"], ["BYD service", "wrench"]];
+    return `<div class="scroll">
+      <div class="card">${state.moving ? `<div class="title-m">Where to?</div><div class="label">Typing is off while driving. Tap a saved place below, or tap the mic and say where.</div>` : `<div class="row" style="align-items:center"><div class="field">Where to?</div><div class="gbtn primary" data-act="home-nav">${svg("nav")}Go</div></div>`}</div>
+      ${state.nav ? `<div class="card accent-blue"><div class="label">Navigating now</div><div class="title-m">250 m · Turn right onto Pioneer Avenue</div><div class="label">9 min · 4.2 km · arrive ${eta()}</div></div>` : ""}
+      <div class="title-m">Saved places</div>
+      <div class="tiles"><div class="card tile" style="width:220px" data-act="home-nav">${svg("home")}<div class="title-m">Home</div><div class="label ellip">Lagao, GenSan</div></div>
+        <div class="card tile" style="width:220px" data-act="work-nav">${svg("work")}<div class="title-m">Work</div><div class="label ellip">KCC Mall</div></div>
+        <div class="card tile" style="width:220px">${svg("star")}<div class="title-m ellip">SM City GenSan</div><div class="label">Favourite</div></div></div>
+      <div class="title-m">Find nearby</div>
+      <div class="tiles">${tiles.map(([l, i]) => `<div class="card tile">${svg(i)}<div class="title-m">${l}</div></div>`).join("")}</div>
+    </div>`;
+  }
+
+  function renderApps() {
+    const apps = [["Spotify", "#1DB954", "♪"], ["Google Maps", "#4285F4", "➤"], ["Waze", "#33CCFF", "W"], ["YouTube", "#FF0033", "▶"], ["Netflix", "#E50914", "N"], ["Viu", "#F5B700", "V"], ["Aurora Store", "#4E5BF2", "A"], ["VLC", "#FF8800", "▲"], ["PlugShare", "#1B9E4B", "P"], ["ABRP", "#0E5A8A", "R"], ["Browser", "#5F6B7A", "◎"], ["Files", "#7A57D1", "▤"]];
+    return `<div class="scroll"><div><span class="seg"><span class="on">My apps</span><span>Get apps</span><span>Install APK</span></span></div>
+      <div class="lowtext">Tap to open. Long-press to add to or remove from the Home dock.</div>
+      <div class="grid-apps">${apps.map(a => appIcon(...a)).join("")}</div></div>`;
+  }
+
+  function renderTrips() {
+    return `<div class="scroll">
+      <div class="row" style="align-items:center"><span class="seg"><span class="on">7 days</span><span>30 days</span><span>All</span></span><span class="seg"><span class="on">Trips</span><span>Charging</span></span></div>
+      <div class="row">${[["Distance", "118.8 km", ""], ["Average", "13.0 kWh/100 km", ""], ["Electricity", "₱207", ""], ["Saved vs petrol", "₱364", "var(--mint)"]].map(([l, v, c]) => `<div class="card grow"><div class="label">${l}</div><div class="title-l" style="${c ? "color:" + c : ""}">${v}</div></div>`).join("")}</div>
+      <div class="label" style="color:var(--mint)">This week you used 9% less energy per km than last week. Keep it up.</div>
+      ${TRIPS.map(t => `<div class="card row" style="align-items:center"><div class="grow"><div class="title-m">${t[0]}</div><div class="label">${t.slice(1, 5).join("  ·  ")}</div></div><div class="title-m">${t[5]}</div></div>`).join("")}
+    </div>`;
+  }
+
+  function renderSettings() {
+    const items = [["Car data connected", "Reading speed, battery, tyres and charging from the car.", 1], ["See what's playing and the next turn", "Music controls, lyrics and Google Maps turn cards.", 1], ["Microphone for the voice assistant", "So you can talk to the assistant.", 1], ["See which app is on screen", "Needed by the video guard to spot video apps.", 0], ["Draw over other apps", "Lets the video guard cover the picture while moving.", 0], ["Let GenDrive start with the car", "BYD's own autostart list. Find GenDrive and allow it, so the greeting and trip log start by themselves.", 0]];
+    return `<div class="scroll"><div class="title-m">Setup checklist</div>
+      <div class="card">${items.map(([t, d, ok]) => `<div class="check"><span class="${ok ? "ok" : "warn"}" style="display:flex">${svg(ok ? "check" : "alert")}</span><div class="grow"><div style="font-size:20px">${t}</div><div class="label">${d}</div></div>${ok ? "" : `<span class="gbtn">Allow</span>`}</div>`).join("")}
+        <div class="row" style="margin-top:12px"><span class="gbtn primary grow">${svg("usb")}Fix everything with ADB</span><span class="gbtn grow">Test ADB</span></div></div>
+      <div class="title-m">Voice assistant</div>
+      <div class="card"><div class="row"><div class="field">Assistant's name: Gen</div><div class="field">Gemini API key: ••••••••••••</div></div></div>
+    </div>`;
+  }
+
+  const SCREENS = { home: renderHome, car: renderCar, music: renderMusic, maps: renderMaps, apps: renderApps, trips: renderTrips, settings: renderSettings };
+  const TITLES = { home: null, car: "Car", music: "Music", maps: "Maps", apps: "Apps", trips: "Trips", settings: "Settings" };
+  const RAIL = [["home", "Home", "home"], ["car", "Car", "car"], ["music", "Music", "music"], ["maps", "Maps", "map"], ["apps", "Apps", "apps"], ["trips", "Trips", "trips"], ["settings", "Settings", "settings"]];
+
+  function render() {
+    screen.classList.toggle("day", state.day);
+    screen.classList.toggle("right", state.right);
+    const a = state.assistant;
+    const sub = (a && (a.phase === "listening" ? "Listening…" : a.phase === "thinking" ? (a.heard ? `“${a.heard}”` : "One moment…") : a.reply)) || `eMAX 7 Standard · ${state.moving ? "Driving" : "Parked"}`;
+    const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    screen.innerHTML = `<div class="glow"></div>
+      <aside class="rail"><div class="logo">G</div><nav>${RAIL.map(([id, l, ic]) => `<div class="rail-item ${state.page === id ? "on" : ""}" role="button" tabindex="0" data-go="${id}">${svg(ic)}<span>${l}</span></div>`).join("")}</nav>
+        <div class="orb-wrap ${a ? "active" : ""} ${a && a.phase === "listening" ? "listening" : ""}"><div class="orb-ring"></div><div class="orb" role="button" tabindex="0" aria-label="Talk to the assistant" data-act="talk">${a && a.phase === "thinking" ? '<i class="spin"></i>' : svg(a ? "eq" : "mic")}</div></div></aside>
+      <section class="content"><div class="head"><div class="t"><h2>${TITLES[state.page] || greeting()}</h2><div class="sub">${sub}</div></div>
+        <span class="pill ${state.driving ? "amber" : "amber"}">Demo drive</span><span class="clock">${time}</span></div>
+        <div class="body">${SCREENS[state.page]()}</div></section>
+      ${state.video ? `<div class="yt"><div class="frame"></div></div>${state.moving ? `<div class="guard"><div class="gicon">♪</div><h3>Audio only while moving</h3><p>Sound keeps playing. The picture comes back when you shift to P.</p><div style="margin-top:16px"><span class="gbtn primary" data-act="close-video">Back to GenDrive</span></div></div>` : ""}` : ""}`;
+    const card = screen.querySelector(".wherecard"), near = card && card.querySelector(".nearby");
+    if (near && card.scrollHeight > card.clientHeight + 1) near.style.display = "none";
+  }
+
+  // ---------- demo drive: same shape as the app's DemoVehicleSource ----------
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(0.2, (now - last) / 1000); last = now;
+    if (state.playing) state.songT = (state.songT + dt) % 34;
+    if (state.driving) {
+      state.t += dt * 4;
+      const t = state.t % 150;
+      const target = t < 8 ? 0 : t < 20 ? (t - 8) / 12 * 60 : t < 70 ? 60 + 6 * Math.sin(t / 3) : t < 78 ? 60 * (78 - t) / 8 : t < 90 ? 0 : t < 100 ? (t - 90) / 10 * 45 : t < 135 ? 45 + 5 * Math.sin(t / 2) : t < 142 ? 45 * (142 - t) / 7 : 0;
+      state.speed += (target - state.speed) * Math.min(1, dt * 6);
+      state.gear = t < 6 || t >= 146 ? "P" : "D";
+      state.moving = state.speed >= 5 || (state.moving && state.gear !== "P" && state.speed >= 1);
+      state.soc = Math.max(20, state.soc - state.speed * dt * 0.0006);
+      state.range = Math.round(state.soc * 4.5);
+      if (t >= 146 && !state.bannerShown) { state.banner = true; state.bannerShown = true; }
+      if (t < 6) state.bannerShown = false;
+    }
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- assistant demo ----------
+  const SCRIPTS = [
+    ["Take me home", `Certainly, ${NAME}. Heading home now.`, () => { state.nav = true; }],
+    ["How's the battery?", () => `Battery at ${Math.round(state.soc)} percent, roughly ${state.range} kilometres of range. Tyres look healthy. It's 32 degrees outside.`],
+    ["Find a charging station", "Searching nearby for EV charging station."],
+    ["Next song", "Skipping ahead.", () => { state.songT = 0; }]
+  ];
+  let scriptIx = 0, talkTimers = [];
+  function talk() {
+    talkTimers.forEach(clearTimeout); talkTimers = [];
+    const [heard, reply, act] = SCRIPTS[scriptIx++ % SCRIPTS.length];
+    state.assistant = { phase: "listening" };
+    talkTimers.push(setTimeout(() => { state.assistant = { phase: "thinking", heard }; }, 1600));
+    talkTimers.push(setTimeout(() => { state.assistant = { phase: "speaking", heard, reply: typeof reply === "function" ? reply() : reply }; if (act) act(); }, 2500));
+    talkTimers.push(setTimeout(() => { state.assistant = null; }, 7500));
+  }
+
+  // ---------- events ----------
+  screen.addEventListener("click", (e) => {
+    const go = e.target.closest("[data-go]"), act = e.target.closest("[data-act]");
+    if (act) {
+      const a = act.dataset.act;
+      if (a === "talk") talk();
+      else if (a === "play") state.playing = !state.playing;
+      else if (a === "next" || a === "prev") state.songT = 0;
+      else if (a === "home-nav" || a === "work-nav") state.nav = true;
+      else if (a === "banner-x") state.banner = false;
+      else if (a === "close-video") { state.video = false; setPressed("btn-video", false); }
+      e.stopPropagation();
+      return;
+    }
+    if (go) state.page = go.dataset.go;
+  });
+  screen.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("[role=button]")) { e.preventDefault(); e.target.click(); } });
+
+  const setPressed = (id, on) => $("#" + id).setAttribute("aria-pressed", String(on));
+  $("#btn-drive").addEventListener("click", (e) => {
+    state.driving = !state.driving;
+    if (!state.driving) { state.speed = 0; state.gear = "P"; state.moving = false; }
+    else { state.t = 0; }
+    setPressed("btn-drive", state.driving); e.target.textContent = state.driving ? "Stop demo drive" : "Start demo drive";
+  });
+  $("#btn-video").addEventListener("click", () => { state.video = !state.video; setPressed("btn-video", state.video); });
+  $("#btn-talk").addEventListener("click", talk);
+  $("#btn-day").addEventListener("click", () => { state.day = !state.day; setPressed("btn-day", state.day); });
+  $("#btn-side").addEventListener("click", () => { state.right = !state.right; setPressed("btn-side", state.right); });
+
+  function fit() {
+    const s = wrap.clientWidth / 1280;
+    screen.style.transform = `scale(${s})`;
+    wrap.style.height = (720 * s) + "px";
+  }
+  addEventListener("resize", fit);
+  fit();
+  render();
+  requestAnimationFrame(tick);
+
+  // Hooks used to film the marketing and tutorial videos from this same page.
+  window.gd = { state, render, talk, fit, setScript: (s) => { SCRIPTS.splice(0, SCRIPTS.length, ...s); scriptIx = 0; } };
+})();
+</script>

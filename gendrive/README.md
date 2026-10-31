@@ -16,6 +16,8 @@ an app hub, a talking assistant called Gen, and a safe video rule.
 | `core/` | Plain Kotlin, no Android: lyrics (LRC parser, LRCLIB client), trips and charging recorders, cost and savings maths, drive state and video rule, Google Maps links, next-turn parser, the assistant's persona, offline commands and Gemini request/response handling. Unit-tested. |
 | `android/` | The app (Jetpack Compose). Uses `core` through `includeBuild("../core")`. |
 | `docs/` | Install guide and benchmark. |
+| `design/` | `preview.html`: an interactive preview of the app's screens, built from its real layout and colours. |
+| `video/` | Source for the marketing and tutorial videos, rendered from the preview. See [video/README.md](video/README.md). |
 
 ## Build
 

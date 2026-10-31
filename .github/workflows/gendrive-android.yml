@@ -3,7 +3,8 @@ name: Build GenDrive for Android
 on:
   push:
     branches: [claude/hopeful-mayer-0qfopm, main]
-    paths: ["gendrive/**", ".github/workflows/gendrive-android.yml"]
+    # The design preview and the video tools are not part of the app: changes there skip the build.
+    paths: ["gendrive/**", "!gendrive/design/**", "!gendrive/video/**", "!gendrive/docs/**", ".github/workflows/gendrive-android.yml"]
   workflow_dispatch:
 
 permissions:
