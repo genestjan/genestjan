@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -49,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.genestjanramirez.gendrive.AppGraph
+import com.genestjanramirez.gendrive.core.maps.QuickSearches
 import com.genestjanramirez.gendrive.core.trip.EnergyMath
 import com.genestjanramirez.gendrive.core.trip.TripStats
 import com.genestjanramirez.gendrive.media.LyricsState
@@ -215,6 +217,8 @@ private fun NextTurnCard(graph: AppGraph, go: (Dest) -> Unit, modifier: Modifier
         GdCard(modifier, onClick = { MapsLauncher.openApp(context, nav.instruction.appPackage) }, accent = c.blue) {
             Label("Next turn · ${if (nav.instruction.appPackage.contains("waze")) "Waze" else "Google Maps"}")
             Spacer(Modifier.height(8.dp))
+            // Centres the turn in a tall card. Weighted spacers are zero in the scrolling portrait layout.
+            Spacer(Modifier.weight(1f))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val arrow = nav.arrow
                 if (arrow != null) {
@@ -232,6 +236,7 @@ private fun NextTurnCard(graph: AppGraph, go: (Dest) -> Unit, modifier: Modifier
                 Spacer(Modifier.height(10.dp))
                 Label(it, maxLines = 1)
             }
+            Spacer(Modifier.weight(1f))
         }
         return
     }
@@ -247,6 +252,35 @@ private fun NextTurnCard(graph: AppGraph, go: (Dest) -> Unit, modifier: Modifier
             }
             PlaceButton("Search", Icons.Rounded.Search, "", Modifier.weight(1f)) { go(Dest.MAPS) }
         }
+        // One tap to the most common searches, pinned to the bottom of the card.
+        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.weight(1f))
+        Label("Nearby")
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            QuickSearches.all.take(4).forEach { q ->
+                NearbyButton(q.label, nearbyIcon(q.label), Modifier.weight(1f)) { MapsLauncher.search(context, q.query) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NearbyButton(label: String, icon: ImageVector, modifier: Modifier, onClick: () -> Unit) {
+    val c = Gd.colors
+    Column(
+        modifier
+            .heightIn(min = 72.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(c.blue.copy(alpha = 0.12f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = c.blue, modifier = Modifier.size(28.dp))
+        Spacer(Modifier.height(6.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

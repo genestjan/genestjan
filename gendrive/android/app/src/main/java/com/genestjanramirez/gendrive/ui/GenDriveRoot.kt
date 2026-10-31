@@ -63,6 +63,7 @@ import com.genestjanramirez.gendrive.ui.components.AssistantOrb
 import com.genestjanramirez.gendrive.ui.components.Label
 import com.genestjanramirez.gendrive.ui.components.Pill
 import com.genestjanramirez.gendrive.ui.screens.AppsScreen
+import com.genestjanramirez.gendrive.voice.AssistantPhase
 import com.genestjanramirez.gendrive.ui.screens.CarScreen
 import com.genestjanramirez.gendrive.ui.screens.HomeScreen
 import com.genestjanramirez.gendrive.ui.screens.MapsScreen
@@ -210,8 +211,13 @@ private fun Header(graph: AppGraph, dest: Dest, moving: Boolean) {
         Column(Modifier.weight(1f)) {
             val title = if (dest == Dest.HOME) greeting(settings.ownerName) else dest.label
             Text(title, style = MaterialTheme.typography.titleLarge, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            val sub = assistant.reply?.takeIf { assistant.phase != com.genestjanramirez.gendrive.voice.AssistantPhase.IDLE }
-                ?: listOf(settings.carModel.substringBefore(" ("), if (moving) "Driving" else "Parked").joinToString(" · ")
+            // While Gen is busy, this line shows what it is doing, so the driver never wonders if it heard.
+            val sub = when (assistant.phase) {
+                AssistantPhase.LISTENING -> "Listening…"
+                AssistantPhase.THINKING -> assistant.heard?.takeIf { it.isNotBlank() && it != "…" }?.let { "“$it”" } ?: "One moment…"
+                AssistantPhase.SPEAKING -> assistant.reply
+                AssistantPhase.IDLE -> null
+            } ?: listOf(settings.carModel.substringBefore(" ("), if (moving) "Driving" else "Parked").joinToString(" · ")
             Label(sub, maxLines = 1)
         }
         val (text, color) = when (state.source) {

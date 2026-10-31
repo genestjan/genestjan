@@ -147,7 +147,7 @@ fun MapsScreen(graph: AppGraph, moving: Boolean, go: (Dest) -> Unit) {
         SectionTitle("Find nearby")
         FlowRow(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             QuickSearches.all.forEach { q ->
-                Tile(q.label, iconFor(q.label), onClick = { MapsLauncher.search(context, q.query, adjacent = inSplitScreen) }, modifier = Modifier.width(180.dp), tint = c.blue)
+                Tile(q.label, nearbyIcon(q.label), onClick = { MapsLauncher.search(context, q.query, adjacent = inSplitScreen) }, modifier = Modifier.width(180.dp), tint = c.blue)
             }
         }
 
@@ -235,7 +235,7 @@ private fun PlaceDialog(title: String, initial: String, onDismiss: () -> Unit, o
     )
 }
 
-private fun iconFor(label: String): ImageVector = when (label) {
+internal fun nearbyIcon(label: String): ImageVector = when (label) {
     "EV charging" -> Icons.Rounded.EvStation
     "Food" -> Icons.Rounded.Restaurant
     "Coffee" -> Icons.Rounded.LocalCafe
