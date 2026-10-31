@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import com.genestjanramirez.gendrive.core.maps.MapsLinks
 import com.genestjanramirez.gendrive.core.maps.NavInstruction
+import com.genestjanramirez.gendrive.system.launchPackage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,15 +55,10 @@ object MapsLauncher {
     fun waze(context: Context, destination: String): Boolean =
         start(context, Intent(Intent.ACTION_VIEW, Uri.parse(MapsLinks.wazeNavigate(destination))), false)
 
-    fun openGoogleMaps(context: Context, adjacent: Boolean = false): Boolean {
-        val intent = context.packageManager.getLaunchIntentForPackage(MapsLinks.GOOGLE_MAPS_PACKAGE) ?: return false
-        return start(context, intent, adjacent)
-    }
+    fun openGoogleMaps(context: Context, adjacent: Boolean = false): Boolean =
+        launchPackage(context, MapsLinks.GOOGLE_MAPS_PACKAGE, adjacent)
 
-    fun openApp(context: Context, pkg: String, adjacent: Boolean = false): Boolean {
-        val intent = context.packageManager.getLaunchIntentForPackage(pkg) ?: return false
-        return start(context, intent, adjacent)
-    }
+    fun openApp(context: Context, pkg: String, adjacent: Boolean = false): Boolean = launchPackage(context, pkg, adjacent)
 
     private fun start(context: Context, intent: Intent, adjacent: Boolean): Boolean = try {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

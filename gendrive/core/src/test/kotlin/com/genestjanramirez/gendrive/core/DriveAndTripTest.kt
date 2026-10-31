@@ -156,6 +156,26 @@ class DriveAndTripTest {
     }
 
     @Test
+    fun aTrafficJamInDriveStaysOneTrip() {
+        val rec = TripRecorder(capacityKwh = { 55.4 }, endAfterParkedMs = 120_000)
+        var t = 0L
+        fun drive(seconds: Int, speed: Double, gear: Gear): com.genestjanramirez.gendrive.core.trip.Trip? {
+            var done: com.genestjanramirez.gendrive.core.trip.Trip? = null
+            repeat(seconds) {
+                done = rec.onSample(car(t, speed, gear)) ?: done
+                t += 1_000
+            }
+            return done
+        }
+        assertNull(drive(300, 40.0, Gear.D)) // 5 minutes driving
+        assertNull(drive(240, 0.0, Gear.D)) // 4 minutes standing still in D: not the end
+        assertTrue(rec.isRecording)
+        assertNull(drive(120, 30.0, Gear.D))
+        val trip = assertNotNull(drive(130, 0.0, Gear.P)) // parked: trip ends after 2 minutes
+        assertEquals(4.33, trip.distanceKm, 0.05)
+    }
+
+    @Test
     fun tagsDemoTrips() {
         val rec = TripRecorder(capacityKwh = { 55.4 })
         var t = 0L
@@ -176,6 +196,7 @@ class DriveAndTripTest {
         assertEquals(12.6, Units.auxVolts(126)!!, 0.001)
         assertEquals(12.6, Units.auxVolts(12600)!!, 0.001)
         assertNull(Units.soc(0))
+        assertEquals(4.0, Units.speed(-4.0)!!, 0.001) // reversing reported as negative
         assertEquals(Gear.D, Gear.fromBydCode(4))
         assertEquals(Gear.P, Gear.fromLetter(" p "))
     }

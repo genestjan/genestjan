@@ -5,6 +5,7 @@ import android.os.Build
 import com.genestjanramirez.gendrive.core.drive.DriveStateMachine
 import com.genestjanramirez.gendrive.core.drive.Motion
 import com.genestjanramirez.gendrive.core.settings.DataMode
+import com.genestjanramirez.gendrive.core.vehicle.DataSource
 import com.genestjanramirez.gendrive.core.vehicle.Gear
 import com.genestjanramirez.gendrive.core.vehicle.VehicleState
 import com.genestjanramirez.gendrive.data.SettingsStore
@@ -67,13 +68,16 @@ class VehicleRepository(
             var parkedSinceMs: Long? = null
             while (isActive) {
                 val now = System.currentTimeMillis()
+                // Values the car skips this tick are carried over only from earlier car readings,
+                // never from the demo drive (after switching Data source back from Demo).
+                val previousCar = _state.value.takeIf { it.source == DataSource.BYD } ?: VehicleState.EMPTY
                 val next = when (settings.current.dataMode) {
                     DataMode.AUTO -> when {
-                        bydOpen -> byd.read(now, _state.value)
+                        bydOpen -> byd.read(now, previousCar)
                         looksLikeByd -> VehicleState.EMPTY.copy(timestampMs = now)
                         else -> demo.read(now)
                     }
-                    DataMode.CAR_ONLY -> if (bydOpen) byd.read(now, _state.value) else VehicleState.EMPTY.copy(timestampMs = now)
+                    DataMode.CAR_ONLY -> if (bydOpen) byd.read(now, previousCar) else VehicleState.EMPTY.copy(timestampMs = now)
                     DataMode.DEMO -> demo.read(now)
                 }
                 _state.value = next

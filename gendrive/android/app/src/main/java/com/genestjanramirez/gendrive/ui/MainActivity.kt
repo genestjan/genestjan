@@ -16,8 +16,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Permissions may have changed in Android settings while we were away.
+        // Notification access may have changed in Android settings while we were away.
+        // (The app list refreshes itself when apps are installed or removed.)
         graph.media.refresh()
-        graph.apps.refresh()
     }
 }

@@ -128,7 +128,7 @@ private fun MyApps(graph: AppGraph, moving: Boolean) {
                     onClick = { graph.apps.launch(app.packageName) },
                     onLongClick = {
                         graph.settings.update { s ->
-                            s.copy(dockPackages = if (inDock) s.dockPackages - app.packageName else (s.dockPackages + app.packageName).take(5))
+                            s.copy(dockPackages = if (inDock) s.dockPackages - app.packageName else (s.dockPackages - app.packageName + app.packageName).takeLast(5))
                         }
                     },
                     badge = inDock,

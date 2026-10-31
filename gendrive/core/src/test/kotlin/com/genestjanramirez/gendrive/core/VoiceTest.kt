@@ -49,6 +49,14 @@ class VoiceTest {
     }
 
     @Test
+    fun partOfDayMatchesTheClock() {
+        assertEquals("Good morning", Persona.partOfDay(7))
+        assertEquals("Good afternoon", Persona.partOfDay(13))
+        assertEquals("Good evening", Persona.partOfDay(19))
+        assertEquals("Good evening", Persona.partOfDay(2))
+    }
+
+    @Test
     fun speaksMoney() {
         assertEquals("152 pesos", Persona.money(151.6, "₱"))
         assertEquals("40 baht", Persona.money(40.0, "฿"))

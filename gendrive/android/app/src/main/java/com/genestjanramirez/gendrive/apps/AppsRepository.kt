@@ -9,6 +9,7 @@ import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
+import com.genestjanramirez.gendrive.system.launchPackage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,15 +55,7 @@ class AppsRepository(private val context: Context, private val scope: CoroutineS
 
     fun isInstalled(pkg: String): Boolean = context.packageManager.getLaunchIntentForPackage(pkg) != null
 
-    fun launch(pkg: String): Boolean {
-        val intent = context.packageManager.getLaunchIntentForPackage(pkg) ?: return false
-        return try {
-            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
+    fun launch(pkg: String): Boolean = launchPackage(context, pkg)
 
     /** Finds an installed app by spoken or typed name ("spotify", "google maps"). */
     fun findByName(name: String): InstalledApp? {

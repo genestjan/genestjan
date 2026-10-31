@@ -2,7 +2,6 @@ package com.genestjanramirez.gendrive.media
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaController
@@ -12,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import com.genestjanramirez.gendrive.notify.GenDriveNotificationListener
+import com.genestjanramirez.gendrive.system.launchPackage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -157,9 +157,7 @@ class MediaRepository(private val context: Context) {
     /** Opens the app that is playing, for example to pick another playlist while parked. */
     fun openPlayer(): Boolean {
         val pkg = controller?.packageName ?: return false
-        val intent = context.packageManager.getLaunchIntentForPackage(pkg) ?: return false
-        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        return true
+        return launchPackage(context, pkg)
     }
 
     private fun appLabel(pkg: String): String = try {

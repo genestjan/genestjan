@@ -54,7 +54,8 @@ object Units {
 
     fun soc(raw: Number?): Double? = raw?.toDouble()?.takeIf { !it.isNaN() && it > 0.0 && it <= 100.0 }
 
-    fun speed(raw: Number?): Double? = raw?.toDouble()?.takeIf { !it.isNaN() && it >= 0.0 && it < 300.0 }
+    /** Some trims report reversing speed as negative; speed is always shown as a positive number. */
+    fun speed(raw: Number?): Double? = raw?.toDouble()?.let { kotlin.math.abs(it) }?.takeIf { !it.isNaN() && it < 300.0 }
 
     fun temperature(raw: Number?): Double? = raw?.toDouble()?.takeIf { !it.isNaN() && it > -50.0 && it < 90.0 }
 

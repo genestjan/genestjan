@@ -31,11 +31,7 @@ class Persona(
     private fun withName(line: String): String = if (name == null) line else "$line, $name"
 
     fun greeting(hour: Int, state: VehicleState): String {
-        val partOfDay = when (hour) {
-            in 5..11 -> "Good morning"
-            in 12..17 -> "Good afternoon"
-            else -> "Good evening"
-        }
+        val partOfDay = partOfDay(hour)
         val opener = pick(withName(partOfDay) + ".", withName("Welcome back") + ".", withName(partOfDay) + ". All systems are ready.")
         val battery = batteryLine(state)
         val tyres = state.tyres?.lowest()?.let { if (it < 200.0) " One tyre looks a little soft, worth a check." else null } ?: ""
@@ -136,6 +132,13 @@ class Persona(
     }
 
     companion object {
+        /** Shared by the spoken greeting and the header on screen, so they always agree. */
+        fun partOfDay(hour: Int): String = when (hour) {
+            in 5..11 -> "Good morning"
+            in 12..17 -> "Good afternoon"
+            else -> "Good evening"
+        }
+
         fun oneDecimal(v: Double): String = String.format(Locale.US, "%.1f", v)
 
         /** "₱152" reads badly aloud, so money is spoken as "152 pesos". */

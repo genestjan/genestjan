@@ -69,11 +69,17 @@ fun MapsScreen(graph: AppGraph, moving: Boolean, go: (Dest) -> Unit) {
     val live by graph.nav.live.collectAsState()
     var query by remember { mutableStateOf("") }
     var editing by remember { mutableStateOf<PlaceSlot?>(null) }
+    var removing by remember { mutableStateOf<String?>(null) }
     val mapsInstalled = MapsLauncher.isInstalled(context, MapsLinks.GOOGLE_MAPS_PACKAGE)
     val wazeInstalled = MapsLauncher.isInstalled(context, MapsLinks.WAZE_PACKAGE)
     val inSplitScreen = (context as? Activity)?.isInMultiWindowMode == true
     // Typing is for parked moments: close the address box as soon as the car moves.
-    LaunchedEffect(moving) { if (moving) editing = null }
+    LaunchedEffect(moving) {
+        if (moving) {
+            editing = null
+            removing = null
+        }
+    }
 
     fun navigate(destination: String) {
         if (destination.isNotBlank()) MapsLauncher.navigate(context, destination, adjacent = inSplitScreen)
@@ -129,7 +135,7 @@ fun MapsScreen(graph: AppGraph, moving: Boolean, go: (Dest) -> Unit) {
             }, onEdit = { if (!moving) editing = PlaceSlot.WORK })
             settings.favouritePlaces.forEach { place ->
                 SavedPlace(place, Icons.Rounded.Star, place, onTap = { navigate(place) }, onEdit = {
-                    if (!moving) graph.settings.update { s -> s.copy(favouritePlaces = s.favouritePlaces - place) }
+                    if (!moving) removing = place
                 })
             }
             if (!moving) {
@@ -152,6 +158,21 @@ fun MapsScreen(graph: AppGraph, moving: Boolean, go: (Dest) -> Unit) {
             }
         }
         if (inSplitScreen) Label("Split screen is on: maps open beside GenDrive.", color = c.textLow)
+    }
+
+    removing?.let { place ->
+        AlertDialog(
+            onDismissRequest = { removing = null },
+            title = { Text("Remove this favourite?") },
+            text = { Text(place) },
+            confirmButton = {
+                TextButton(onClick = {
+                    graph.settings.update { s -> s.copy(favouritePlaces = s.favouritePlaces - place) }
+                    removing = null
+                }) { Text("Remove") }
+            },
+            dismissButton = { TextButton(onClick = { removing = null }) { Text("Keep") } },
+        )
     }
 
     editing?.let { slot ->

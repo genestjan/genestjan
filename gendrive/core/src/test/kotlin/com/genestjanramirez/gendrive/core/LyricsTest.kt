@@ -97,6 +97,17 @@ class LyricsTest {
     }
 
     @Test
+    fun aBadRequestOnExactLookupStillFallsBackToSearch() {
+        // LRCLIB answers 400 when the track signature is incomplete (no album or length).
+        val http = HttpGetter { url, _ ->
+            if (url.contains("/api/get")) HttpResponse(400, "{\"message\":\"missing album_name\"}")
+            else HttpResponse(200, "[{\"id\":7,\"trackName\":\"Mundo\",\"artistName\":\"IV of Spades\",\"plainLyrics\":\"x\",\"syncedLyrics\":\"[00:01.00] found\"}]")
+        }
+        val result = LrclibClient(http, "t").fetch(TrackQuery("Mundo", "IV of Spades"))
+        assertEquals("found", assertIs<LyricsResult.Found>(result).lyrics.lines.single().text)
+    }
+
+    @Test
     fun reportsInstrumentalAndHttpErrors() {
         val instrumental = LrclibClient.toResult(LrclibTrack(instrumental = true))
         assertEquals(LyricsResult.Instrumental, instrumental)

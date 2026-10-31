@@ -182,7 +182,9 @@ class TripRecorder(
         s.socPercent?.let { current.lastSoc = it }
         s.odometerKm?.let { current.lastOdo = it }
 
-        val parked = s.gear == Gear.P || motion == Motion.PARKED
+        // Only Park ends a trip. Standing still in D (a traffic jam) does not.
+        // Without gear data, fall back to the motion state.
+        val parked = s.gear == Gear.P || (s.gear == Gear.UNKNOWN && motion == Motion.PARKED)
         if (parked) {
             val since = current.parkedSinceMs ?: now.also { current.parkedSinceMs = it }
             if (now - since >= endAfterParkedMs) {

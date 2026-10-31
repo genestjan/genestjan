@@ -87,12 +87,15 @@ class LrclibClient(
         }
     }
 
-    /** Returns null when LRCLIB has no exact match (HTTP 404). */
+    /**
+     * Returns null when LRCLIB has no exact match: 404, or 400 when the track's
+     * signature is incomplete (no album or length). Search is tried next.
+     */
     private fun getExact(q: TrackQuery): LyricsResult? {
         val r = http.get(getUrl(q), headers())
         return when (r.code) {
             200 -> toResult(json.decodeFromString(LrclibTrack.serializer(), r.body))
-            404 -> null
+            in 400..499 -> null
             else -> throw IllegalStateException("LRCLIB answered HTTP ${r.code}")
         }
     }

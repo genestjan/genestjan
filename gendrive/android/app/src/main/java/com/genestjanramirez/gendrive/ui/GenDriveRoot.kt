@@ -58,6 +58,7 @@ import com.genestjanramirez.gendrive.core.drive.Motion
 import com.genestjanramirez.gendrive.core.settings.DriverSide
 import com.genestjanramirez.gendrive.core.settings.ThemeMode
 import com.genestjanramirez.gendrive.core.vehicle.DataSource
+import com.genestjanramirez.gendrive.core.voice.Persona
 import com.genestjanramirez.gendrive.ui.components.AssistantOrb
 import com.genestjanramirez.gendrive.ui.components.Label
 import com.genestjanramirez.gendrive.ui.components.Pill
@@ -225,11 +226,6 @@ private fun Header(graph: AppGraph, dest: Dest, moving: Boolean) {
 }
 
 private fun greeting(name: String): String {
-    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    val part = when (hour) {
-        in 5..11 -> "Good morning"
-        in 12..17 -> "Good afternoon"
-        else -> "Good evening"
-    }
+    val part = Persona.partOfDay(Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
     return if (name.isBlank()) part else "$part, ${name.trim()}"
 }
