@@ -64,6 +64,12 @@ describe('cloud errors', () => {
     expect(e.detail).toBe(`AuthApiError 404: Invalid path specified in request URL · ${URL_}`);
   });
 
+  it('names the Supabase switch when email sign-in is turned off', () => {
+    const e = cloudError({ name: 'AuthApiError', status: 400, code: 'email_provider_disabled', message: 'Email signups are disabled' });
+    expect(e.message).toMatch(/turn on Enable Email provider/);
+    expect(e.detail).toBe(`AuthApiError 400 email_provider_disabled: Email signups are disabled · ${URL_}`);
+  });
+
   it('keeps database error codes', () => {
     const e = cloudError({ message: 'permission denied for table money_records', code: '42501' });
     expect(e.message).toBe('permission denied for table money_records');

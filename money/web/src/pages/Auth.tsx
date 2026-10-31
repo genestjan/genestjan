@@ -1,5 +1,5 @@
 import { Check, Cloud, Copy, Download, Eye, EyeOff, Fingerprint, HardDrive, KeyRound, LockKeyhole, ShieldCheck } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { checkCloudConfig, cleanCloudKey, cleanCloudUrl, cloudConfig, saveCloudConfig } from '../lib/cloud';
 import { native, platform } from '../lib/native';
@@ -100,13 +100,22 @@ function PasswordHint({ pw }: { pw: string }) {
   );
 }
 
-function PasswordInput({ value, onChange, autoComplete, autoFocus }: {
+export function PasswordInput({ value, onChange, autoComplete, autoFocus }: {
   value: string; onChange: (v: string) => void; autoComplete: string; autoFocus?: boolean;
 }) {
   const [show, setShow] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+  // Hidden again the moment the form is sent, so a screenshot of an error never shows it.
+  useEffect(() => {
+    const form = input.current?.form;
+    if (!form) return;
+    const hide = () => setShow(false);
+    form.addEventListener('submit', hide);
+    return () => form.removeEventListener('submit', hide);
+  }, []);
   return (
     <div className="field flex items-center gap-2 py-0 pr-1 focus-within:border-current focus-within:ring-2 focus-within:ring-current/25">
-      <input className="w-full bg-transparent py-3 outline-none focus-visible:outline-none" type={show ? 'text' : 'password'} autoComplete={autoComplete}
+      <input ref={input} className="w-full bg-transparent py-3 outline-none focus-visible:outline-none" type={show ? 'text' : 'password'} autoComplete={autoComplete}
         autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)} />
       <button type="button" className="rounded-lg p-2 text-muted hover:text-paper" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'}>
         {show ? <EyeOff size={18} /> : <Eye size={18} />}

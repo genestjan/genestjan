@@ -85,7 +85,9 @@ first: Supabase only ever sees scrambled data.
 **Let your account work straight away:**
 
 17. On the left, click **Authentication**, then **Sign In / Providers**.
-18. Click **Email**. Turn **Confirm email** OFF. Click **Save**.
+18. In the **User Signups** box at the top, turn **Confirm email** OFF and leave **Allow new users
+    to sign up** ON. Click **Save changes**. Do not open **Email** in the **Auth Providers** list
+    below: it must stay **Enabled**, because it is how you sign in.
 
 **Give the two connection values to GitHub (so the apps never ask for them):**
 
@@ -148,8 +150,9 @@ exact error**, near the end of this guide).
 **Now lock the cloud's front door:**
 
 13. On the laptop, in Supabase, click **Authentication > Sign In / Providers**.
-14. Turn **Allow new users to sign up** OFF. Click **Save**. Nobody else can make an account on
-    your cloud now.
+14. In the **User Signups** box at the top, turn **Allow new users to sign up** OFF. Click **Save
+    changes**. Nobody else can make an account on your cloud now. Leave **Email** in the **Auth
+    Providers** list **Enabled**: it is how you sign in.
 
 ---
 
@@ -354,6 +357,7 @@ phone always shows a blank card instead of your balances.
 
 | What you see | What to do |
 |---|---|
+| "Email signups are disabled" or "Email sign-in is switched off" | In Supabase, click **Authentication > Sign In / Providers**. In the **Auth Providers** list, click **Email**, turn on **Enable Email provider** (the first switch) and click **Save**. |
 | "Invalid path specified in request URL" when creating your account | That build had the wrong cloud address. Install the latest APK (Part 9); it fixes the address itself. |
 | "App not installed" on the phone | The APK was signed with a different key (before Part 1). Uninstall Money Hub, install the new one, sign in. Your data comes back from the cloud. |
 | Nothing is captured | Redo Part 4. Check notification access is on, battery is Unrestricted, and the bank app's notifications are on. |

@@ -77,6 +77,7 @@ const FRIENDLY: [RegExp, string | (() => string)][] = [
   [/invalid login credentials/i, 'That email and password do not match an account.'],
   [/email not confirmed/i, 'Confirm your email first: open the link Supabase sent you, then sign in.'],
   [/signups not allowed|signup is disabled/i, 'New accounts are switched off for this cloud. Sign in instead.'],
+  [/email (signups|logins) are disabled/i, 'Email sign-in is switched off in your cloud. In Supabase, open Authentication > Sign In / Providers > Email and turn on Enable Email provider.'],
   [/already registered/i, 'That email already has an account. Sign in instead.'],
   [/invalid path specified|requested path is invalid/i, 'Money Hub has the wrong cloud address. Check MONEY_SUPABASE_URL in GitHub (setup guide, part 2).'],
   [/invalid api key|no api key/i, 'Money Hub has the wrong cloud key. Check MONEY_SUPABASE_KEY in GitHub (setup guide, part 2).'],
