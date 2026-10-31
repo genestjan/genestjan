@@ -56,26 +56,22 @@ class Persona(
         return parts.filter { it.isNotBlank() }.joinToString(" ")
     }
 
+    // Spoken summaries talk money and percent, which everyone understands. Kilowatt hours stay on screen.
     fun tripSummary(trip: Trip, cost: CostSettings): String {
         val distance = distance(trip.distanceKm)
         val head = pick("Trip complete.", "And we're here.", "Journey complete.")
-        val efficiency = trip.consumptionKwhPer100()?.takeIf { it > 0 }?.let {
-            " Averaging ${oneDecimal(it)} kilowatt hours per hundred kilometres."
-        } ?: ""
-        val money = trip.energyKwh?.takeIf { it > 0 }?.let { kwh ->
-            val spent = EnergyMath.electricityCost(kwh, cost.pricePerKwh, cost.chargingLossPct)
-            val petrol = EnergyMath.petrolCost(trip.distanceKm, cost.petrolLitresPer100Km, cost.petrolPricePerLitre)
-            val saved = petrol - spent
-            val savedLine = if (saved > 1) " That's ${money(saved, cost.currency)} less than petrol." + pick("", " Not bad at all.", " Rather efficient.") else ""
-            " It cost about ${money(spent, cost.currency)}.$savedLine"
-        } ?: ""
-        return "$head $distance.$efficiency$money"
+        val kwh = trip.energyKwh?.takeIf { it > 0 } ?: return "$head $distance."
+        val spent = EnergyMath.electricityCost(kwh, cost.pricePerKwh, cost.chargingLossPct)
+        val petrol = EnergyMath.petrolCost(trip.distanceKm, cost.petrolLitresPer100Km, cost.petrolPricePerLitre)
+        val saved = petrol - spent
+        val savedLine = if (saved > 1) " That's ${money(saved, cost.currency)} less than petrol." + pick("", " Not bad at all.", " Rather efficient.") else ""
+        return "$head $distance for about ${money(spent, cost.currency)}.$savedLine"
     }
 
     fun chargingComplete(session: ChargeSession, cost: CostSettings): String {
         val spent = EnergyMath.electricityCost(session.energyKwh, cost.pricePerKwh, cost.chargingLossPct)
         val soc = session.endSoc?.let { " Battery at ${it.roundToInt()} percent." } ?: ""
-        return "Charging finished. ${oneDecimal(session.energyKwh)} kilowatt hours added, about ${money(spent, cost.currency)}.$soc"
+        return "Charging finished.$soc That top-up cost about ${money(spent, cost.currency)}."
     }
 
     fun lowBattery(state: VehicleState): String {
@@ -86,8 +82,14 @@ class Persona(
 
     fun lowTyre(kpa: Double): String = "A tyre is reading ${pressure(kpa)}. Worth topping up when convenient."
 
-    fun navigating(destination: String): String =
-        pick("Setting course for $destination.", "Right away. Directions to $destination.", "Very good. Heading to $destination.")
+    /** Saved Home and Work are named as places, not read out as addresses. */
+    fun navigating(destination: String, homeAddress: String = "", workAddress: String = ""): String = when {
+        homeAddress.isNotBlank() && destination.trim().equals(homeAddress.trim(), ignoreCase = true) ->
+            pick(withName("Certainly") + ". Heading home now.", "Very good. Taking you home.", "Right away. Home it is.")
+        workAddress.isNotBlank() && destination.trim().equals(workAddress.trim(), ignoreCase = true) ->
+            pick("Very good. Heading to work.", withName("Certainly") + ". Off to work.")
+        else -> pick("Setting course for $destination.", "Right away. Directions to $destination.", "Very good. Heading to $destination.")
+    }
 
     fun searching(query: String): String = pick("Showing $query nearby.", "Here's $query close by.")
 

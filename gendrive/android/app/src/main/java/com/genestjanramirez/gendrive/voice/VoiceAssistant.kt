@@ -218,7 +218,8 @@ class VoiceAssistant(private val context: Context, private val graph: AppGraph) 
     private fun perform(action: AssistantAction, p: Persona): String = when (action) {
         is AssistantAction.Navigate -> {
             MapsLauncher.navigate(context, action.destination)
-            p.navigating(action.destination)
+            val s = graph.settings.current
+            p.navigating(action.destination, homeAddress = s.homeAddress, workAddress = s.workAddress)
         }
         is AssistantAction.SearchNearby -> {
             MapsLauncher.search(context, action.query)
