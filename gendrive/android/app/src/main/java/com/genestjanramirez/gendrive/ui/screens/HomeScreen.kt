@@ -46,8 +46,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.genestjanramirez.gendrive.AppGraph
 import com.genestjanramirez.gendrive.core.maps.QuickSearches
@@ -81,7 +83,7 @@ fun HomeScreen(graph: AppGraph, moving: Boolean, go: (Dest) -> Unit) {
                         NowPlayingCard(graph, moving, go, Modifier.fillMaxWidth())
                     }
                     Column(Modifier.weight(1f).fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        NextTurnCard(graph, go, Modifier.weight(1f).fillMaxWidth())
+                        NextTurnCard(graph, go, Modifier.weight(1f).fillMaxWidth(), fillsSpace = true)
                         if (!moving) SavingsCard(graph, go, Modifier.fillMaxWidth())
                         Dock(graph, go)
                     }
@@ -207,7 +209,7 @@ fun RoundIcon(icon: ImageVector, description: String, big: Boolean = false, onCl
 }
 
 @Composable
-private fun NextTurnCard(graph: AppGraph, go: (Dest) -> Unit, modifier: Modifier) {
+private fun NextTurnCard(graph: AppGraph, go: (Dest) -> Unit, modifier: Modifier, fillsSpace: Boolean = false) {
     val c = Gd.colors
     val context = LocalContext.current
     val live by graph.nav.live.collectAsState()
@@ -252,15 +254,35 @@ private fun NextTurnCard(graph: AppGraph, go: (Dest) -> Unit, modifier: Modifier
             }
             PlaceButton("Search", Icons.Rounded.Search, "", Modifier.weight(1f)) { go(Dest.MAPS) }
         }
-        // One tap to the most common searches, pinned to the bottom of the card.
-        Spacer(Modifier.height(18.dp))
-        Spacer(Modifier.weight(1f))
-        Label("Nearby")
-        Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            QuickSearches.all.take(4).forEach { q ->
-                NearbyButton(q.label, nearbyIcon(q.label), Modifier.weight(1f)) { MapsLauncher.search(context, q.query) }
+        // One tap to the most common searches, at the bottom of the card. When the card is
+        // squeezed (for example by the Trip complete banner) the row is left out, never cut in half.
+        BottomIfFits(if (fillsSpace) Modifier.weight(1f).fillMaxWidth() else Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
+                Label("Nearby")
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    QuickSearches.all.take(4).forEach { q ->
+                        NearbyButton(q.label, nearbyIcon(q.label), Modifier.weight(1f)) { MapsLauncher.search(context, q.query) }
+                    }
+                }
             }
+        }
+    }
+}
+
+/** Places [content] at the bottom of the height it is given, or leaves it out when it would not fit. */
+@Composable
+private fun BottomIfFits(modifier: Modifier, content: @Composable () -> Unit) {
+    Layout(content, modifier) { measurables, constraints ->
+        val placeable = measurables.firstOrNull()?.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
+        val width = if (constraints.hasBoundedWidth) constraints.maxWidth else placeable?.width ?: 0
+        when {
+            placeable == null -> layout(width, constraints.minHeight) {}
+            !constraints.hasBoundedHeight -> layout(width, placeable.height) { placeable.place(0, 0) }
+            placeable.height <= constraints.maxHeight -> layout(width, constraints.maxHeight) {
+                placeable.place(0, constraints.maxHeight - placeable.height)
+            }
+            else -> layout(width, constraints.maxHeight) {}
         }
     }
 }
@@ -280,7 +302,7 @@ private fun NearbyButton(label: String, icon: ImageVector, modifier: Modifier, o
     ) {
         Icon(icon, contentDescription = null, tint = c.blue, modifier = Modifier.size(28.dp))
         Spacer(Modifier.height(6.dp))
-        Text(label, style = MaterialTheme.typography.labelLarge, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
