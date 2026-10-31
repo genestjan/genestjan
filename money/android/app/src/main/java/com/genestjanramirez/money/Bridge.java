@@ -39,6 +39,9 @@ final class Bridge implements WebViewCompat.WebMessageListener {
     static {
         HTTP_HOSTS.add("api-m.paypal.com");
         HTTP_HOSTS.add("api-m.sandbox.paypal.com");
+        // Google Apps Script (bill reminders in Google Calendar). Its redirect to
+        // script.googleusercontent.com is followed by the connection itself.
+        HTTP_HOSTS.add("script.google.com");
     }
 
     private final MainActivity activity;
@@ -133,6 +136,20 @@ final class Bridge implements WebViewCompat.WebMessageListener {
                 reply(id, null);
                 break;
             }
+            case "notify.status":
+                reply(id, new JSONObject().put("granted", Reminders.allowed(activity)).put("scheduled", Reminders.count(activity)));
+                break;
+            case "notify.permission":
+                activity.askNotifications(granted -> reply(id, json(() -> new JSONObject().put("granted", granted))));
+                break;
+            case "notify.schedule":
+                reply(id, new JSONObject().put("scheduled", Reminders.schedule(activity, p.getJSONArray("items"))));
+                break;
+            case "notify.test":
+                Reminders.show(activity, "test", "Money Hub reminders are on",
+                        "You will get a note like this before each bill is due.");
+                reply(id, null);
+                break;
             case "http":
                 http(id, p);
                 break;
@@ -170,7 +187,7 @@ final class Bridge implements WebViewCompat.WebMessageListener {
         activity.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + pkg)));
     }
 
-    /** PayPal does not accept calls from a web page, so the app makes them. Only PayPal hosts. */
+    /** PayPal and Apps Script do not accept calls from a web page, so the app makes them. Allowed hosts only. */
     private void http(int id, JSONObject p) {
         io.execute(() -> {
             HttpURLConnection c = null;
@@ -200,7 +217,7 @@ final class Bridge implements WebViewCompat.WebMessageListener {
                 String text = in == null ? "" : read(in);
                 reply(id, new JSONObject().put("status", status).put("body", text));
             } catch (Exception e) {
-                fail(id, "Could not reach PayPal. Check your internet connection.");
+                fail(id, "Could not connect. Check your internet connection.");
             } finally {
                 if (c != null) c.disconnect();
             }

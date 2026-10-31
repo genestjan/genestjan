@@ -78,6 +78,11 @@ your branding, so Money Hub was built.
 - **Supabase for sync**, with only ciphertext stored. Free tier; a daily keep-awake job stops the
   free plan pausing it.
 - **Local-first.** Everything works offline; changes sync when there is internet.
+- **Bill reminders** without a Google Cloud project: phone alarms (Android AlarmManager, restored
+  after a restart), Windows' own scheduled notifications, and an Apps Script that runs in your
+  Google account and keeps a private "Money Hub bills" calendar in step. Apps Script was chosen
+  over Google's OAuth API because a personal OAuth app in testing mode loses its sign-in every
+  7 days; the script never expires.
 
 ## 4. Security model
 
@@ -93,7 +98,7 @@ your branding, so Money Hub was built.
 | Phone backups leaking data | Android cloud backup and device transfer are switched off for the app. |
 | Forgetting the password | The recovery key. Without the password and the recovery key, the data cannot be opened by anyone. That is the price of real end-to-end encryption. |
 
-Checked by tests: 54 unit tests (encryption, parsers, capture pipeline, maths, CSV, two-device
+Checked by tests: 66 tests (encryption, parsers, capture pipeline, maths, CSV, two-device
 sync), plus a check that 20 captures sealed by the Android Java code open in the web app.
 
 ## 5. Costs

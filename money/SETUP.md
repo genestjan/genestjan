@@ -238,6 +238,63 @@ Every time the app is improved, a new build appears at the same two links.
 
 ---
 
+## Part 10. Bill reminders: phone, laptop and Google Calendar (10 minutes)
+
+Money Hub reminds you **5 days before each bill is due, at 9:00 AM** (you can change both in
+**Settings > Bill reminders > When**). Paid bills are skipped.
+
+**On the phone:**
+
+1. In Money Hub, tap **More > Settings & security**, scroll to **Bill reminders**.
+2. Next to **Notifications on this phone**, tap **Turn on**, then **Allow**.
+3. Tap **Test**. A notification should appear at the top of the screen.
+4. If nothing appears: open **Settings > Apps > Money Hub > Notifications** and turn
+   **Allow notifications** on.
+
+The reminders arrive even when Money Hub is closed, and come back by themselves after the phone
+restarts. On the lock screen they only say "A bill is due soon"; the details show once unlocked.
+
+**On the laptop (optional):** in Money Hub on the laptop, **Settings > Bill reminders >
+Notifications on this laptop > Turn on**, then **Test**. If nothing appears, open Windows
+**Settings > System > Notifications** and turn Money Hub on. (This only works when Money Hub was
+installed with the installer.) It starts off, so you are not reminded twice.
+
+**In Google Calendar (an all-day event on the reminder day):**
+
+1. On the laptop, in Money Hub: **Settings > Bill reminders > Google Calendar > Set up**.
+2. Click **Copy the script**. (Your private secret is already inside it.)
+3. Click the **script.google.com** link in the same box. Check the picture at the top right is the
+   Google account whose calendar you use.
+4. In the editor you see a few lines starting with `function myFunction`. Press **Ctrl + A**, then
+   **Ctrl + V**, so the script replaces them.
+5. Click **Untitled project** at the top, type `Money Hub reminders`, click **Rename**.
+6. Click the **save** icon (the floppy disk).
+7. In the toolbar, open the list next to **Debug**, choose **setup**, then click **Run**.
+8. A box says **Authorisation required**. Click **Review permissions**, choose your account. When
+   it says **Google hasn't verified this app**, click **Advanced**, then
+   **Go to Money Hub reminders (unsafe)**, then **Allow**. (Google shows this for every personal
+   script. It is your own.)
+9. Wait until the bottom says **Execution completed**.
+10. Click the blue **Deploy** button (top right), then **New deployment**.
+11. Click the **gear** next to **Select type**, then **Web app**.
+12. **Execute as**: **Me**. **Who has access**: **Anyone**. Click **Deploy**.
+    - If **Anyone** is not in the list (some work accounts block it), do steps 3 to 13 with your
+      personal Gmail account instead.
+13. Click **Copy** under **Web app URL**.
+14. Back in Money Hub, paste it into **Web app URL** and click **Connect and send**.
+15. Open Google Calendar. On the left there is a new calendar, **Money Hub bills**, with an
+    all-day event 5 days before each bill. Only you can see it.
+
+**To get a Google Calendar notification as well:** in Google Calendar, point at **Money Hub
+bills** on the left, click the three dots, **Settings and sharing**. Under
+**All-day event notifications**, click **Add notification** and choose **On the day at 9am**.
+
+When you mark a bill as paid, its calendar event disappears within a minute, from whichever device
+you used. The phone's own notification for that bill is cancelled the next time Money Hub opens on
+the phone.
+
+---
+
 ## If something goes wrong
 
 | What you see | What to do |
@@ -247,4 +304,6 @@ Every time the app is improved, a new build appears at the same two links.
 | A capture waits in **To review** | Usually a card you have not added yet. Add the account (with its last 4 digits) and tap **Add it**. |
 | "Sync problem" | Open supabase.com. If the project says **Paused**, click **Restore project**, wait two minutes, then tap **Sync** in Money Hub. |
 | Forgot your password | On the lock screen tap **Forgot password?** and use your recovery key. |
+| No bill reminder arrived | Check Part 10: notifications allowed, Money Hub battery set to Unrestricted, and the bill has a due day. |
+| Google Calendar shows a problem | Open Settings > Bill reminders > Google Calendar > Manage, click Copy the script, paste it over the old one at script.google.com, save, then Deploy > Manage deployments > edit > New version > Deploy. |
 | Lost phone | On the laptop: **Settings > Security > Change password**. The lost phone cannot open your data without your password or fingerprint, and a new password locks it out of the cloud. |

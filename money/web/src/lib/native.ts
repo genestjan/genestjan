@@ -87,6 +87,8 @@ export interface CaptureStatus {
 }
 export interface QueuedCapture { id: string; postedAt: number; box: { v: 1; epk: string; iv: string; ct: string } }
 export interface HttpResult { status: number; body: string }
+export interface NotifyStatus { granted: boolean; scheduled: number }
+export interface NotifyItem { id: string; at: number; title: string; body: string }
 
 export const native = {
   bioStatus: () => (hasNative ? call<BioStatus>('bio.status') : Promise.resolve({ available: false, enrolled: false, label: '' })),
@@ -101,6 +103,10 @@ export const native = {
     call<void>('capture.configure', cfg),
   captureRead: () => call<{ items: QueuedCapture[] }>('capture.read'),
   captureAck: (ids: string[]) => call<void>('capture.ack', { ids }),
+  notifyStatus: () => call<NotifyStatus>('notify.status'),
+  notifyPermission: () => call<{ granted: boolean }>('notify.permission', {}, 300_000),
+  notifySchedule: (items: NotifyItem[]) => call<{ scheduled: number }>('notify.schedule', { items }),
+  notifyTest: () => call<void>('notify.test'),
   http: (req: { method: string; url: string; headers?: Record<string, string>; body?: string }) => call<HttpResult>('http', req, 60_000),
   saveFile: (name: string, mime: string, data: string, encoding: 'text' | 'base64' = 'text') =>
     call<{ saved: boolean }>('file.save', { name, mime, data, encoding }, 300_000),

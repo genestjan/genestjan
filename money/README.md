@@ -2,7 +2,8 @@
 
 Jan's personal budgeting app: income against expenses, budgets, bills, cards and loans, filled in
 automatically from the phone's bank, card and e-wallet notifications, and synced end-to-end
-encrypted between the Samsung phone and the Windows laptop.
+encrypted between the Samsung phone and the Windows laptop. Reminds you 5 days before each bill
+is due (phone notification, optional laptop notification, optional all-day Google Calendar event).
 
 - **Set it up:** [SETUP.md](SETUP.md) (step by step, about 45 minutes once)
 - **Why it is built this way, and what can and cannot be linked:** [RESEARCH.md](RESEARCH.md)
@@ -32,13 +33,14 @@ encrypted between the Samsung phone and the Windows laptop.
 | `android/` | Java app: WebView host, notification capture, fingerprint unlock, PayPal calls. |
 | `windows/` | .NET 8 WinForms app with WebView2, Windows Hello, Inno Setup installer. |
 | `supabase/schema.sql` | Tables, Row Level Security, the phone's drop-off inbox and password recovery. |
+| `web/src/lib/calendarScript.ts` | The Google Apps Script that puts bill reminders in Google Calendar (pasted by you at script.google.com). |
 
 ## Working on it
 
 ```bash
 cd money/web
 npm ci
-npm test            # 54 unit tests
+npm test            # 66 tests
 npm run dev         # http://localhost:5173 ; add ?demo for sample data
 npm run build       # dist/, packed into both apps by their builds
 ```

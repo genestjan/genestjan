@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <!-- Only this app's own files may run. Network calls go to Supabase (sync), Frankfurter
-         (exchange rates) and nothing else. -->
+         (exchange rates), your own Google Apps Script (calendar reminders) and nothing else. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.frankfurter.dev https://api.frankfurter.app; object-src 'none'; base-uri 'none'; form-action 'none'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.frankfurter.dev https://api.frankfurter.app https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'"
     />
     <meta name="referrer" content="no-referrer" />
     <meta name="theme-color" content="#06080D" />

@@ -130,6 +130,26 @@ export interface PayPalLink {
   syncedUntil?: string;
 }
 
+export interface CalendarLink {
+  /** The Apps Script web app address (https://script.google.com/macros/s/.../exec). */
+  url: string;
+  secret: string;
+  amounts: boolean;
+  /** Fingerprint of what was last sent, so an unchanged list is not sent again. */
+  hash?: string;
+  lastSync?: number;
+}
+
+export interface ReminderSettings {
+  /** Days before the due date. */
+  days: number;
+  /** Time of day, "09:00". */
+  time: string;
+  calendar?: CalendarLink;
+}
+
+export const DEFAULT_REMINDERS: ReminderSettings = { days: 5, time: '09:00' };
+
 export interface Settings extends Base {
   kind: 'settings';
   displayName?: string;
@@ -142,6 +162,7 @@ export interface Settings extends Base {
   capturePublicKey?: string;
   capturePrivateKey?: string;
   paypal?: PayPalLink;
+  reminders?: ReminderSettings;
 }
 
 export type AnyRecord = Account | Txn | Category | Budget | Bill | Rule | Capture | Settings;

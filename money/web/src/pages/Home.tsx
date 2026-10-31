@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowUpRight, ChevronRight, Eye, EyeOff, Inbox, Lightbulb, Plus } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, BellRing, ChevronRight, Eye, EyeOff, Inbox, Lightbulb, Plus } from 'lucide-react';
 import { Donut, Legend, Sparkline, type Slice } from '../components/charts';
 import { PageHeader } from '../components/Shell';
 import { TxnRow } from '../components/TxnRow';
@@ -10,6 +10,7 @@ import {
 import { addMonths, dayHeading, monthLabel, shortDate, thisMonth, todayISO } from '../lib/dates';
 import { OTHER_COLOUR } from '../lib/model';
 import { formatMoney } from '../lib/money';
+import { reminderSettings } from '../lib/reminders';
 import { useApp } from '../lib/session';
 import { navigate } from '../router';
 import { openPay, openTxn } from '../ui-state';
@@ -49,8 +50,10 @@ export function Home() {
   const change = changeThisMonth(snap, month);
   const slices = spendingSlices(snap, sum.byCategory);
   // The next two weeks, across the month end, plus anything overdue.
-  const bills = [...billsFor(snap, month), ...billsFor(snap, addMonths(month, 1))]
-    .filter((b) => b.state !== 'paid' && b.days <= 14).slice(0, 4);
+  const upcoming = [...billsFor(snap, month), ...billsFor(snap, addMonths(month, 1))].filter((b) => b.state !== 'paid' && b.days <= 14);
+  const bills = upcoming.slice(0, 4);
+  const remindDays = reminderSettings(snap.settings).days;
+  const dueSoon = upcoming.filter((b) => b.days >= 0 && b.days <= remindDays);
   const tips = insights(snap, month, today, (n) => formatMoney(n));
   const recent = snap.txns.slice(0, 6);
   const review = snap.captures.filter((c) => c.status === 'review').length;
@@ -63,6 +66,20 @@ export function Home() {
         <PageHeader title={`${greeting()}, ${name}`} subtitle={`${dayHeading(today).replace(/^Today, /, '')} · ${monthLabel(month)}`}
           actions={<button className="btn-primary" onClick={() => openTxn()}><Plus size={18} /> Add transaction</button>} />
       </div>
+
+      {dueSoon.length > 0 && (
+        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-signal/30 bg-signal/10 px-4 py-3 text-sm">
+          <BellRing size={18} className="shrink-0 text-signal" />
+          <span className="min-w-0 flex-1">
+            {dueSoon.length === 1
+              ? <>{dueSoon[0].bill.name} is due {dueSoon[0].days === 0 ? 'today' : dueSoon[0].days === 1 ? 'tomorrow' : `in ${dueSoon[0].days} days`}: <span className="num font-semibold">{money(dueSoon[0].amount - dueSoon[0].paid)}</span></>
+              : <>{dueSoon.length} bills are due in the next {remindDays} days: <span className="num font-semibold">{money(dueSoon.reduce((s, b) => s + b.amount - b.paid, 0))}</span></>}
+          </span>
+          {dueSoon.length === 1
+            ? <button className="btn-primary px-3 py-1.5 text-sm" onClick={() => openPay(dueSoon[0])}>Pay</button>
+            : <button className="btn-outline px-3 py-1.5 text-sm" onClick={() => navigate('/debts')}>See bills</button>}
+        </div>
+      )}
 
       {review > 0 && (
         <button onClick={() => navigate('/inbox')} className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-signal/30 bg-signal/10 px-4 py-3 text-left text-sm">

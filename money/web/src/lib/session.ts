@@ -12,6 +12,8 @@ import { idbDB, memoryDB, type LocalDB } from './db';
 import { Ledger, type Snapshot } from './ledger';
 import { defaultCategories, defaultSettings, type AnyRecord, type Settings } from './model';
 import { native, on, platform, type BioStatus } from './native';
+import { reminderSettings, scheduleOnDevice, syncCalendar, upcomingReminders } from './reminders';
+import { todayISO } from './dates';
 
 // The app's life: welcome, create or sign in, locked, unlocked. Also the background work an
 // unlocked app does: syncing, taking in captured notifications and locking itself when idle.
@@ -36,17 +38,22 @@ export interface AppState {
   afterCloud: 'create' | 'signin';
   sync: SyncState;
   bio: BioStatus;
+  /** Last Google Calendar problem on this device (not synced). */
+  calendarError: string | null;
 }
 
 export const useApp = create<AppState>(() => ({
   phase: 'boot', meta: null, snap: null, demo: false, busy: null, error: null, toast: null,
   recoveryKey: null, pendingEmail: null, afterCloud: 'create', sync: { state: 'off' }, bio: { available: false, enrolled: false, label: '' },
+  calendarError: null,
 }));
 
 const set = useApp.setState;
 const get = useApp.getState;
 
-let db: LocalDB = idbDB();
+// Opened on first use, so importing this module needs no IndexedDB (tests, previews).
+let store: LocalDB | null = null;
+const db = (): LocalDB => (store ??= idbDB());
 let ledger: Ledger | null = null;
 let dek: Uint8Array | null = null;
 let stopWatch: (() => void) | null = null;
@@ -79,7 +86,7 @@ const localSalt = (email: string) => email.trim() || 'this-device';
 export async function boot(opts: { demo?: boolean } = {}) {
   armIdleLock();
   if (opts.demo) return startDemo();
-  const meta = (await db.meta<VaultMeta>('vault')) ?? null;
+  const meta = (await db().meta<VaultMeta>('vault')) ?? null;
   const bio = await native.bioStatus().catch(() => get().bio);
   set({ meta, bio, phase: meta ? 'locked' : 'welcome' });
   if (meta && bio.enrolled) void unlockWithBio();
@@ -252,7 +259,7 @@ export async function changePassword(current: string, next: string): Promise<boo
 }
 
 async function saveMeta(meta: VaultMeta) {
-  await db.setMeta('vault', meta);
+  await db().setMeta('vault', meta);
   set({ meta });
 }
 
@@ -261,7 +268,7 @@ async function saveMeta(meta: VaultMeta) {
 async function openLedger(key: Uint8Array, fresh: boolean) {
   dek = key;
   ledger?.close();
-  ledger = new Ledger(db, await dataKey(key));
+  ledger = new Ledger(db(), await dataKey(key));
   const { unreadable } = await ledger.load();
   if (unreadable) toast(`${unreadable} saved item${unreadable > 1 ? 's' : ''} could not be opened and were skipped.`);
   // Defaults are stamped as the oldest possible version, so on a second device the real
@@ -274,6 +281,7 @@ async function openLedger(key: Uint8Array, fresh: boolean) {
   ledger.subscribe(() => {
     set({ snap: ledger!.snapshot() });
     if (ledger!.dirty().length) syncSoon();
+    remindersSoon();
   });
   set({ snap: ledger.snapshot() });
   lastActive = Date.now();
@@ -306,7 +314,7 @@ export async function signOutEverywhereOnThisDevice() {
   if (c) await signOut(c).catch(() => undefined);
   await disableBio();
   lock();
-  await db.wipe();
+  await db().wipe();
   localStorage.removeItem('mh-drop');
   set({ meta: null, phase: 'welcome' });
 }
@@ -317,18 +325,19 @@ let interval: ReturnType<typeof setInterval> | undefined;
 
 function startBackground() {
   stopBackground();
-  interval = setInterval(() => { void syncNow().then(() => setUpCapture()).then(() => takeCaptures()); }, 60_000);
+  interval = setInterval(() => { void syncNow().then(() => setUpCapture()).then(() => takeCaptures()).then(() => refreshReminders()); }, 60_000);
   const meta = get().meta;
   const c = sb();
   if (meta?.mode === 'cloud' && c && meta.userId) {
     stopWatch = watch(c, meta.userId, () => syncSoon(800), () => void takeCaptures());
   }
   // Settings only change after the first sync, so a fresh device never replaces the real ones.
-  void syncNow().then(() => setUpCapture()).then(() => takeCaptures()).then(() => refreshRates());
+  void syncNow().then(() => setUpCapture()).then(() => takeCaptures()).then(() => refreshRates()).then(() => refreshReminders());
 }
 
 function stopBackground() {
   clearInterval(interval);
+  clearTimeout(reminderTimer);
   clearTimeout(syncTimer);
   stopWatch?.();
   stopWatch = null;
@@ -454,6 +463,43 @@ async function refreshRates() {
   }
 }
 
+// ---- Bill reminders ---------------------------------------------------------------------------
+
+let reminderTimer: ReturnType<typeof setTimeout> | undefined;
+let reminding = false;
+
+function remindersSoon(ms = 3000) {
+  clearTimeout(reminderTimer);
+  reminderTimer = setTimeout(() => void refreshReminders(), ms);
+}
+
+/** Schedules this device's notifications and updates Google Calendar when the list changed. */
+export async function refreshReminders(force = false): Promise<void> {
+  if (!ledger || get().demo || !syncedOnce() || reminding) return;
+  reminding = true;
+  try {
+    const s = ledger.snapshot();
+    const opts = reminderSettings(s.settings);
+    const list = upcomingReminders(s, todayISO(), opts);
+    await scheduleOnDevice(list, opts.days).catch(() => undefined);
+    const link = opts.calendar;
+    if (link && navigator.onLine) {
+      try {
+        const done = await syncCalendar(link, list, todayISO(), force);
+        if (done && ledger) {
+          const now = ledger.snapshot().settings;
+          await ledger.put([{ ...now, reminders: { ...reminderSettings(now), calendar: { ...link, hash: done.hash, lastSync: Date.now() } } }]);
+        }
+        set({ calendarError: null });
+      } catch (e) {
+        set({ calendarError: (e as Error).message });
+      }
+    }
+  } finally {
+    reminding = false;
+  }
+}
+
 // ---- Locking when idle ----------------------------------------------------------------------
 
 let armed = false;
@@ -480,10 +526,10 @@ function armIdleLock() {
 // ---- Demo -----------------------------------------------------------------------------------
 
 async function startDemo() {
-  db = memoryDB();
+  store = memoryDB();
   const { demoRecords } = await import('./demo');
   dek = crypto.getRandomValues(new Uint8Array(32));
-  ledger = new Ledger(db, await dataKey(dek));
+  ledger = new Ledger(db(), await dataKey(dek));
   await ledger.load();
   await ledger.put(demoRecords());
   ledger.subscribe(() => set({ snap: ledger!.snapshot() }));

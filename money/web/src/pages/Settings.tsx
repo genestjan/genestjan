@@ -2,6 +2,7 @@ import {
   Cloud, Download, ExternalLink, FileSpreadsheet, Fingerprint, KeyRound, Link2, Lock, LogOut, RefreshCw, ShieldCheck, Upload,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { RemindersCard } from '../components/remindersCard';
 import { PageHeader } from '../components/Shell';
 import { Avatar, Badge, Card, ErrorText, Field, Sheet, Spinner } from '../components/ui';
 import { encryptedBackup, saveTextFile, syncPayPal, transactionsCSV, updateSettings } from '../lib/actions';
@@ -85,6 +86,8 @@ export function SettingsPage() {
             {!demo && <Row icon={<Lock size={18} />} title="Lock now" action={<button className="btn-outline px-3 py-2 text-sm" onClick={lock}>Lock</button>} />}
           </div>
         </Card>
+
+        <RemindersCard />
 
         <Card title="Sync & backup">
           <div className="divide-y divide-line">

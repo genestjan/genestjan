@@ -20,7 +20,9 @@ namespace MoneyHub
     {
         private const string Host = "money.hub";
         private const string Origin = "https://" + Host;
-        private static readonly HashSet<string> HttpHosts = new() { "api-m.paypal.com", "api-m.sandbox.paypal.com" };
+        // PayPal, and Google Apps Script for bill reminders in Google Calendar (its redirect to
+        // script.googleusercontent.com is followed by HttpClient itself).
+        private static readonly HashSet<string> HttpHosts = new() { "api-m.paypal.com", "api-m.sandbox.paypal.com", "script.google.com" };
         private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(60) };
 
         private readonly WebView2 web = new() { Dock = DockStyle.Fill, DefaultBackgroundColor = ColorTranslator.FromHtml("#06080D") };
@@ -109,6 +111,17 @@ namespace MoneyHub
                         await Hello.Clear();
                         Reply(id, null);
                         break;
+                    case "notify.status":
+                    case "notify.permission":
+                        Reply(id, new JsonObject { ["granted"] = Reminders.Allowed(), ["scheduled"] = Reminders.Count() });
+                        break;
+                    case "notify.schedule":
+                        Reply(id, new JsonObject { ["scheduled"] = Reminders.Schedule(p["items"] as JsonArray ?? new JsonArray()) });
+                        break;
+                    case "notify.test":
+                        Reminders.Test();
+                        Reply(id, null);
+                        break;
                     case "http":
                         Reply(id, await HttpCall(p));
                         break;
@@ -131,7 +144,7 @@ namespace MoneyHub
             }
         }
 
-        // PayPal does not accept calls from a web page, so the app makes them. Only PayPal hosts.
+        // PayPal and Apps Script do not accept calls from a web page, so the app makes them. Allowed hosts only.
         private static async Task<JsonObject> HttpCall(JsonObject p)
         {
             var url = new Uri(p["url"]!.GetValue<string>());
@@ -156,7 +169,7 @@ namespace MoneyHub
             }
             catch (HttpRequestException)
             {
-                throw new InvalidOperationException("Could not reach PayPal. Check your internet connection.");
+                throw new InvalidOperationException("Could not connect. Check your internet connection.");
             }
         }
 

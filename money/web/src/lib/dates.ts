@@ -63,6 +63,12 @@ export function timeLabel(hhmm?: string): string {
   return `${pad(h12)}:${pad(m)} ${h < 12 ? 'AM' : 'PM'}`;
 }
 
+export function addDays(iso: string, n: number): string {
+  const d = fromISO(iso);
+  d.setDate(d.getDate() + n);
+  return isoDate(d);
+}
+
 export function daysUntil(iso: string, today = todayISO()): number {
   return Math.round((fromISO(iso).getTime() - fromISO(today).getTime()) / 86_400_000);
 }

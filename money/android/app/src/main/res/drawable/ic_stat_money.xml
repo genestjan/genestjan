@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status bar icon: the speech bubble from the GJR mark (white; Android tints it). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M4.6,3.4L19.6,2.4C20.4,2.35 21,2.9 21,3.7L21,14.2C21,14.9 20.5,15.5 19.8,15.6L11.4,16.4L6.9,20.6C6.4,21.1 5.6,20.6 5.8,19.9L6.6,16.8L5.2,16.9C4.5,16.95 3.9,16.4 3.9,15.7L3.4,4.7C3.35,4 3.9,3.45 4.6,3.4Z" />
+</vector>

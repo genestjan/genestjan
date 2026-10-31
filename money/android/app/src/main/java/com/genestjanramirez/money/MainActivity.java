@@ -1,10 +1,13 @@
 package com.genestjanramirez.money;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -48,6 +51,10 @@ public class MainActivity extends FragmentActivity {
         void done(boolean saved);
     }
 
+    interface Granted {
+        void done(boolean granted);
+    }
+
     private WebView web;
     private Bridge bridge;
     private ValueCallback<Uri[]> fileCallback;
@@ -55,6 +62,8 @@ public class MainActivity extends FragmentActivity {
     private Saved pendingSaved;
     private ActivityResultLauncher<Intent> pickFile;
     private ActivityResultLauncher<Intent> createFile;
+    private ActivityResultLauncher<String> notificationPermission;
+    private Granted pendingGranted;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -67,6 +76,11 @@ public class MainActivity extends FragmentActivity {
 
         pickFile = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this::onFilePicked);
         createFile = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this::onFileCreated);
+        notificationPermission = registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+            Granted g = pendingGranted;
+            pendingGranted = null;
+            if (g != null) g.done(Reminders.allowed(this));
+        });
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Color.parseColor("#06080D"));
@@ -141,7 +155,29 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-        web.loadUrl(START);
+        // A tapped bill reminder opens Debts & bills.
+        String route = getIntent().getStringExtra("route");
+        web.loadUrl(route != null && route.matches("/[a-z]+") ? START + "#" + route : START);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String route = intent.getStringExtra("route");
+        if (route != null && route.matches("/[a-z]+") && web != null) web.evaluateJavascript("location.hash='" + route + "'", null);
+    }
+
+    /** Android 13 and later ask once before an app may show notifications. */
+    void askNotifications(Granted done) {
+        runOnUiThread(() -> {
+            if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                pendingGranted = done;
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
+            } else {
+                done.done(Reminders.allowed(this));
+            }
+        });
     }
 
     @Override

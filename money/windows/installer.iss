@@ -30,7 +30,7 @@ CloseApplications=yes
 Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\Money Hub"; Filename: "{app}\MoneyHub.exe"
+Name: "{autoprograms}\Money Hub"; Filename: "{app}\MoneyHub.exe"; AppUserModelID: "GenestJanRamirez.MoneyHub"
 Name: "{autodesktop}\Money Hub"; Filename: "{app}\MoneyHub.exe"; Tasks: desktopicon
 
 [Tasks]
