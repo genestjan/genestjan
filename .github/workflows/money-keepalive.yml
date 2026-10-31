@@ -24,4 +24,7 @@ jobs:
             echo "::notice::Add the MONEY_SUPABASE_URL and MONEY_SUPABASE_KEY secrets to keep the cloud awake."
             exit 0
           fi
-          curl -fsS -X POST "${URL%/}/rest/v1/rpc/money_ping" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}'
+          # Just the project's host, whatever was pasted (a /rest/v1/ ending, spaces, quotes), as the apps do.
+          HOST=$(printf '%s' "$URL" | tr -d '[:space:]"' | sed -E 's|^[A-Za-z]+://||; s|[/?#].*$||')
+          KEY=$(printf '%s' "$KEY" | tr -d '[:space:]"')
+          curl -fsS -X POST "https://$HOST/rest/v1/rpc/money_ping" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}'
