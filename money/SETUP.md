@@ -330,7 +330,7 @@ amounts turn into dots, and stay hidden until you tap the eye again.
 
 **Copy the exact error instead of a screenshot:**
 
-1. Under the error, tap **Copy the details**. It changes to **Copied**.
+1. Under the error, tap **Copy the details**. It changes to **Copied. Paste it into your message.**
 2. Go to your message, press and hold inside the message box, then tap **Paste**.
 
 **Copy everything that went wrong lately:**
