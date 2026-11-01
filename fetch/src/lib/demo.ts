@@ -27,7 +27,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function drive(be: Backend, tripId: string, from: LatLng, to: LatLng, step = 0.12) {
   const { line } = await route(from, to);
   // Resample so the car moves at an even pace.
-  for (let i = 0; i < line.length; i += Math.max(1, Math.round(line.length * step / 4))) {
+  const inc = Math.max(1, Math.round(line.length * step / 4));
+  for (let i = 0; i < line.length; i = i === line.length - 1 ? line.length : Math.min(line.length - 1, i + inc)) {
     const t = await be.get<Trip>('trips', tripId);
     if (!t || t.status === 'cancelled') return false;
     await patch(be, t, { driverLoc: line[i], ...(t.status === 'ongoing' ? { meterKm: t.estKm * (i / line.length), meterMin: t.estMin * (i / line.length) } : {}) });

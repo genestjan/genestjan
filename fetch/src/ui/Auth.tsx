@@ -52,7 +52,7 @@ export function Auth({ be, role, onSignedIn }: { be: Backend; role: Role; onSign
           <button className="btn-neon w-full" disabled={busy}>Send my login code <ArrowRight className="h-5 w-5" /></button>
         </form>
       ) : (
-        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); run(async () => onSignedIn(await be.verifyCode(email.trim(), code.trim()))); }}>
+        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); run(async () => { const id = await be.verifyCode(email.trim(), code.trim()); localStorage.setItem('fetch:email', email.trim()); onSignedIn(id); }); }}>
           <label className="label" htmlFor="code">6-digit code sent to {email}</label>
           <input id="code" className="input text-center text-2xl tracking-[.5em]" inputMode="numeric" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
           {be.mode === 'demo' && <p className="text-xs text-lime">Demo mode: type any 6 digits, for example 123456.</p>}

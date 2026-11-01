@@ -19,7 +19,9 @@ export async function route(a: LatLng, b: LatLng): Promise<{ km: number; min: nu
     };
   } catch {
     const km = haversineKm(a, b) * 1.3; // road factor
-    return { km, min: (km / 25) * 60, line: [a, b] };
+    // Straight line split into steps so moving markers glide instead of jumping.
+    const line = Array.from({ length: 13 }, (_, i) => ({ lat: a.lat + ((b.lat - a.lat) * i) / 12, lng: a.lng + ((b.lng - a.lng) * i) / 12 }));
+    return { km, min: (km / 25) * 60, line };
   }
 }
 

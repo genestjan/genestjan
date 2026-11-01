@@ -131,7 +131,7 @@ export default function App() {
   if (uid === undefined) return null;
   if (!uid) return <Auth be={be} role="driver" onSignedIn={setUid} />;
   if (profile === undefined || me === undefined) return null;
-  if (!profile) return <ProfileForm be={be} id={uid} role="driver" email={uid.replace(/^driver:/, '')} onSaved={() => reloadProfile()} />;
+  if (!profile) return <ProfileForm be={be} id={uid} role="driver" email={localStorage.getItem('fetch:email') ?? ''} onSaved={() => reloadProfile()} />;
   if (!me || editing) return <Setup be={be} profile={profile} initial={me} onSaved={() => { setEditing(false); reloadMe(); }} />;
   if (profile.verified !== 'approved') return <Pending onSignOut={() => be.signOut().then(() => setUid(null))} />;
 

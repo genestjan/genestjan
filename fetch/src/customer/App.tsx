@@ -62,7 +62,7 @@ export default function App() {
   if (uid === undefined) return null;
   if (!uid) return <Auth be={be} role="customer" onSignedIn={setUid} />;
   if (profile === undefined) return null;
-  if (!profile) return <ProfileForm be={be} id={uid} role="customer" email={uid.replace(/^customer:/, '')} onSaved={() => reloadProfile()} />;
+  if (!profile) return <ProfileForm be={be} id={uid} role="customer" email={localStorage.getItem('fetch:email') ?? ''} onSaved={() => reloadProfile()} />;
   if (profile.verified !== 'approved') return <Pending onSignOut={() => be.signOut().then(() => setUid(null))} />;
   const w = wallet ?? { id: uid, points: 0, completedTrips: 0 };
 

@@ -118,11 +118,13 @@ class SupabaseBackend implements Backend {
     return (data ?? []).map((r) => r.data as T);
   }
   async put<T extends { id: string }>(t: Table, row: T) {
-    const prev = (await this.get<Row>(t, row.id)) ?? {};
-    const merged: Row = { ...prev, ...(row as unknown as Row) };
+    const prev = await this.get<Row>(t, row.id);
+    const merged: Row = { ...(prev ?? {}), ...(row as unknown as Row) };
     const rec: Record<string, unknown> = { id: row.id, data: merged };
     for (const c of COLS[t]) rec[snake(c)] = merged[c];
-    const { error } = await this.sb.from(t).upsert(rec);
+    // Separate insert and update: an upsert would also need the INSERT policy, which only
+    // the trip's customer passes, so drivers could never update a trip.
+    const { error } = prev ? await this.sb.from(t).update(rec).eq('id', row.id) : await this.sb.from(t).insert(rec);
     if (error) throw error;
   }
   subscribe(cb: (t: Table) => void) {
