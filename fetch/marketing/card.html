@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:R;src:url(russo.woff2)}@font-face{font-family:I;font-weight:800;src:url(inter8.woff2)}@font-face{font-family:I;font-weight:400;src:url(inter4.woff2)}
+*{box-sizing:border-box;margin:0}html,body{width:100%;height:100%}
+body{font-family:I;color:#fff;background:radial-gradient(ellipse at 30% 20%,#173d08 0%,#050d05 55%);overflow:hidden;position:relative}
+body:before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(127,240,4,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(127,240,4,.06) 1px,transparent 1px);background-size:80px 80px}
+.wrap{position:relative;height:100%;display:flex;flex-direction:column;justify-content:center;padding:7%}
+.k{font:800 2.2vmin I;letter-spacing:.35em;color:#b9f73c;text-transform:uppercase;margin-bottom:2vmin}
+h1{font:400 7.5vmin/1.05 R;font-style:italic}h1 b{color:#7ff004;font-weight:400}
+p{font:400 3.2vmin/1.4 I;color:rgba(255,255,255,.82);margin-top:2.5vmin;max-width:80%}
+ol{margin-top:3vmin;padding:0;list-style:none;counter-reset:s}
+li{counter-increment:s;font:400 3vmin/1.35 I;margin:1.8vmin 0;display:flex;gap:2.2vmin;align-items:flex-start}
+li:before{content:counter(s);flex:none;width:5.2vmin;height:5.2vmin;border-radius:50%;background:#7ff004;color:#050d05;font:800 2.8vmin/5.2vmin I;text-align:center}
+li b{color:#b9f73c}
+.logo{width:26vmin;filter:drop-shadow(0 0 4vmin rgba(127,240,4,.6));margin-bottom:3vmin}
+.center{align-items:center;text-align:center}.center p{margin-left:auto;margin-right:auto}
+.chips{display:flex;flex-wrap:wrap;gap:1.6vmin;margin-top:3vmin}.chips span{border:2px solid #7ff004;border-radius:99px;padding:1.2vmin 2.4vmin;font:800 2.6vmin I}
+.url{margin-top:3vmin;font:400 4vmin R;color:#7ff004}
+.big{font-size:11vmin}
+@media (orientation:portrait){.wrap{zoom:1.5;padding:9% 6%}}
+.split{padding-right:44%}.split p{max-width:100%}
+</style></head><body><div class="wrap" id="w"></div>
+<script>const q=new URLSearchParams(location.search);const d=JSON.parse(q.get('d'));document.getElementById('w').className='wrap '+(d.cls||'');document.getElementById('w').innerHTML=d.html;</script></body></html>

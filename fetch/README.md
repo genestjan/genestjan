@@ -152,3 +152,18 @@ Searched GitHub before building (per CLAUDE.md). Main references:
 
 No code was copied: licences on these repositories were not all clear, so they were used as
 design benchmarks only. Map data © OpenStreetMap contributors.
+
+## Videos
+
+Hosted with the site after merge:
+
+| Video | Length | Format | Link |
+|---|---|---|---|
+| Marketing | 2:21 | 1920×1080 | https://genestjanramirez.com/fetch/media/FetchGenSan-marketing.mp4 |
+| Customer: install and use | 2:40 | 1080×1920 (Reels, TikTok) | https://genestjanramirez.com/fetch/media/FetchGenSan-customer-tutorial.mp4 |
+| Driver: install and use | 2:28 | 1080×1920 (Reels, TikTok) | https://genestjanramirez.com/fetch/media/FetchGenSan-driver-tutorial.mp4 |
+
+They have on-screen captions and no sound. Voiceover lines and music tips are in
+`marketing/VOICEOVER.md`. The scripts that recorded and edited them are in `marketing/`
+(Playwright records the demo apps, ffmpeg assembles cards and footage), so they can be
+re-made after any design change.
