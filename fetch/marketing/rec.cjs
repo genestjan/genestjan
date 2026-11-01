@@ -27,9 +27,9 @@ window.__tap = (x, y) => { const d = document.createElement('div'); d.style.cssT
   if (which === 'customer') {
     await p.goto(BASE + '/fetch/'); await w(4300);
     await cap('Step 1. Log in with your email. No password to remember.', 2200);
-    await type('#email', 'juan.delacruz@gmail.com'); await tap('text=Send my login code', 1000);
+    await type('#email', 'juan.delacruz@gmail.com'); await tap('form button.btn-neon', 1000);
     await cap('Step 2. Type the 6-digit code we email you.', 1500);
-    await type('#code', '123456'); await tap('button:has-text("Log in")', 800);
+    await p.fill('#code', ''); await type('#code', '123456'); await tap('button:has-text("Log in")', 800);
     await cap('Step 3. Verify yourself: real name, mobile number and a valid ID. Everyone on Fetch is verified.', 3200, true);
     await type('#fn', 'Juan Dela Cruz'); await type('#ph', '09123456789');
     await p.selectOption('#idt', 'PhilSys National ID'); await w(500);
@@ -81,8 +81,8 @@ window.__tap = (x, y) => { const d = document.createElement('div'); d.style.cssT
   } else {
     await p.goto(BASE + '/fetch/driver/'); await w(4300);
     await cap('Step 1. Log in to the driver app with your email.', 2000);
-    await type('#email', 'mark.santos@gmail.com'); await tap('text=Send my login code', 900);
-    await type('#code', '123456'); await tap('button:has-text("Log in")', 800);
+    await type('#email', 'mark.santos@gmail.com'); await tap('form button.btn-neon', 900);
+    await p.fill('#code', ''); await type('#code', '123456'); await tap('button:has-text("Log in")', 800);
     await cap('Step 2. Your real name, mobile number and a valid ID with a selfie.', 2500, true);
     await type('#fn', 'Mark Santos'); await type('#ph', '09171234567');
     await p.selectOption('#idt', "Driver's Licence"); await w(400);
