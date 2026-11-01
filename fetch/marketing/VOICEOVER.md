@@ -1,40 +1,57 @@
-# Voiceover scripts
+# Video sound: music, sound effects and George's voice
 
-The videos have on-screen captions and no narration. Record these lines with ElevenLabs
-(voice: George) or in Descript, then drop the audio on the timeline. Timings are approximate.
+## What is already in the videos
 
-## Marketing video (about 2 min 40 s)
+- **Music:** an original 120 BPM electronic track in A minor, made in code by `audio.py`. No
+  samples and no licence needed, so it is safe for Facebook, TikTok and YouTube.
+- **Sound effects:**
+  - a riser, an impact and a shimmer on the logo reveal (timed to the headlight flash)
+  - a whoosh on every scene change
+  - a tap pop on every tap, typing ticks while text is typed
+  - a chime when a booking is accepted or arrives
 
-| Time | Line |
-|---|---|
-| 0:00 | (Logo intro. Engine rev sound effect.) |
-| 0:04 | Need a ride? A pabili? A padala? |
-| 0:09 | No more waiting at the kanto. No more haggling. No more guessing who is driving. |
-| 0:15 | Meet Fetch GenSan. The local app for rides, pabili, pick-up and delivery. Made in GenSan, for GenSan and all of Mindanao. |
-| 0:22 | Book in seconds. Choose Ride, Pabili or Delivery, type where you are going, and you are done. |
-| 0:36 | You choose your driver. See the real vehicle, the plate number, the rating and the price before you book. |
-| 0:50 | Fair prices, your way. Pay by the meter, or agree a fixed price in chat. Drivers set their own rates. |
-| 1:04 | Everyone is verified, with a real name, mobile number and valid ID. Track your trip live, share it with family, and SOS is one tap away. |
-| 1:18 | Chat for free inside the app, or call with one tap, and watch your driver come to you on the map. |
-| 1:32 | Pay with cash, GCash or bank transfer. Tip your driver, rate your trip, and earn suki points for up to ten per cent off. |
-| 1:46 | And just ask George, your voice assistant. Book a ride, check where your driver is, or play your music. |
-| 2:00 | Drivers: your rates, your schedule. Go online when you want and get paid straight to your GCash. |
-| 2:14 | Download Fetch GenSan now. Android, iPhone or any browser, at genestjanramirez.com slash fetch. |
-| 2:23 | Ride. Pick. Deliver. Sa GenSan! |
+## Adding George's voice (one-time setup, about 5 minutes)
 
-## Customer tutorial
+George is the ElevenLabs stock voice "George" (a warm British male voice). The words he says
+are already written and timed to the videos, in `tracks/*-voice.json`. A GitHub workflow sends
+them to ElevenLabs, lowers the music under his voice and publishes the finished videos.
 
-Read the on-screen caption at each step. Opening: "Hi! In the next few minutes I will show you
-how to install Fetch GenSan and book your first ride." Closing: "That's it. Ride. Pick. Deliver.
-Sa GenSan!"
+Cost: the three videos use about 4,600 characters. The ElevenLabs free plan gives 10,000 a
+month, but its terms require credit to ElevenLabs and do not allow commercial use. For ads, use
+the Starter plan (about US$5 a month), which allows commercial use.
 
-## Driver tutorial
+### Step 1. Get your ElevenLabs key
 
-Read the on-screen caption at each step. Opening: "Welcome, driver! Here is how to install the
-Fetch GenSan Driver app, set your rates and complete your first trip." Closing: "Drive. Deliver.
-Earn on your own terms."
+1. Open https://elevenlabs.io and click **Sign up**. Sign up with your Google account.
+2. (For ads) Click your name at the bottom left, then **Subscription**, then choose **Starter**.
+3. Click your name at the bottom left again, then **API Keys**.
+4. Click **Create API Key**. Name it `fetch-gensan`. Click **Create**.
+5. Click **Copy**. Keep this tab open.
 
-## Music
+### Step 2. Put the key in GitHub
 
-Free: YouTube Audio Library (filter "Attribution not required"), or Descript's stock music.
-Pick an upbeat electronic track around 110 to 125 BPM, at about 20% volume under the voice.
+1. Open https://github.com/genestjan/genestjan/settings/secrets/actions
+2. Click the green **New repository secret** button.
+3. In **Name**, type exactly: `ELEVENLABS_API_KEY`
+4. In **Secret**, paste the key (Ctrl+V on Windows, Cmd+V on Mac).
+5. Click **Add secret**.
+
+### Step 3. Make the videos
+
+1. Open https://github.com/genestjan/genestjan/actions/workflows/fetch-videos.yml
+2. Click **Run workflow** (grey button on the right). In **Use workflow from**, pick the branch
+   `claude/eager-albattani-r8obaq` (or `main` after merging). Click the green **Run workflow**.
+3. Wait about 5 minutes until the circle turns into a green tick.
+4. Download the finished videos:
+   - https://github.com/genestjan/genestjan/releases/download/fetch-videos/FetchGenSan-marketing.mp4
+   - https://github.com/genestjan/genestjan/releases/download/fetch-videos/FetchGenSan-customer-tutorial.mp4
+   - https://github.com/genestjan/genestjan/releases/download/fetch-videos/FetchGenSan-driver-tutorial.mp4
+
+### Changing what George says
+
+Open `fetch/marketing/tracks/marketing-voice.json` (or the customer or driver file) on GitHub,
+click the pencil icon, change the `text` of any line, and click **Commit changes**. The videos
+are rebuilt automatically, and you only pay for the lines you changed. Keep each line about the
+same length, or George will speak a little faster to fit.
+
+Spelling tips: write words the way they should sound, e.g. "Gen San", "G Cash", "A P K".

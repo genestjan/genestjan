@@ -56,6 +56,7 @@ jobs:
           npm init -y >/dev/null
           npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
           cp -r ../fetch/dist www
+          rm -rf www/media  # the videos are on the website; keeps the APK small
           # The driver app opens on its own page
           if [ "${{ matrix.start }}" != "index.html" ]; then
             echo '<!doctype html><meta charset="utf-8"><script>location.replace("/${{ matrix.start }}")</script>' > www/index.html

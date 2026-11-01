@@ -164,7 +164,12 @@ Hosted with the site after merge:
 | Customer: install and use | 2:40 | 1080×1920 (Reels, TikTok) | https://genestjanramirez.com/fetch/media/FetchGenSan-customer-tutorial.mp4 |
 | Driver: install and use | 2:28 | 1080×1920 (Reels, TikTok) | https://genestjanramirez.com/fetch/media/FetchGenSan-driver-tutorial.mp4 |
 
-They have on-screen captions and no sound. Voiceover lines and music tips are in
-`marketing/VOICEOVER.md`. The scripts that recorded and edited them are in `marketing/`
-(Playwright records the demo apps, ffmpeg assembles cards and footage), so they can be
-re-made after any design change.
+The site copies have on-screen captions, original music and sound effects. The versions with
+George's voiceover are made by `.github/workflows/fetch-videos.yml` once the
+`ELEVENLABS_API_KEY` secret is added (steps in `marketing/VOICEOVER.md`) and are published to
+the `fetch-videos` release.
+
+How they are made (`marketing/`): `rec.cjs` records the demo apps with Playwright and logs every
+caption and tap; `timeline.py` turns that into sound-effect timelines and George's timed script
+(`tracks/`); `compose.py` cuts cards and footage with ffmpeg; `audio.py` synthesises the music and
+effects and mixes; `voice.py` gets George's lines from ElevenLabs.
