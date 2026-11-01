@@ -1,12 +1,12 @@
 name: Build Fetch GenSan Android apps
 
-# Wraps the live web apps (genestjanramirez.com/fetch/ and /fetch/driver/) in Capacitor
-# so they install as normal Android apps. Because the APK loads the live site, every
-# website update reaches the apps without reinstalling.
+# Packs the Fetch GenSan web apps inside Capacitor so they install as normal Android apps.
+# The app files are bundled in the APK, so it works without the website being live.
+# Uses Supabase live mode when the FETCH_* repository variables are set, otherwise demo mode.
 on:
   push:
     branches: [claude/eager-albattani-r8obaq, main]
-    paths: ['.github/workflows/fetch-android.yml', 'fetch/android-shell/**']
+    paths: ['.github/workflows/fetch-android.yml', 'fetch/**']
   workflow_dispatch:
 
 permissions:
@@ -20,47 +20,64 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1  # both jobs upload to the same release; avoid a race creating it
       matrix:
         include:
           - app: customer
             name: Fetch GenSan
             id: com.genestjanramirez.fetchgensan
-            url: https://genestjanramirez.com/fetch/
+            start: index.html
           - app: driver
             name: Fetch GenSan Driver
             id: com.genestjanramirez.fetchgensan.driver
-            url: https://genestjanramirez.com/fetch/driver/
+            start: driver/index.html
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+        with: { node-version: 22, cache: npm, cache-dependency-path: fetch/package-lock.json }
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21 }
       - uses: android-actions/setup-android@v3
         with: { packages: platform-tools }
+      - name: Build the web app for the phone
+        working-directory: fetch
+        env:
+          FETCH_BASE: /
+          VITE_SUPABASE_URL: ${{ vars.FETCH_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.FETCH_SUPABASE_ANON_KEY }}
+          VITE_TTS_URL: ${{ vars.FETCH_TTS_URL }}
+        run: |
+          npm ci
+          npm test
+          npx vite build
       - name: Create Capacitor project
         run: |
           mkdir shell && cd shell
           npm init -y >/dev/null
           npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-          mkdir www && cp ../fetch/android-shell/offline.html www/index.html
+          cp -r ../fetch/dist www
+          # The driver app opens on its own page
+          if [ "${{ matrix.start }}" != "index.html" ]; then
+            echo '<!doctype html><meta charset="utf-8"><script>location.replace("/${{ matrix.start }}")</script>' > www/index.html
+          fi
           cat > capacitor.config.json <<JSON
           { "appId": "${{ matrix.id }}", "appName": "${{ matrix.name }}", "webDir": "www",
-            "server": { "url": "${{ matrix.url }}", "androidScheme": "https" },
+            "server": { "androidScheme": "https" },
             "android": { "backgroundColor": "#050d05" } }
           JSON
           npx cap add android
           # Location, camera (ID photos) and microphone (George) permissions
           sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />#' android/app/src/main/AndroidManifest.xml
-          # App icon from the official logo
-          pip install pillow==11.0.0 >/dev/null
-          for d in mipmap-mdpi:48 mipmap-hdpi:72 mipmap-xhdpi:96 mipmap-xxhdpi:144 mipmap-xxxhdpi:192; do
-            dir=${d%%:*}; size=${d##*:}
-            python3 -c "from PIL import Image; Image.open('../fetch/public/icons/icon-512.png').resize(($size,$size)).save('android/app/src/main/res/$dir/ic_launcher.png')"
-            cp android/app/src/main/res/$dir/ic_launcher.png android/app/src/main/res/$dir/ic_launcher_round.png
-            rm -f android/app/src/main/res/$dir/ic_launcher_foreground.png
+          grep -c ACCESS_FINE_LOCATION android/app/src/main/AndroidManifest.xml
+          # App icon from the official logo (pre-made in fetch/android-shell/res)
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            res=android/app/src/main/res/mipmap-$d
+            cp ../fetch/android-shell/res/ic_launcher-$d.png $res/ic_launcher.png
+            cp ../fetch/android-shell/res/ic_launcher-$d.png $res/ic_launcher_round.png
+            rm -f $res/ic_launcher_foreground.png
           done
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          npx cap sync android
       - name: Build APK
         working-directory: shell/android
         run: |

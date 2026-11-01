@@ -7,7 +7,8 @@ Ride, pabili, pick-up and delivery for General Santos City and the rest of Minda
 | Customer | https://genestjanramirez.com/fetch/ | `FetchGenSan-customer.apk` from the `fetch-android` release |
 | Driver | https://genestjanramirez.com/fetch/driver/ | `FetchGenSan-driver.apk` from the `fetch-android` release |
 
-APK links (built by `.github/workflows/fetch-android.yml`):
+APK links (built by `.github/workflows/fetch-android.yml` on every change to `fetch/`; the app is
+bundled inside the APK, so it works before the website is live; demo mode until Supabase is set up):
 - https://github.com/genestjan/genestjan/releases/download/fetch-android/FetchGenSan-customer.apk
 - https://github.com/genestjan/genestjan/releases/download/fetch-android/FetchGenSan-driver.apk
 

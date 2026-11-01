@@ -51,5 +51,6 @@ export function Sheet({ children, className = '' }: { children: React.ReactNode;
 }
 
 export function registerSW() {
-  if ('serviceWorker' in navigator && import.meta.env.PROD) navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {});
+  // Not inside the Android app (served from https://localhost), where the files are already on the phone.
+  if ('serviceWorker' in navigator && import.meta.env.PROD && location.hostname !== 'localhost') navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {});
 }
