@@ -44,6 +44,7 @@ class SettingsStore(context: Context) {
             lowTyreKpa = double("lowTyreKpa", d.lowTyreKpa),
             lyricsEnabled = prefs.getBoolean("lyricsEnabled", d.lyricsEnabled),
             videoGuardOnDemoData = prefs.getBoolean("videoGuardOnDemoData", d.videoGuardOnDemoData),
+            videoWhileMoving = prefs.getBoolean("videoWhileMoving", d.videoWhileMoving),
             homeAddress = prefs.getString("homeAddress", d.homeAddress) ?: d.homeAddress,
             workAddress = prefs.getString("workAddress", d.workAddress) ?: d.workAddress,
             favouritePlaces = list("favouritePlaces") ?: d.favouritePlaces,
@@ -76,6 +77,7 @@ class SettingsStore(context: Context) {
             .putString("lowTyreKpa", s.lowTyreKpa.toString())
             .putBoolean("lyricsEnabled", s.lyricsEnabled)
             .putBoolean("videoGuardOnDemoData", s.videoGuardOnDemoData)
+            .putBoolean("videoWhileMoving", s.videoWhileMoving)
             .putString("homeAddress", s.homeAddress)
             .putString("workAddress", s.workAddress)
             .putString("favouritePlaces", s.favouritePlaces.joinToString("\n"))

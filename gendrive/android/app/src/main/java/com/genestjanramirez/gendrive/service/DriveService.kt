@@ -83,6 +83,7 @@ class DriveService : Service() {
             stoppedForMs = stoppedSinceMs?.let { now - it } ?: 0L,
             foregroundPackage = guard.foregroundPackage(),
             includeDemoData = graph.settings.current.videoGuardOnDemoData,
+            allowWhileMoving = graph.settings.current.videoWhileMoving,
         )
         if (cover) guard.show() else guard.hide()
     }

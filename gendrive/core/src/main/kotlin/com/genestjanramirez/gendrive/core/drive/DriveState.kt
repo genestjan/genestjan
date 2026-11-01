@@ -60,7 +60,19 @@ object VideoGuardPolicy {
     /** Stationary time needed when the gear is unknown but speed is known. */
     const val STOPPED_HOLD_MS = 10_000L
 
-    fun pictureAllowed(state: VehicleState?, stoppedForMs: Long, includeDemoData: Boolean = false): Boolean {
+    /**
+     * [allowWhileMoving] is the owner's informed override (Settings, off by default):
+     * when true, the picture is always allowed, so passengers can watch while moving.
+     * The reversing camera and BYD's own screens are protected separately in [shouldCover]
+     * and are never affected by this.
+     */
+    fun pictureAllowed(
+        state: VehicleState?,
+        stoppedForMs: Long,
+        includeDemoData: Boolean = false,
+        allowWhileMoving: Boolean = false,
+    ): Boolean {
+        if (allowWhileMoving) return true
         if (state == null) return true
         when (state.source) {
             DataSource.NONE -> return true
@@ -90,11 +102,17 @@ object VideoGuardPolicy {
      * camera must always be visible, so the answer is no regardless of anything else.
      * Only a known video app in the foreground is ever covered.
      */
-    fun shouldCover(state: VehicleState?, stoppedForMs: Long, foregroundPackage: String?, includeDemoData: Boolean = false): Boolean {
+    fun shouldCover(
+        state: VehicleState?,
+        stoppedForMs: Long,
+        foregroundPackage: String?,
+        includeDemoData: Boolean = false,
+        allowWhileMoving: Boolean = false,
+    ): Boolean {
         if (state?.gear == Gear.R) return false
         if (foregroundPackage == null || foregroundPackage in neverCover) return false
         if (!VideoApps.isVideoApp(foregroundPackage)) return false
-        return !pictureAllowed(state, stoppedForMs, includeDemoData)
+        return !pictureAllowed(state, stoppedForMs, includeDemoData, allowWhileMoving)
     }
 }
 

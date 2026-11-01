@@ -69,6 +69,19 @@ class DriveAndTripTest {
     }
 
     @Test
+    fun ownerOverrideLetsPicturePlayWhileMovingButKeepsReverseCameraSafe() {
+        val youtube = "com.google.android.youtube"
+        val driving = car(0, 60.0, Gear.D)
+        // Default: covered while moving. Override on: picture stays, for passengers.
+        assertTrue(VideoGuardPolicy.shouldCover(driving, 0, youtube))
+        assertFalse(VideoGuardPolicy.shouldCover(driving, 0, youtube, allowWhileMoving = true))
+        assertTrue(VideoGuardPolicy.pictureAllowed(driving, 0, allowWhileMoving = true))
+        // The override never exposes BYD's reversing camera or system screens to a cover.
+        assertFalse(VideoGuardPolicy.shouldCover(car(0, 3.0, Gear.R), 0, youtube, allowWhileMoving = true))
+        assertFalse(VideoGuardPolicy.shouldCover(driving, 0, "com.byd.avc", allowWhileMoving = true))
+    }
+
+    @Test
     fun recordsATripFromOdometerAndSoc() {
         val rec = TripRecorder(capacityKwh = { 60.0 }, endAfterParkedMs = 60_000)
         var t = 0L

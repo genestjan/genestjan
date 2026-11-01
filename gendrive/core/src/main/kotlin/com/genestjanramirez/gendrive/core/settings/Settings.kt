@@ -46,6 +46,12 @@ data class GenDriveSettings(
     val lyricsEnabled: Boolean = true,
     /** Lets the video guard react to the demo drive, so it can be tested on a phone. */
     val videoGuardOnDemoData: Boolean = false,
+    /**
+     * Owner override, off by default: keep the video picture on while the car is
+     * moving, for passengers. The reversing camera and BYD's own screens are never
+     * affected. The driver accepts the distraction risk when switching this on.
+     */
+    val videoWhileMoving: Boolean = false,
     val homeAddress: String = "",
     val workAddress: String = "",
     val favouritePlaces: List<String> = emptyList(),

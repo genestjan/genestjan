@@ -82,6 +82,7 @@ fun SettingsScreen(graph: AppGraph, moving: Boolean) {
     var adbResult by remember { mutableStateOf<String?>(null) }
     var pickModel by remember { mutableStateOf(false) }
     var pickVoice by remember { mutableStateOf(false) }
+    var pendingVideoWhileMoving by remember { mutableStateOf(false) }
     var homeEnabled by remember { mutableStateOf(Permissions.isHomeEnabled(context)) }
     val access by produceState(Access.entries.associateWith { false }) {
         while (true) {
@@ -274,6 +275,21 @@ fun SettingsScreen(graph: AppGraph, moving: Boolean) {
                 { v -> graph.settings.update { it.copy(videoGuardOnDemoData = v) } },
                 enabled = !moving,
             )
+            SettingSwitch(
+                "Keep video playing while moving",
+                "For passengers. The picture stays on while the car moves instead of just the sound. " +
+                    "The reversing camera is never affected. Watching video while driving is dangerous: " +
+                    "switch this on only if you accept that risk.",
+                s.videoWhileMoving,
+                { v ->
+                    if (v) pendingVideoWhileMoving = true // confirm before turning on
+                    else graph.settings.update { it.copy(videoWhileMoving = false) }
+                },
+                enabled = !moving,
+            )
+            if (s.videoWhileMoving) {
+                Label("On: the picture stays on while moving.", color = c.amber, maxLines = 2)
+            }
         }
 
         // ── About ─────────────────────────────────────────────
@@ -315,6 +331,26 @@ fun SettingsScreen(graph: AppGraph, moving: Boolean) {
                 graph.voice.preview()
             },
             onDismiss = { pickVoice = false },
+        )
+    }
+    if (pendingVideoWhileMoving) {
+        AlertDialog(
+            onDismissRequest = { pendingVideoWhileMoving = false },
+            title = { Text("Play video while moving?") },
+            text = {
+                Text(
+                    "The picture will stay on while the car is moving, for passengers. " +
+                        "Watching video while driving is dangerous and may be against the law where you drive. " +
+                        "The reversing camera is never affected. Only turn this on if you accept the risk.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    graph.settings.update { it.copy(videoWhileMoving = true) }
+                    pendingVideoWhileMoving = false
+                }) { Text("I accept, turn it on") }
+            },
+            dismissButton = { TextButton(onClick = { pendingVideoWhileMoving = false }) { Text("Keep it safe") } },
         )
     }
 }
