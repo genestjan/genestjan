@@ -57,13 +57,13 @@ export function Auth({ be, role, onSignedIn }: { be: Backend; role: Role; onSign
         </form>
       ) : (
         <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); run(async () => { const id = await be.verifyCode(email.trim(), code.trim()); localStorage.setItem('fetch:email', email.trim()); onSignedIn(id); }); }}>
-          <label className="label" htmlFor="code">{demo ? 'Demo code (any 6 digits work)' : `6-digit code sent to ${email}`}</label>
-          <input id="code" className="input text-center text-2xl tracking-[.5em]" inputMode="numeric" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
+          <label className="label" htmlFor="code">{demo ? 'Demo code (any 6 digits work)' : `Code sent to ${email}`}</label>
+          <input id="code" className="input text-center text-2xl tracking-[.5em]" inputMode="numeric" maxLength={10} autoComplete="one-time-code" required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
           {demo ? <p className="rounded-xl border border-lime/40 bg-lime/10 p-3 text-sm text-lime">Demo mode: no email is sent. Type <b>123456</b> (or any 6 digits).</p> : (
             <p className="text-xs text-white/60">Not in your inbox after a minute? Check Spam and Promotions.{' '}
               <button type="button" className="font-semibold text-lime disabled:text-white/40" disabled={wait > 0 || busy} onClick={() => run(async () => { await be.sendCode(email.trim()); setWait(60); })}>{wait > 0 ? `Resend in ${wait}s` : 'Resend code'}</button></p>
           )}
-          <button className="btn-neon w-full" disabled={busy || code.length !== 6}>Log in</button>
+          <button className="btn-neon w-full" disabled={busy || code.length < 6}>Log in</button>
           <button type="button" className="w-full text-sm text-white/60" onClick={() => setStep('email')}>Use a different email</button>
         </form>
       )}

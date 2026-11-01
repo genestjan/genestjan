@@ -51,7 +51,7 @@ class DemoBackend implements Backend {
   }
   async sendCode() { /* demo: any 6 digits work */ }
   async verifyCode(email: string, code: string) {
-    if (!/^\d{6}$/.test(code)) throw new Error('Enter the 6-digit code.');
+    if (!/^\d{6,10}$/.test(code)) throw new Error('Enter the code from your email.');
     const id = this.role + ':' + email.trim().toLowerCase();
     localStorage.setItem('fetch:session:' + this.role, id);
     return id;
@@ -100,7 +100,11 @@ class SupabaseBackend implements Backend {
   }
   async verifyCode(email: string, code: string) {
     const { data, error } = await this.sb.auth.verifyOtp({ email, token: code, type: 'email' });
-    if (error || !data.user) throw error ?? new Error('Wrong code');
+    if (error || !data.user) throw new Error(
+      error?.message === 'Token has expired or is invalid'
+        ? 'That code did not work. Use the newest email only (each new email cancels the older codes), and type every number.'
+        : (error?.message ?? 'Wrong code'),
+    );
     return data.user.id;
   }
   async session() { return (await this.sb.auth.getSession()).data.session?.user.id ?? null; }
