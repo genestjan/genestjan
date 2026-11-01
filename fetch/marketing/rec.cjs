@@ -17,10 +17,11 @@ window.__tap = (x, y) => { const d = document.createElement('div'); d.style.cssT
     geolocation: { latitude: 6.1130, longitude: 125.1700 }, permissions: which === 'customer' ? ['geolocation'] : [] });
   await ctx.addInitScript(OVERLAY);
   const p = await ctx.newPage();
+  const t0 = Date.now(); const cues = []; const now = () => (Date.now() - t0) / 1000;
   const w = (ms) => p.waitForTimeout(ms);
-  const cap = async (t, ms = 2600, top = false) => { await p.evaluate(([t, top]) => { window.__cap(t); window.__capTop(top); }, [t, top]); if (ms) await w(ms); };
-  const tap = async (sel, pause = 700) => { const l = p.locator(sel).first(); await l.scrollIntoViewIfNeeded(); const bb = await l.boundingBox(); await p.evaluate(([x, y]) => window.__tap(x, y), [bb.x + bb.width / 2, bb.y + bb.height / 2]); await w(350); await l.click(); await w(pause); };
-  const type = async (sel, text) => { const l = p.locator(sel).first(); await l.click(); await l.pressSequentially(text, { delay: 55 }); await w(300); };
+  const cap = async (t, ms = 2600, top = false) => { if (t) cues.push({ t: now(), kind: 'cap', text: t.replace(/<[^>]+>/g, '') }); await p.evaluate(([t, top]) => { window.__cap(t); window.__capTop(top); }, [t, top]); if (ms) await w(ms); };
+  const tap = async (sel, pause = 700) => { const l = p.locator(sel).first(); await l.scrollIntoViewIfNeeded(); const bb = await l.boundingBox(); await p.evaluate(([x, y]) => window.__tap(x, y), [bb.x + bb.width / 2, bb.y + bb.height / 2]); cues.push({ t: now(), kind: 'tap' }); await w(350); await l.click(); await w(pause); };
+  const type = async (sel, text) => { cues.push({ t: now(), kind: 'type', d: text.length * 0.07 }); const l = p.locator(sel).first(); await l.click(); await l.pressSequentially(text, { delay: 55 }); await w(300); };
   const upload = async (i, file) => { const f = await p.$$('input[type=file]'); await f[i].setInputFiles(file); await w(900); };
 
   if (which === 'customer') {
@@ -129,6 +130,7 @@ window.__tap = (x, y) => { const d = document.createElement('div'); d.style.cssT
     await cap('Drive. Deliver. Earn on your own terms. Fetch GenSan Driver.', 3500, true);
   }
   await cap('', 600);
+  fs.writeFileSync(S + '/vid/' + which + '-cues.json', JSON.stringify(cues, null, 1));
   const v = p.video(); await ctx.close(); fs.renameSync(await v.path(), S + '/vid/' + which + '.webm'); await b.close();
   console.log('saved', which);
 })().catch((e) => { console.error('FAIL', e.message.slice(0, 400)); process.exit(1); });

@@ -22,7 +22,7 @@ def phone_on(bg, src, ss, d, out, W, H, ph, x, y):
     run(['-loop', '1', '-t', str(d), '-i', bg, '-i', src, '-filter_complex', fc, '-t', str(d)] + enc() + [out])
 
 def concat(parts, out):
-    lst = G + 'list.txt'
+    lst = G + 'list-' + os.path.basename(out) + '.txt'
     open(lst, 'w').write(''.join(f"file '{p}'\n" for p in parts))
     run(['-f', 'concat', '-safe', '0', '-i', lst, '-c', 'copy', '-movflags', '+faststart', out])
 
