@@ -12,15 +12,19 @@ Research date: 31 October 2026. Sources are linked at the end.
 - **Electro is paid** (about R$200 a year, 7-day trial), Brazilian, closed source.
   Its pitch is a polished phone + car pair: live telemetry, remote cameras,
   trips, sentry/dashcam, MQTT/ABRP, remote seat settings and smart alerts.
-- **GenDrive's lane:** the best *daily driving* experience on the car screen. A calm
-  home screen, music with synced lyrics, a talking assistant, Google Maps handoff,
-  trip costs and savings in pesos, an app hub that installs other apps, and a
-  safe video rule. Copying Overdrive's camera stack is not the plan; it is MIT, so
-  parts can be adopted later with credit, and it can run alongside GenDrive meanwhile.
+- **GenDrive's goal:** the daily-driving experience of Electro with the power-user
+  reach of Overdrive, in one app. It leads today on the home screen, synced lyrics,
+  the talking assistant, trip costs and savings in pesos, the app hub and the safe
+  video rule. The remaining Overdrive/Electro features are being added in order:
+  software ones first (integrations, diagnostics, alerts, automations), then the
+  car-side ones (advanced telemetry and controls) that need testing on the car.
+  Cameras and sentry are the hardest: BYD does not open the camera feeds, so the
+  plan is to adopt Overdrive's MIT camera code with credit once it can be tested on
+  the car, and to run Overdrive alongside GenDrive until then.
 
 ## Feature matrix
 
-✅ has it · ◐ partly · ❌ no · 🗺 planned for GenDrive
+✅ has it · ◐ partly · ❌ no · 🛠 in progress · 🗺 planned for GenDrive
 
 | Area | Feature | Overdrive | Electro | GenDrive v0.1 |
 |---|---|---|---|---|
@@ -31,7 +35,7 @@ Research date: 31 October 2026. Sources are linked at the end.
 | **Vehicle data** | Speed, gear, battery %, range | ✅ | ✅ | ✅ |
 | | Tyre pressures | ✅ | ✅ | ✅ on a car drawing, with low warning |
 | | Charging power, time left, battery temp | ✅ | ✅ | ✅ |
-| | Battery health (SOH), cell temps, torque/power charts | ✅ | ✅ | 🗺 |
+| | Battery health (SOH), cell temps, torque/power charts | ✅ | ✅ | 🛠 planned, needs car |
 | | Demo mode for phones and showrooms | ❌ | ❌ | ✅ |
 | **Trips and money** | Automatic trip log | ✅ (Driving DNA scores) | ✅ | ✅ |
 | | kWh/100 km per trip | ✅ | ✅ | ✅ |
@@ -53,14 +57,15 @@ Research date: 31 October 2026. Sources are linked at the end.
 | **Apps** | Install APKs from the car | ◐ (ADB shell) | ❌ | ✅ Android installer + ADB installer |
 | | Curated app list (Aurora Store, Spotify, Waze…) | ❌ | ❌ | ✅ |
 | | One-tap permission setup via ADB | ◐ | ❌ | ✅ |
-| **Video** | Video apps while driving | n/a | n/a | ✅ sound while moving, picture in Park |
+| **Video** | Video apps while driving | n/a | n/a | ✅ sound while moving, picture in Park; owner can allow picture while moving |
 | **Security cameras** | Sentry mode, motion/AI detection | ✅ (YOLO) | ✅ | ❌ (run Overdrive alongside) |
 | | Dashcam (incl. OEM dashcam) | ✅ | ✅ | ❌ |
 | | Live view from anywhere, two-way audio | ✅ (tunnels) | ✅ (P2P) | ❌ |
 | | Blind-spot camera view | ✅ (closed libod.so) | ❌ | ❌ |
 | **Remote and integrations** | Phone companion app | ✅ web app | ✅ PWA + QR pairing | 🗺 |
-| | Home Assistant / MQTT | ✅ two-way | ✅ | 🗺 |
-| | ABRP telemetry | ✅ | ✅ | 🗺 |
+| | Telegram alerts | ✅ | ❌ | 🛠 logic built + tested, wiring next |
+| | Home Assistant / MQTT | ✅ two-way | ✅ | 🛠 publish built + tested, wiring next |
+| | ABRP telemetry | ✅ | ✅ | 🛠 payload built + tested, wiring next |
 | | Telegram alerts | ✅ | ❌ | ❌ |
 | **Control** | Climate, windows, seats, lights, ADAS toggles | ✅ | ◐ (seats, auto heat/vent) | ❌ read only by design in v0.1 |
 | | Automations (if/then rules) | ✅ | ◐ | 🗺 (parked-only actions first) |
