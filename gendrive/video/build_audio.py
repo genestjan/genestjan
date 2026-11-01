@@ -16,12 +16,23 @@ import numpy as np
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
-import tts  # noqa: E402
+import tts  # noqa: E402  (save, wer)
 import audio_gen as A  # noqa: E402
 from scripts import MARKETING, TUTORIAL  # noqa: E402
 
-GEN = "p258"   # VCTK, Southern English male: Gen (CC BY 4.0)
-YOU = "p334"   # VCTK, American male: the driver (CC BY 4.0)
+# Kokoro-82M (Apache-2.0) voices: name, accent, and speeds to try (the model gives the same take each run).
+GEN = ("bm_george", "en-gb", (0.95, 0.93, 0.97, 0.91, 0.99))   # Gen: calm, refined British
+YOU = ("am_michael", "en-us", (1.0, 0.97, 1.03))                 # the driver
+KOKORO_DIR = HERE / "models" / "kokoro"
+_KOKORO = None
+
+
+def kokoro():
+    global _KOKORO
+    if _KOKORO is None:
+        from kokoro_onnx import Kokoro
+        _KOKORO = Kokoro(str(KOKORO_DIR / "kokoro-v1.0.onnx"), str(KOKORO_DIR / "voices-v1.0.bin"))
+    return _KOKORO
 CAPTION_CHARS = 78  # one caption line at 34 px across 1536 px
 SPEECH_OVER_MUSIC_DB = 15  # broadcast practice: dialogue 10 to 15 dB or more above the music bed
 
@@ -31,11 +42,11 @@ def sentences(text: str) -> list[str]:
 
 
 def speakable(text: str) -> str:
-    """Spellings the voice engine says correctly."""
+    """Spellings the voice engine (espeak-ng inside Kokoro) says correctly."""
     text = text.replace("GenDrive", "Gen Drive")        # the brand, as two words
-    text = text.replace("Davao", "Da vow")               # dah-VOW, not duh-VOH
-    for letters in ("A P K", "A P I", "A I "):          # the letter A says "ay"; the word "a" stays "uh"
-        text = text.replace(letters, "Ae" + letters[1:])
+    text = text.replace("Davao", "Da vow")               # dah-VOW, not DAV-ow
+    text = text.replace("A P K", "Eigh P K")             # the letter A says "ay"; the word "a" stays "uh"
+    text = text.replace("A P I", "API").replace("A I ", "AI ")  # read as letters natively
     return text
 
 
@@ -74,15 +85,15 @@ def score(ref: str, hyp: str) -> float:
     return tts.wer(" ".join(words(ref)), " ".join(words(hyp)))
 
 
-def best_take(text: str, speaker: str, length_scale: float, chain: str, tmp: Path, tries: int = 6) -> tuple[np.ndarray, float, str]:
-    """The voice model is random each time: make up to `tries` takes, add the voice effect,
-    and keep the take a speech recogniser hears most accurately."""
+def best_take(text: str, voice: tuple, chain: str, tmp: Path) -> tuple[np.ndarray, float, str]:
+    """A take at each speed in turn, with the voice effect added; keep the take a speech
+    recogniser hears most accurately (stops at the first perfect one)."""
     best = None
     raw, done = tmp / "take_raw.wav", tmp / "take.wav"
-    for k in range(tries * 2):
-        if k >= tries and best[1] <= 0.25:
-            break  # unclear after the first round: keep trying, up to twice as many takes
-        tts.save(str(raw), tts.synth(speakable(text), speaker, length_scale=length_scale))
+    name, lang, speeds = voice
+    for speed in speeds:
+        audio, sr = kokoro().create(speakable(text), voice=name, speed=speed, lang=lang)
+        tts.save(str(raw), np.concatenate([audio, np.zeros(int(sr * 0.3), dtype=np.float32)]), rate=sr)
         fx(raw, done, chain)
         audio = np.asarray(A.read_wav_mono(str(done)), dtype=np.float32)
         hyp = heard(audio, A.SR)
@@ -98,8 +109,9 @@ def fx(src: Path, dst: Path, chain: str) -> None:
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(src), "-af", chain, "-ac", "1", "-ar", "44100", str(dst)], check=True)
 
 
-GEN_FX = ("asetrate=22050*0.98,aresample=44100,atempo=1.0204,highpass=f=80,"
-          "equalizer=f=160:t=q:w=1:g=1.5,equalizer=f=3000:t=q:w=1.2:g=2,aecho=0.8:0.3:22:0.05")
+# Gen's "AI assistant" polish: warmth, presence, air, gentle compression and a small digital room.
+GEN_FX = ("highpass=f=70,equalizer=f=180:t=q:w=1:g=1.5,equalizer=f=3500:t=q:w=1.2:g=2,highshelf=f=9000:g=2,"
+          "acompressor=threshold=-18dB:ratio=2.5:attack=8:release=120:makeup=2,aecho=0.8:0.35:14|38:0.10|0.06")
 YOU_FX = "highpass=f=120,lowpass=f=7000,equalizer=f=2500:t=q:w=1:g=1.5,aecho=0.8:0.25:18:0.04"
 
 
@@ -111,7 +123,7 @@ def gen_line(s: dict, out: Path) -> tuple[Path, float, list[float], list[list]]:
         raise SystemExit(f"{s['id']}: {len(spoken)} spoken sentences but {len(shown)} caption sentences")
     parts, starts, t = [], [], 0.0
     for sentence in spoken:
-        audio, w, hyp = best_take(sentence, GEN, 1.15, GEN_FX, out / "lines")
+        audio, w, hyp = best_take(sentence, GEN, GEN_FX, out / "lines")
         if w > 0:
             print(f"    {w:.2f} {sentence!r} heard as {hyp!r}")
         starts.append(round(t, 3))
@@ -133,7 +145,7 @@ def gen_line(s: dict, out: Path) -> tuple[Path, float, list[float], list[list]]:
 
 def you_line(s: dict, out: Path) -> tuple[Path, float]:
     done = out / "lines" / f"{s['id']}_you.wav"
-    audio, w, hyp = best_take(s["you_say"], YOU, 1.05, YOU_FX, out / "lines")
+    audio, w, hyp = best_take(s["you_say"], YOU, YOU_FX, out / "lines")
     if w > 0:
         print(f"    you {w:.2f} {s['you_say']!r} heard as {hyp!r}")
     A.write_wav(str(done), audio)

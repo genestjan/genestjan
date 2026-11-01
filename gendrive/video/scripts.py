@@ -52,7 +52,9 @@ MARKETING = [
     dict(id="apps", visual="apps", title="Your apps, your way",
          caption="And installing your favourite apps is finally easy.",
          say="And installing your favourite apps is finally easy.", sfx=[["whoosh", 0.0]]),
-    dict(id="modes", visual="modes", title="Day or night. Left or right.", min=4.6, sfx=[["click", 1.4], ["click", 3.0]]),
+    dict(id="modes", visual="modes", title="Day or night",
+         caption="Day or night, I'm easy on the eyes.",
+         say="Day or night, I'm easy on the eyes.", min=4.6, sfx=[["click", 1.4], ["click", 3.4]]),
     dict(id="end", visual="end", caption="This is GenDrive. Enjoy the drive.", say="This is GenDrive. Enjoy the drive.",
          min=6.5, sfx=[["impact", 0.2]]),
 ]

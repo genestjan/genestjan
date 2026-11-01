@@ -11,7 +11,7 @@ and original music. Nothing here is part of the app.
 |---|---|
 | `scripts.py` | Every scene: what Gen says, the caption, the title, what the screen shows. Captions and spoken text must have the same number of sentences. |
 | `build_audio.py` | Makes the voices one sentence at a time (best of several takes, checked by speech recognition), the music and sound effects, the mix and `timeline.json`. `--mix-only` remixes without new voices. |
-| `tts.py` | The voice model: Mimic 3 VCTK with its gruut front end. |
+| `tts.py` | Small audio helpers (save a WAV, word error rate). |
 | `audio_gen.py` | Original music and sound effects, synthesised from code. |
 | `film_layer.html` | Titles, captions, rings, the tap finger, tutorial illustrations and end cards, driven by the timeline. |
 | `build_film.py` | Joins the design preview and the film layer into `film.html`. |
@@ -23,12 +23,10 @@ and original music. Nothing here is part of the app.
 ## Rebuild
 
 1. Python 3.11 or newer, in a virtual environment:
-   `pip install onnxruntime gruut phonemes2ids sherpa-onnx numpy num2words`
-2. The voice model into `models/vctk/`: `generator.onnx`, `config.json`, `phonemes.txt`,
-   `phoneme_map.txt`, `speaker_map.csv`, `speakers.txt` and `LICENSE` from
-   [MycroftAI/mimic3-voices, en_US/vctk_low](https://github.com/MycroftAI/mimic3-voices/tree/master/voices/en_US/vctk_low).
-   `generator.onnx` is stored with Git LFS, so download it from
-   `https://media.githubusercontent.com/media/MycroftAI/mimic3-voices/master/voices/en_US/vctk_low/generator.onnx`.
+   `pip install kokoro-onnx sherpa-onnx numpy num2words`
+2. The voice model into `models/kokoro/`: `kokoro-v1.0.onnx` and `voices-v1.0.bin` from the
+   [kokoro-onnx model-files-v1.0 release](https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0).
+   Gen is the voice `bm_george` (British English) and the driver is `am_michael`.
 3. The speech checker into `models/`: `sherpa-onnx-moonshine-tiny-en-int8` (and, for the
    stricter final check, `sherpa-onnx-moonshine-base-en-int8`) from the
    [sherpa-onnx asr-models release](https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models).
@@ -49,9 +47,8 @@ Set `ASR_MODEL=base` on `build_audio.py` or `check_lines.py` for the stricter sp
 
 ## Credits and licences
 
-- **Voices:** Mimic 3 VCTK voice by MycroftAI, trained on the CSTR VCTK Corpus, licensed
-  CC BY 4.0. Gen is speaker p258 and the driver is p334. The credit is on both end cards;
-  keep it, and add it to the post text wherever the videos are published.
+- **Voices:** Kokoro-82M (Apache-2.0), run with kokoro-onnx (MIT). Gen is `bm_george`, the
+  driver is `am_michael`. No attribution is required; the end cards credit it anyway.
 - **Speech checking:** Moonshine by Useful Sensors (MIT), run with sherpa-onnx (Apache-2.0).
 - **Music and sound effects:** original, made by `audio_gen.py`.
 - **Font:** Inter (SIL OFL 1.1).

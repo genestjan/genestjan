@@ -151,7 +151,7 @@ html.film .screen-wrap { position: absolute; z-index: 5; left: 192px; top: 96px;
       <h1 style="font-size:104px">GenDrive</h1>
       <h2>Built for BYD drivers</h2>
       <div style="margin-top:22px;font:800 34px Inter;color:#2EE6A6;opacity:${ease((p - 0.25) / 0.2)}">Want it in your BYD? genestjanramirez.com</div>
-      <div class="small" style="margin-top:40px;text-align:center;line-height:1.6">Demo screens and demo voices. In your car, Gen speaks with the car's own text-to-speech voice.<br>Voices: Mimic 3 VCTK by MycroftAI, CC BY 4.0. Music: original. Not affiliated with or endorsed by BYD.</div></div>`;
+      <div class="small" style="margin-top:40px;text-align:center;line-height:1.6">Demo screens and demo voices. In your car, Gen speaks with the car's own text-to-speech voice.<br>Voices: Kokoro (Apache-2.0). Music: original. Not affiliated with or endorsed by BYD.</div></div>`;
   }
 
   // ---------- tutorial illustrations ----------
@@ -253,7 +253,7 @@ html.film .screen-wrap { position: absolute; z-index: 5; left: 192px; top: 96px;
     return `<div class="logo-wrap">
       <svg viewBox="0 0 108 108" width="180" height="180" style="filter:drop-shadow(0 0 40px rgba(46,230,166,.55))"><path d="${G_PATH}" fill="none" stroke="#2EE6A6" stroke-width="8" stroke-linecap="round"/><circle cx="54" cy="46" r="3" fill="#2EE6A6"/></svg>
       <h1 style="font-size:${end ? 120 : 80}px;text-align:center;max-width:1500px">${s.title}</h1><h2>${sub}</h2>
-      ${end ? '<div class="small" style="margin-top:30px;text-align:center;line-height:1.6">Screens shown with demo data. Not affiliated with or endorsed by BYD.<br>Voices: Mimic 3 VCTK by MycroftAI, CC BY 4.0. Music: original.</div>' : ""}</div>`;
+      ${end ? '<div class="small" style="margin-top:30px;text-align:center;line-height:1.6">Screens shown with demo data. Not affiliated with or endorsed by BYD.<br>Voices: Kokoro (Apache-2.0). Music: original.</div>' : ""}</div>`;
   }
 
   // ---------- per-frame driver ----------
@@ -349,7 +349,7 @@ html.film .screen-wrap { position: absolute; z-index: 5; left: 192px; top: 96px;
     }
     else if (v === "apps" || v === "tour_apps") { app({ page: "apps" }); if (v === "tour_apps") ringOn(".grid-apps", 8); }
     else if (v === "tour_trips") { app({ page: "trips" }); ringOn(".scroll > .row:nth-child(2)", 8); }
-    else if (v === "modes") { app({ page: "home", day: local > 1.4, right: local > 3.0 }); }
+    else if (v === "modes") { app({ page: "home", day: local > 1.4 && local < 3.4 }); }
     else if (v === "tour_home") {
       app({ page: "home" });
       const target = [null, ".drive .grow", ".ring", "[data-go=music]", ".wherecard"][Math.max(0, si)];

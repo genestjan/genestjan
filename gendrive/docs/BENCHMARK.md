@@ -121,9 +121,10 @@ Research date: 31 October 2026. Sources are linked at the end.
 ## Roadmap
 
 **Phase 2 (comfort and connection)**
-- Gen voice pack: an offline neural voice inside the app (sherpa-onnx with a CC BY
-  British voice), so every car sounds like the videos instead of depending on the
-  car's own speech engine. Adds about 70 to 80 MB to the APK.
+- Gen voice pack: the videos' voice (Kokoro "George", Apache-2.0) inside the app via
+  sherpa-onnx, which runs Kokoro on Android. Every car would then sound like the videos
+  instead of depending on the car's own speech engine. Adds about 90 to 330 MB to the APK
+  depending on model size; needs a speed test on a real head unit first.
 - Send the Gemini key from your phone with a QR code, instead of typing 39 characters
 - Steering-wheel voice button and an optional wake word ("Hey Gen")
 - Phone companion page with the same savings and trip view
