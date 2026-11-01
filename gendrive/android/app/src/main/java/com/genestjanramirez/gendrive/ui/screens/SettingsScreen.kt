@@ -46,13 +46,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.genestjanramirez.gendrive.AppGraph
 import com.genestjanramirez.gendrive.BuildConfig
 import com.genestjanramirez.gendrive.core.install.InstallGuide
+import com.genestjanramirez.gendrive.diagnostics.DiagnosticsProbe
 import com.genestjanramirez.gendrive.core.settings.BatteryPresets
 import com.genestjanramirez.gendrive.core.settings.DataMode
 import com.genestjanramirez.gendrive.core.settings.DriverSide
@@ -68,8 +71,10 @@ import com.genestjanramirez.gendrive.ui.components.Label
 import com.genestjanramirez.gendrive.ui.components.SectionTitle
 import com.genestjanramirez.gendrive.ui.components.SettingSwitch
 import com.genestjanramirez.gendrive.ui.theme.Gd
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -83,6 +88,9 @@ fun SettingsScreen(graph: AppGraph, moving: Boolean) {
     var pickModel by remember { mutableStateOf(false) }
     var pickVoice by remember { mutableStateOf(false) }
     var pendingVideoWhileMoving by remember { mutableStateOf(false) }
+    var diagnostics by remember { mutableStateOf<String?>(null) }
+    var runningDiag by remember { mutableStateOf(false) }
+    val clipboard = LocalClipboardManager.current
     var homeEnabled by remember { mutableStateOf(Permissions.isHomeEnabled(context)) }
     val access by produceState(Access.entries.associateWith { false }) {
         while (true) {
@@ -304,8 +312,55 @@ fun SettingsScreen(graph: AppGraph, moving: Boolean) {
                 color = c.textLow,
                 maxLines = 5,
             )
+            Spacer(Modifier.height(12.dp))
+            GdButton(
+                if (runningDiag) "Reading the car…" else "Run diagnostics",
+                onClick = {
+                    runningDiag = true
+                    scope.launch {
+                        val report = withContext(Dispatchers.IO) {
+                            DiagnosticsProbe.run(
+                                context, info.model, info.firmware, info.sdkInt, info.countryCode, BuildConfig.VERSION_NAME,
+                            )
+                        }
+                        diagnostics = report
+                        runningDiag = false
+                    }
+                },
+                enabled = !runningDiag,
+            )
+            Label(
+                "Lists what your car's software exposes, so more features can be added. It only reads, " +
+                    "and the report has no private data.",
+                color = c.textLow,
+                maxLines = 3,
+            )
         }
         Spacer(Modifier.height(24.dp))
+    }
+
+    diagnostics?.let { report ->
+        AlertDialog(
+            onDismissRequest = { diagnostics = null },
+            title = { Text("Diagnostics") },
+            text = {
+                Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState())) {
+                    Text(report, style = MaterialTheme.typography.bodySmall, color = c.text)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    clipboard.setText(AnnotatedString(report))
+                    context.startActivity(
+                        Intent.createChooser(
+                            Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, report),
+                            "Share diagnostics",
+                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }) { Text("Copy and share") }
+            },
+            dismissButton = { TextButton(onClick = { diagnostics = null }) { Text("Close") } },
+        )
     }
 
     if (pickModel) {
