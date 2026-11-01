@@ -1,0 +1,17 @@
+{
+  "name": "Fetch GenSan Driver",
+  "short_name": "Fetch GenSan Driver",
+  "description": "Ride, pabili, pick-up and delivery in GenSan and Mindanao.",
+  "id": "/fetch/driver/",
+  "start_url": "/fetch/driver/",
+  "scope": "/fetch/driver/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050d05",
+  "theme_color": "#050d05",
+  "icons": [
+    { "src": "/fetch/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/fetch/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/fetch/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
