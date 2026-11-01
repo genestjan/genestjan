@@ -47,20 +47,8 @@ object Abrp {
      * registered key. The telemetry JSON is URL-encoded into the `tlm` parameter.
      */
     fun sendUrl(apiKey: String, userToken: String, telemetry: JsonObject): String {
-        val tlm = encode(telemetry.toString())
-        return "$ENDPOINT?api_key=${encode(apiKey)}&token=${encode(userToken)}&tlm=$tlm"
-    }
-
-    /** Minimal RFC 3986 percent-encoding, so the builder needs no Android URLEncoder. */
-    private fun encode(raw: String): String {
-        val safe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~"
-        val sb = StringBuilder(raw.length * 2)
-        for (b in raw.encodeToByteArray()) {
-            val c = b.toInt() and 0xFF
-            if (c.toChar() in safe) sb.append(c.toChar())
-            else sb.append('%').append("0123456789ABCDEF"[c shr 4]).append("0123456789ABCDEF"[c and 0x0F])
-        }
-        return sb.toString()
+        val tlm = Http.percentEncode(telemetry.toString())
+        return "$ENDPOINT?api_key=${Http.percentEncode(apiKey)}&token=${Http.percentEncode(userToken)}&tlm=$tlm"
     }
 
     private fun round(v: Double, dp: Int): Double {

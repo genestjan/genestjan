@@ -1,7 +1,12 @@
 package com.genestjanramirez.gendrive.core
 
 import com.genestjanramirez.gendrive.core.integrations.Abrp
+import com.genestjanramirez.gendrive.core.integrations.CarAlert
 import com.genestjanramirez.gendrive.core.integrations.HomeAssistant
+import com.genestjanramirez.gendrive.core.integrations.TelegramAlerts
+import com.genestjanramirez.gendrive.core.trip.ChargeSession
+import com.genestjanramirez.gendrive.core.trip.CostSettings
+import com.genestjanramirez.gendrive.core.trip.Trip
 import com.genestjanramirez.gendrive.core.vehicle.DataSource
 import com.genestjanramirez.gendrive.core.vehicle.Gear
 import com.genestjanramirez.gendrive.core.vehicle.TyrePressures
@@ -101,5 +106,42 @@ class IntegrationsTest {
         assertTrue(url.contains("api_key=gd-key"))
         assertTrue(url.contains("token=user%2Btoken%2F1"), url)
         assertTrue(url.contains("tlm=%7B"), url) // the JSON "{" is encoded
+    }
+
+    // ---- Telegram ----
+
+    private val cost = CostSettings()
+
+    @Test
+    fun telegramTripAlertHasDistanceCostAndSavings() {
+        val trip = Trip("t", 0, 1_800_000, distanceKm = 24.6, energyKwh = 24.6 * 12.1 / 100)
+        val text = TelegramAlerts.format(CarAlert.TripFinished(trip), cost)
+        assertTrue(text.startsWith("🚗 Trip complete"), text)
+        assertTrue(text.contains("24.6 km"), text)
+        assertTrue(text.contains("12.1 kWh/100km"), text)
+        assertTrue(text.contains("₱40"), text)
+        assertTrue(text.contains("saved ₱78 vs petrol"), text)
+    }
+
+    @Test
+    fun telegramChargingAndWarningAlerts() {
+        val charge = ChargeSession("c", 0, 3_600_000, startSoc = 40.0, endSoc = 92.0, energyKwh = 28.8, maxPowerKw = 7.0)
+        assertEquals(
+            "🔌 Charging finished\n28.8 kWh added · ₱384 · battery 92%",
+            TelegramAlerts.format(CarAlert.ChargingFinished(charge), cost),
+        )
+        assertEquals(
+            "🪫 Battery low: 14%\nAbout 60 km left.",
+            TelegramAlerts.format(CarAlert.LowBattery(14, 60), cost),
+        )
+        assertTrue(TelegramAlerts.format(CarAlert.LowTyre(180.0), cost).contains("180 kPa (26 psi)"))
+    }
+
+    @Test
+    fun telegramSendUrlKeepsTokenColonAndEncodesText() {
+        val url = TelegramAlerts.sendUrl(botToken = "123456:ABC-def", chatId = "-100777", text = "Trip complete\n24.6 km")
+        assertTrue(url.startsWith("https://api.telegram.org/bot123456:ABC-def/sendMessage?"), url)
+        assertTrue(url.contains("chat_id=-100777"), url)
+        assertTrue(url.contains("text=Trip%20complete%0A24.6%20km"), url)
     }
 }
