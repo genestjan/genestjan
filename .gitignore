@@ -5,3 +5,4 @@ next-env.d.ts
 .DS_Store
 tsconfig.tsbuildinfo
 __pycache__/
+/apk/
