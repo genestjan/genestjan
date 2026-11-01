@@ -1,0 +1,81 @@
+{
+ "t_title_c": {
+  "cls": "center",
+  "html": "<img class='logo' src='logo.png'><div class='k'>Customer tutorial</div><h1>How to install and use<br><b>Fetch GenSan</b></h1><p>Ride. Pabili. Pick-up. Delivery. In under 3 minutes.</p>"
+ },
+ "t_title_d": {
+  "cls": "center",
+  "html": "<img class='logo' src='logo.png'><div class='k'>Driver tutorial</div><h1>How to install and use<br><b>Fetch GenSan Driver</b></h1><p>Set your own rates. Get bookings. Get paid directly.</p>"
+ },
+ "t_android_c": {
+  "html": "<div class='k'>Install on Android</div><h1>Android <b>phone</b></h1><ol><li><span>Open <b>Chrome</b> and go to <b>genestjanramirez.com/fetch</b></span></li><li><span>Tap the <b>\u22ee</b> menu at the top right</span></li><li><span>Tap <b>Install app</b> (or <b>Add to Home screen</b>), then <b>Install</b></span></li><li><span>Or download the <b>APK</b> from the link in the description and allow <b>Install unknown apps</b></span></li></ol>"
+ },
+ "t_ios_c": {
+  "html": "<div class='k'>Install on iPhone</div><h1>iPhone <b>and iPad</b></h1><ol><li><span>Open <b>Safari</b> (not Chrome) and go to <b>genestjanramirez.com/fetch</b></span></li><li><span>Tap the <b>Share</b> button, the square with an arrow</span></li><li><span>Scroll down and tap <b>Add to Home Screen</b></span></li><li><span>Tap <b>Add</b>. The Fetch GenSan icon appears on your home screen</span></li></ol>"
+ },
+ "t_android_d": {
+  "html": "<div class='k'>Install on Android</div><h1>Driver app on <b>Android</b></h1><ol><li><span>Open <b>Chrome</b> and go to <b>genestjanramirez.com/fetch/driver</b></span></li><li><span>Tap <b>\u22ee</b>, then <b>Install app</b></span></li><li><span>Or install the <b>Driver APK</b> from the link in the description</span></li><li><span>Allow <b>Location</b> when asked. Customers need to see you on the map</span></li></ol>"
+ },
+ "t_ios_d": {
+  "html": "<div class='k'>Install on iPhone</div><h1>Driver app on <b>iPhone</b></h1><ol><li><span>Open <b>Safari</b> and go to <b>genestjanramirez.com/fetch/driver</b></span></li><li><span>Tap <b>Share</b>, then <b>Add to Home Screen</b>, then <b>Add</b></span></li><li><span>Open the app from your home screen</span></li><li><span>Allow <b>Location</b> and <b>Camera</b> when asked</span></li></ol>"
+ },
+ "t_use": {
+  "cls": "center",
+  "html": "<div class='k'>Now let's use it</div><h1>Follow the <b>green</b> circles</h1><p>Every tap is marked. Pause any time.</p>"
+ },
+ "t_end_c": {
+  "cls": "center",
+  "html": "<img class='logo' src='logo.png'><h1>Ride. Pick. Deliver.<br><b>Sa GenSan!</b></h1><div class='url'>genestjanramirez.com/fetch</div>"
+ },
+ "t_end_d": {
+  "cls": "center",
+  "html": "<img class='logo' src='logo.png'><h1>Drive with<br><b>Fetch GenSan</b></h1><div class='url'>genestjanramirez.com/fetch/driver</div>"
+ },
+ "m_hook": {
+  "cls": "center",
+  "html": "<div class='k'>General Santos City</div><h1 class='big'>Need a ride?<br><b>Pabili?</b> Padala?</h1>"
+ },
+ "m_problem": {
+  "html": "<div class='k'>The old way</div><h1>Waiting at the <b>kanto</b>.<br>Haggling every time.<br>No idea who is driving.</h1>"
+ },
+ "m_solution": {
+  "cls": "center",
+  "html": "<img class='logo' src='logo.png'><h1>Meet <b>Fetch GenSan</b></h1><p>The local app for rides, pabili, pick-up and delivery. Made in GenSan, for GenSan and all of Mindanao.</p>"
+ },
+ "m_f1": {
+  "html": "<div class='k'>01 \u00b7 Book in seconds</div><h1>Ride, <b>Pabili</b><br>or Delivery</h1><p>Pick a service, type where you're going, done. Your pick-up comes from your GPS.</p>",
+  "cls": "split"
+ },
+ "m_f2": {
+  "html": "<div class='k'>02 \u00b7 You choose</div><h1>Pick your <b>driver</b></h1><p>See the real vehicle, plate number, rating and price before you book. Motorcycle, tricycle, car or van.</p>",
+  "cls": "split"
+ },
+ "m_f3": {
+  "html": "<div class='k'>03 \u00b7 Fair prices</div><h1>Meter or<br><b>fixed offer</b></h1><p>Pay by actual km and minutes, or agree a price in chat. Drivers set their own rates.</p>",
+  "cls": "split"
+ },
+ "m_f4": {
+  "html": "<div class='k'>04 \u00b7 Safe</div><h1>Everyone is <b>verified</b></h1><p>Real names, mobile numbers and valid IDs for drivers and customers. Live tracking, trip sharing and SOS.</p>",
+  "cls": "split"
+ },
+ "m_f5": {
+  "html": "<div class='k'>05 \u00b7 Stay in touch</div><h1>Free chat.<br><b>One-tap</b> call.</h1><p>Message your driver inside the app and watch them come to you on the map.</p>",
+  "cls": "split"
+ },
+ "m_f6": {
+  "html": "<div class='k'>06 \u00b7 Pay your way</div><h1>Cash, <b>GCash</b><br>or bank</h1><p>Tip your driver, rate the trip, and earn suki points for up to 10% off.</p>",
+  "cls": "split"
+ },
+ "m_f7": {
+  "html": "<div class='k'>07 \u00b7 Hands-free</div><h1>Just ask <b>George</b></h1><p>Your voice assistant. Book a ride, check where your driver is, message them, or play music.</p>",
+  "cls": "split"
+ },
+ "m_f8": {
+  "html": "<div class='k'>08 \u00b7 For drivers</div><h1>Your rates.<br><b>Your</b> schedule.</h1><p>Go online when you want. Accept or counter offers. Get paid directly to your GCash.</p>",
+  "cls": "split"
+ },
+ "m_cta": {
+  "cls": "center",
+  "html": "<img class='logo' src='logo.png'><h1>Download <b>now</b></h1><div class='chips'><span>Android APK</span><span>iPhone (Safari)</span><span>Any browser</span></div><div class='url'>genestjanramirez.com/fetch</div><p>Ride. Pick. Deliver. Sa GenSan!</p>"
+ }
+}

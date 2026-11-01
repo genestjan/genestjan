@@ -1,0 +1,69 @@
+name: Fetch GenSan videos with George's voice
+
+# Adds George's voiceover (ElevenLabs) to the three Fetch GenSan videos, ducks the music
+# under his voice, and publishes the finished videos to the "fetch-videos" release.
+# Needs the ELEVENLABS_API_KEY repository secret. Edit George's lines in
+# fetch/marketing/tracks/*-voice.json and this runs again by itself.
+on:
+  push:
+    branches: [claude/eager-albattani-r8obaq, main]
+    paths: ['.github/workflows/fetch-videos.yml', 'fetch/marketing/tracks/**', 'fetch/marketing/audio.py', 'fetch/marketing/voice.py']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-videos
+  cancel-in-progress: true
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fetch/marketing
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the ElevenLabs key
+        env:
+          KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::Add the ELEVENLABS_API_KEY repository secret (Settings > Secrets and variables > Actions), then run this workflow again."
+            exit 1
+          fi
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install numpy==2.1.3
+      # Keeps already-spoken lines so re-runs only pay for changed lines
+      - uses: actions/cache@v4
+        with:
+          path: fetch/marketing/voice-cache
+          key: george-${{ hashFiles('fetch/marketing/tracks/*-voice.json') }}
+          restore-keys: george-
+      - name: Voice and mix
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: |
+          mkdir -p out
+          for pair in marketing:FetchGenSan-marketing customer:FetchGenSan-customer-tutorial driver:FetchGenSan-driver-tutorial; do
+            n=${pair%%:*}; file=${pair##*:}
+            dur=$(python3 -c "import json;print(json.load(open('tracks/$n-timeline.json'))['duration'])")
+            python3 audio.py bed tracks/$n-timeline.json bed-$n.wav
+            python3 voice.py tracks/$n-voice.json $dur voice-$n.wav
+            python3 audio.py mix bed-$n.wav ../public/media/$file.mp4 out/$file.mp4 voice-$n.wav
+          done
+          ls -la out
+      # Fixed download links:
+      # https://github.com/genestjan/genestjan/releases/download/fetch-videos/FetchGenSan-marketing.mp4
+      # https://github.com/genestjan/genestjan/releases/download/fetch-videos/FetchGenSan-customer-tutorial.mp4
+      # https://github.com/genestjan/genestjan/releases/download/fetch-videos/FetchGenSan-driver-tutorial.mp4
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fetch-videos
+          name: Fetch GenSan videos (with George's voice)
+          body: Marketing video and customer and driver tutorials with George's voiceover, music and sound effects (build ${{ github.run_number }}).
+          files: fetch/marketing/out/*.mp4
+          make_latest: false

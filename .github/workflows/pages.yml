@@ -26,6 +26,7 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             ridewise/package-lock.json
+            fetch/package-lock.json
       - run: npm ci
       - run: npm run build
       # next.config.mjs sets output:'export', so the static site lands in out/
@@ -37,6 +38,18 @@ jobs:
       - run: npm run build
         working-directory: ridewise
       - run: cp -r ridewise/dist out/ridewise
+      # Fetch GenSan (ride, pabili, delivery): customer app at /fetch/, driver app at /fetch/driver/
+      - run: npm ci
+        working-directory: fetch
+      - run: npm test
+        working-directory: fetch
+      - run: npm run build
+        working-directory: fetch
+        env:
+          VITE_SUPABASE_URL: ${{ vars.FETCH_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.FETCH_SUPABASE_ANON_KEY }}
+          VITE_TTS_URL: ${{ vars.FETCH_TTS_URL }}
+      - run: cp -r fetch/dist out/fetch
       # Monggols VPN home-screen app for iPhone: the shared screen from vpn/ui, served at /monggols/
       - run: cp -r vpn/ui out/monggols
       # Beki's draft website: built from beki-site/ (its words and pictures are edited at /BekiEakinsdraftwebsite/admin/)

@@ -1,0 +1,96 @@
+name: Build Fetch GenSan Android apps
+
+# Packs the Fetch GenSan web apps inside Capacitor so they install as normal Android apps.
+# The app files are bundled in the APK, so it works without the website being live.
+# Uses Supabase live mode when the FETCH_* repository variables are set, otherwise demo mode.
+on:
+  push:
+    branches: [claude/eager-albattani-r8obaq, main]
+    paths: ['.github/workflows/fetch-android.yml', 'fetch/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-android
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1  # both jobs upload to the same release; avoid a race creating it
+      matrix:
+        include:
+          - app: customer
+            name: Fetch GenSan
+            id: com.genestjanramirez.fetchgensan
+            start: index.html
+          - app: driver
+            name: Fetch GenSan Driver
+            id: com.genestjanramirez.fetchgensan.driver
+            start: driver/index.html
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: fetch/package-lock.json }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+        with: { packages: platform-tools }
+      - name: Build the web app for the phone
+        working-directory: fetch
+        env:
+          FETCH_BASE: /
+          VITE_SUPABASE_URL: ${{ vars.FETCH_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.FETCH_SUPABASE_ANON_KEY }}
+          VITE_TTS_URL: ${{ vars.FETCH_TTS_URL }}
+        run: |
+          npm ci
+          npm test
+          npx vite build
+      - name: Create Capacitor project
+        run: |
+          mkdir shell && cd shell
+          npm init -y >/dev/null
+          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          cp -r ../fetch/dist www
+          rm -rf www/media  # the videos are on the website; keeps the APK small
+          # The driver app opens on its own page
+          if [ "${{ matrix.start }}" != "index.html" ]; then
+            echo '<!doctype html><meta charset="utf-8"><script>location.replace("/${{ matrix.start }}")</script>' > www/index.html
+          fi
+          cat > capacitor.config.json <<JSON
+          { "appId": "${{ matrix.id }}", "appName": "${{ matrix.name }}", "webDir": "www",
+            "server": { "androidScheme": "https" },
+            "android": { "backgroundColor": "#050d05" } }
+          JSON
+          npx cap add android
+          # Location, camera (ID photos) and microphone (George) permissions
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />#' android/app/src/main/AndroidManifest.xml
+          grep -c ACCESS_FINE_LOCATION android/app/src/main/AndroidManifest.xml
+          # App icon from the official logo (pre-made in fetch/android-shell/res)
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            res=android/app/src/main/res/mipmap-$d
+            cp ../fetch/android-shell/res/ic_launcher-$d.png $res/ic_launcher.png
+            cp ../fetch/android-shell/res/ic_launcher-$d.png $res/ic_launcher_round.png
+            rm -f $res/ic_launcher_foreground.png
+          done
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          npx cap sync android
+      - name: Build APK
+        working-directory: shell/android
+        run: |
+          ./gradlew --no-daemon assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk ../../FetchGenSan-${{ matrix.app }}.apk
+      # Fixed download links:
+      # https://github.com/genestjan/genestjan/releases/download/fetch-android/FetchGenSan-customer.apk
+      # https://github.com/genestjan/genestjan/releases/download/fetch-android/FetchGenSan-driver.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fetch-android
+          name: Fetch GenSan Android apps
+          body: Customer and driver apps (build ${{ github.run_number }}). Install the APK on Android; allow "Install unknown apps" when asked.
+          files: FetchGenSan-${{ matrix.app }}.apk
+          make_latest: false
