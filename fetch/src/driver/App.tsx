@@ -132,8 +132,8 @@ export default function App() {
   if (!uid) return <Auth be={be} role="driver" onSignedIn={setUid} />;
   if (profile === undefined || me === undefined) return null;
   if (!profile) return <ProfileForm be={be} id={uid} role="driver" email={localStorage.getItem('fetch:email') ?? ''} onSaved={() => reloadProfile()} />;
-  if (!me || editing) return <Setup be={be} profile={profile} initial={me} onSaved={() => { setEditing(false); reloadMe(); }} />;
   if (profile.verified !== 'approved') return <Pending onSignOut={() => be.signOut().then(() => setUid(null))} />;
+  if (!me || editing) return <Setup be={be} profile={profile} initial={me} onSaved={() => { setEditing(false); reloadMe(); }} />;
 
   const markers: MapMarker[] = [
     ...(here ? [{ id: 'me', p: here, icon: icons.vehicle(me.vehicleType) }] : []),
