@@ -75,8 +75,10 @@ You need about 30 minutes. Cost: ₱0 on the Supabase free plan.
 2. Click **Emails** in the Authentication menu, then **Magic Link** template. In the message box, make sure it contains `{{ .Token }}`. If not, add this line: `Your Fetch GenSan code is {{ .Token }}`. Click **Save**.
 3. Click **URL Configuration**. In **Site URL** type `https://genestjanramirez.com/fetch/` and click **Save**.
 
-Note: the free plan sends only a few emails per hour. Before launch, connect a free email
-sender (Resend: 3,000 emails a month free) under **Authentication > Emails > SMTP Settings**.
+**Required before real users:** Supabase's built-in email only delivers to members of your own
+Supabase team, and only a few per hour. Customers and drivers will not get their codes until you
+connect an email sender (Resend: 3,000 emails a month free) under
+**Authentication > Emails > SMTP Settings**.
 
 ### Part 4. Copy the two keys into GitHub
 
