@@ -1679,7 +1679,7 @@ function initTime() {
     otherProjects: () => (partner() ? Object.values(PS.others).flatMap(o => o.projects) : []),
     addPeople: () => (partner() ? [] : null), // partners only add their own time
     canEdit: who => !partner() || who === 'me',
-    canStart: () => (partner() ? partnerCanStart() : ''),
+    canStart: projectId => (partner() ? partnerCanStart(projectId) : ''),
     entries: () => (partner() ? [...Object.values(PS.log.entries).map(e => ({ ...e, who: 'me' })), ...Object.entries(PS.others).flatMap(([id, o]) => o.log.entries.map(e => ({ ...e, who: id })))] : allEntries()),
     timer: () => (partner() ? PS.log.timer : S.log.timer),
     setTimer: t => {
@@ -2602,38 +2602,46 @@ async function syncChannel() {
 // the team board: this partner's own time goes up, the other partners' comes down
 const DAY = 24 * 3600000;
 const tracking = t => !!(t && t.startedAt && Date.now() - t.startedAt < DAY); // a timer older than a day was left on: it doesn't block
+// partners can track at the same time, but never the same client
+const sameClient = (a, b) => !!(a && b && ((a.clientId && a.clientId === b.clientId) || (a.clientName && b.clientName && a.clientName.toLowerCase() === b.clientName.toLowerCase())));
+const timerProject = o => o.projects.find(x => x.id === o.log.timer.projectId);
+const sinceText = ms => {
+  const at = new Date(ms), time = at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return iso(at) === iso(today()) ? time : `${at.toLocaleDateString('en-US', { weekday: 'short' })} ${time}`;
+};
 async function syncBoard() {
   const board = PS.ws.board;
   if (!board || !PS.me.id) return;
   const all = await TK.readBoard(PS.token, board);
   if (!all) return;
-  const mine = () => ({ name: PS.me.name, projects: partnerProjects().map(p => ({ id: p.id, name: p.name, clientName: p.clientName, color: p.color })), log: TK.logDoc(PS.log) });
+  const mine = () => ({ name: PS.me.name, projects: partnerProjects().map(p => ({ id: p.id, clientId: p.clientId, name: p.name, clientName: p.clientName, color: p.color })), log: TK.logDoc(PS.log) });
   const cur = all[PS.me.id];
   delete all[PS.me.id];
   PS.others = all;
-  // two timers started within moments of each other: the later one gives way
+  // two timers on the same client started within moments of each other: the later one gives way
   const t = PS.log.timer;
-  const first = tracking(t) && Object.values(all).find(o => tracking(o.log.timer) && o.log.timer.startedAt < t.startedAt);
+  const myP = tracking(t) && partnerProjects().find(p => p.id === t.projectId);
+  const first = myP && Object.values(all).find(o => tracking(o.log.timer) && o.log.timer.startedAt < t.startedAt && sameClient(timerProject(o), myP));
   if (first) {
     PS.log.timer = TK.cleanTimer({ projectId: '', note: '', startedAt: 0, updatedAt: TK.stamp(t) });
-    toast(`${first.name || 'Someone'} started tracking a moment before you, so your timer was stopped. Only one person can track at a time.`);
+    toast(`${first.name || 'Someone'} started tracking ${myP.clientName} a moment before you, so your timer was stopped. Only one person can track a client at a time.`);
   }
   if (!cur || JSON.stringify(cur) !== JSON.stringify(mine())) await TK.writeBoard(PS.token, board, PS.me.id, mine());
 }
-// before a partner starts the timer: nobody else may be tracking
-async function partnerCanStart() {
+// before a partner starts the timer (or moves it to another project): nobody else may be tracking that client
+async function partnerCanStart(projectId) {
   const board = PS.ws.board;
   if (!board) return ''; // Jan's app hasn't set the board up yet
+  const mineP = partnerProjects().find(p => p.id === projectId);
+  if (!mineP) return '';
   let all;
   try { all = await TK.readBoard(PS.token, board); } catch (e) { return "Can't check whether someone else is tracking right now. Check your internet and try again, or add the time afterwards with + Add time."; }
   if (!all) return '';
-  const busy = Object.entries(all).find(([id, o]) => id !== PS.me.id && tracking(o.log.timer));
+  const busy = Object.entries(all).find(([id, o]) => id !== PS.me.id && tracking(o.log.timer) && sameClient(timerProject(o), mineP));
   if (!busy) return '';
-  const o = busy[1], at = new Date(o.log.timer.startedAt);
-  const time = at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const when = iso(at) === iso(today()) ? time : `${at.toLocaleDateString('en-US', { weekday: 'short' })} ${time}`;
+  const o = busy[1];
   PS.others[busy[0]] = o;
-  return `${o.name || 'Someone'} is using the tracker since ${when}. Only one person can track at a time.`;
+  return `${o.name || 'Someone'} is already tracking time for ${mineP.clientName} since ${sinceText(o.log.timer.startedAt)}. Only one person can track a client at a time; another client is fine.`;
 }
 const partnerProjects = () => {
   const names = Object.fromEntries(PS.ws.clients.map(c => [c.id, c.name]));

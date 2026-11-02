@@ -185,7 +185,7 @@ async function readBoard(token, board) {
     if (!m) continue;
     const d = await openFile(board.key, f, token);
     if (!d || d.unreadable) continue;
-    out[m[1]] = { name: str(d.name, 80), projects: (Array.isArray(d.projects) ? d.projects : []).filter(x => x && validId(x.id)).map(x => ({ id: x.id, name: str(x.name, 120), clientName: str(x.clientName, 120), color: COLORS.includes(x.color) ? x.color : COLORS[0] })), log: normalizeLog(d.log) };
+    out[m[1]] = { name: str(d.name, 80), projects: (Array.isArray(d.projects) ? d.projects : []).filter(x => x && validId(x.id)).map(x => ({ id: x.id, clientId: validId(x.clientId) ? x.clientId : '', name: str(x.name, 120), clientName: str(x.clientName, 120), color: COLORS.includes(x.color) ? x.color : COLORS[0] })), log: normalizeLog(d.log) };
   }
   return out;
 }
@@ -286,21 +286,27 @@ function view(H) {
     }
     const projectId = $('#tmProject').value;
     if (!projectId) { GJCore.toast('Choose a project first.'); $('#tmProject').focus(); return; }
-    if (H.canStart) { // someone else may be tracking already
+    if (H.canStart) { // someone else may be tracking this client already
       const btn = $('#tmBtn');
       btn.disabled = true;
       let why = '';
-      try { why = await H.canStart(); } finally { btn.disabled = false; }
+      try { why = await H.canStart(projectId); } finally { btn.disabled = false; }
       if (why) { GJCore.toast(why); return; }
     }
     H.setTimer({ projectId, note: $('#tmNote').value.trim(), startedAt: Date.now(), updatedAt: stamp(t) });
     renderAll();
   }
-  function timerEdit() { // changing the project or note while it runs
+  async function timerEdit() { // changing the project or note while it runs
     const t = H.timer();
     if (!t.startedAt) return;
     const projectId = $('#tmProject').value || t.projectId;
-    H.setTimer({ ...t, projectId, note: $('#tmNote').value.trim(), updatedAt: stamp(t) });
+    if (projectId !== t.projectId && H.canStart) { // the new project's client may be taken by someone else
+      const why = await H.canStart(projectId);
+      if (H.timer().startedAt !== t.startedAt) return; // stopped meanwhile
+      if (why) { GJCore.toast(why); projectOptions($('#tmProject'), H.timer().projectId, false); return; }
+    }
+    const now = H.timer();
+    H.setTimer({ ...now, projectId, note: $('#tmNote').value.trim(), updatedAt: stamp(now) });
   }
   const projectLabel = id => { const p = projById()[id]; return p ? `${p.clientName} · ${p.name}` : 'a removed project'; };
 
