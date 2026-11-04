@@ -5,4 +5,4 @@
  * Other pages (/BekiEakinsdraftwebsite/, /ridewise/, /invoices/, /payroll/) are
  * separate and are not affected by this switch.
  */
-export const HOMEPAGE_VISIBLE = false;
+export const HOMEPAGE_VISIBLE = true;
