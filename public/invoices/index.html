@@ -173,11 +173,16 @@
             <option value="this-week">This week</option><option value="last-week">Last week</option>
             <option value="custom">Choose dates</option>
           </select></div>
-        <div class="field rp-custom" id="hrCustom" hidden>
-          <label for="hrFrom">From and to</label>
-          <div class="inline"><input id="hrFrom" class="in" type="date"><label class="sr" for="hrTo">To</label><input id="hrTo" class="in" type="date"></div>
+        <div class="field rp-custom" data-hr-custom hidden>
+          <label for="hrFrom">From</label>
+          <div class="inline"><input id="hrFrom" class="in" type="date"><label class="sr" for="hrFromT">From what time</label><input id="hrFromT" class="in" type="time"></div>
+        </div>
+        <div class="field rp-custom" data-hr-custom hidden>
+          <label for="hrTo">To</label>
+          <div class="inline"><input id="hrTo" class="in" type="date"><label class="sr" for="hrToT">To what time</label><input id="hrToT" class="in" type="time"></div>
         </div>
       </div>
+      <p class="note" data-hr-custom hidden>Leave a time empty for the whole day. With times, only the part of each entry between them counts.</p>
       <div class="card-ft"><button id="hrAdd" class="btn" type="button">+ Add time I forgot to track</button></div>
     </div>
     <div id="hrOut" class="rp-out"></div>

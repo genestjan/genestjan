@@ -233,8 +233,18 @@ function view(H) {
   if (!$('#entrySheet')) document.body.insertAdjacentHTML('beforeend', sheetHtml());
 
   const projById = () => Object.fromEntries([...(H.otherProjects ? H.otherProjects() : []), ...H.projects()].map(p => [p.id, p]));
-  function projectOptions(sel, value, includeArchived) {
-    const ps = H.projects().filter(p => includeArchived || !p.archived || p.id === value);
+  // a project's client, for choosing the client first
+  const clientKey = p => (p.clientId ? 'id:' + p.clientId : 'name:' + p.clientName);
+  function clientOptions(sel, value) {
+    const seen = {};
+    for (const p of H.projects()) seen[clientKey(p)] = p.clientName;
+    const html = '<option value="">Choose a client</option>' + Object.entries(seen).sort((a, b) => byStr(a[1].toLowerCase(), b[1].toLowerCase())).map(([k, n]) => `<option value="${esc(k)}">${esc(n)}</option>`).join('');
+    if (sel.dataset.html !== html) { sel.innerHTML = html; sel.dataset.html = html; }
+    sel.value = value || '';
+    if (!sel.value && sel.options.length === 2) sel.selectedIndex = 1; // only one client: it is that one
+  }
+  function projectOptions(sel, value, includeArchived, client) {
+    const ps = H.projects().filter(p => (includeArchived || !p.archived || p.id === value) && (!client || clientKey(p) === client));
     const byClient = {};
     for (const p of ps) (byClient[p.clientName] = byClient[p.clientName] || []).push(p);
     const html = '<option value="">Choose a project</option>' + Object.keys(byClient).sort().map(c =>
@@ -385,7 +395,9 @@ function view(H) {
     const wsel = $('#esWho');
     $('#esWhoWrap').hidden = people.length < 2 || !isNew;
     if (people.length > 1) { wsel.innerHTML = people.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join(''); wsel.value = whoFor; }
-    projectOptions($('#esProject'), entry.projectId, true);
+    const cur = H.projects().find(p => p.id === entry.projectId);
+    clientOptions($('#esClient'), cur ? clientKey(cur) : '');
+    sheetProjects(cur ? entry.projectId : '');
     $('#esDate').value = entry.date;
     $('#esStart').value = entry.start;
     $('#esEnd').value = entry.end;
@@ -397,15 +409,27 @@ function view(H) {
     $('#entrySheet').hidden = false;
     document.body.classList.add('sheet-open');
     // unless a field in it already has the cursor (typing must never jump to another field)
-    setTimeout(() => { if (!$('#entrySheet').contains(document.activeElement)) (entry.projectId ? $('#esNote') : $('#esProject')).focus(); }, 30);
+    setTimeout(() => { if (!$('#entrySheet').contains(document.activeElement)) ($('#esProject').value ? $('#esNote') : $('#esClient').value ? $('#esProject') : $('#esClient')).focus(); }, 30);
   }
   function closeSheet() {
     $('#entrySheet').hidden = true;
     if (!$$('.sheet').some(s => !s.hidden)) document.body.classList.remove('sheet-open');
     editing = null;
   }
+  // the projects of the client chosen in the sheet; a client with one project picks it
+  function sheetProjects(value) {
+    const sel = $('#esProject');
+    projectOptions(sel, value, true, $('#esClient').value);
+    if (!sel.value && sel.querySelectorAll('option[value]:not([value=""])').length === 1) sel.value = sel.querySelector('option[value]:not([value=""])').value;
+  }
   // start and end fill the duration; a duration typed in clears them
   function sheetInput(e) {
+    if (e.target.id === 'esClient') { sheetProjects(''); return; }
+    if (e.target.id === 'esProject' && e.target.value && !$('#esClient').value) { // a project picked first: its client fills in
+      const p = H.projects().find(x => x.id === e.target.value);
+      if (p) { clientOptions($('#esClient'), clientKey(p)); sheetProjects(p.id); }
+      return;
+    }
     if (e.target.id === 'esStart' || e.target.id === 'esEnd') {
       const a = clockOk($('#esStart').value), b = clockOk($('#esEnd').value);
       if (a && b) $('#esDur').value = fmtHM(spanMinutes(a, b));
@@ -425,7 +449,8 @@ function view(H) {
     const d = parseDur($('#esDur').value);
     if (!d || d.error || !(d.minutes > 0)) { GJCore.toast(d && d.error ? d.error : 'Type how long, like 1:30.'); $('#esDur').focus(); return; }
     if (d.minutes > 1440) { GJCore.toast('One entry can be up to 24 hours.'); return; }
-    if (!$('#esProject').value) { GJCore.toast('Choose a project.'); $('#esProject').focus(); return; }
+    if (!$('#esClient').value) { GJCore.toast('Choose the client.'); $('#esClient').focus(); return; }
+    if (!$('#esProject').value) { GJCore.toast('Choose the project.'); $('#esProject').focus(); return; }
     if (!isoOk($('#esDate').value)) { GJCore.toast('Choose the date.'); return; }
     const old = editing.entry;
     const whoFor = editing.isNew && !$('#esWhoWrap').hidden ? $('#esWho').value : editing.who;
@@ -517,7 +542,10 @@ function sheetHtml() {
   <div class="sheet-card">
     <div class="card-hd"><h2 id="esTitle">Add time</h2><button id="esClose" class="link" type="button">Close</button></div>
     <div class="field" id="esWhoWrap" hidden><label for="esWho">Whose time</label><select id="esWho" class="in"></select></div>
-    <div class="field"><label for="esProject">Project</label><select id="esProject" class="in"></select></div>
+    <div class="fields two">
+      <div class="field"><label for="esClient">Client</label><select id="esClient" class="in"></select></div>
+      <div class="field"><label for="esProject">Project</label><select id="esProject" class="in"></select></div>
+    </div>
     <div class="fields two">
       <div class="field"><label for="esDate">Date</label><input id="esDate" class="in" type="date"></div>
       <div class="field"><label for="esDur">How long</label><input id="esDur" class="in mono" placeholder="1:30" autocomplete="off"></div>
