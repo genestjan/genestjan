@@ -2647,10 +2647,20 @@ const partnerProjects = () => {
   const names = Object.fromEntries(PS.ws.clients.map(c => [c.id, c.name]));
   return PS.ws.projects.map(p => ({ ...p, clientName: names[p.clientId] || 'Client' }));
 };
+// My hours: a set period, or any dates the partner picks
+function hoursRange() {
+  const k = $('#hrPreset').value;
+  $('#hrCustom').hidden = k !== 'custom';
+  if (k !== 'custom') return presetRange(k);
+  let a = parseIso($('#hrFrom').value) || addDays(today(), -6), b = parseIso($('#hrTo').value) || today();
+  if (b < a) [a, b] = [b, a];
+  setVal('hrFrom', iso(a)); setVal('hrTo', iso(b));
+  return [a, b];
+}
 function renderHours() {
   const out = $('#hrOut');
   if (!out || MODE !== 'partner') return;
-  const [a, b] = presetRange($('#hrPreset').value);
+  const [a, b] = hoursRange();
   const from = iso(a), to = iso(b);
   const list = Object.values(PS.log.entries).filter(e => e.date >= from && e.date <= to);
   const total = list.reduce((t, e) => t + e.minutes, 0);
@@ -2661,7 +2671,9 @@ function renderHours() {
   const days = new Set(list.map(e => e.date)).size;
   out.innerHTML = `
     <div class="r-hero card"><div><span class="eyebrow">Your time</span><div class="big">${TK.fmtLong(total)}</div><div class="muted small">${esc(periodText(a, b))} · ${days} day${days === 1 ? '' : 's'} worked</div></div>${dayBars(perDay(list, from, to))}</div>
-    <section class="card"><h3>By project</h3><table class="rtable">${barRows(rows, total) || '<tr><td class="muted">No time in this period</td></tr>'}</table></section>`;
+    <section class="card"><h3>By project</h3><table class="rtable">${barRows(rows, total) || '<tr><td class="muted">No time in this period</td></tr>'}</table></section>
+    <section class="card"><div class="card-hd"><h3>What you did</h3><span class="muted small">To fix an entry, tap it on the Time tab</span></div>
+      <div class="table-wrap"><table class="rtable sheet-t"><thead><tr><th>Date</th><th>Time</th><th>Project</th><th>Work done</th><th class="r">Hours</th></tr></thead><tbody>${list.slice().sort((x, y) => byStr(x.date, y.date) || byStr(x.start || '99', y.start || '99')).map(e => `<tr><td>${esc(shortDate(parseIso(e.date)))}</td><td class="muted small">${e.start && e.end ? `${esc(TK.clock12(e.start))} - ${esc(TK.clock12(e.end))}` : ''}</td><td>${esc(names[e.projectId] || 'Removed project')}</td><td>${esc(e.note)}</td><td class="r mono">${TK.fmtHM(e.minutes)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No time in this period</td></tr>'}</tbody></table></div></section>`;
 }
 function renderPartner() {
   if (MODE !== 'partner') return;
@@ -2833,6 +2845,9 @@ function wire() {
     } finally { btn.disabled = false; }
   });
   $('#hrPreset').addEventListener('input', renderHours);
+  $('#hrFrom').addEventListener('input', renderHours);
+  $('#hrTo').addEventListener('input', renderHours);
+  $('#hrAdd').addEventListener('click', () => { if (timeView) timeView.openNew(); }); // the same sheet as + Add time on the Time tab
   $('#meSyncNow').addEventListener('click', () => syncChannel());
   $('#ownPwForm').addEventListener('submit', async e => {
     e.preventDefault();

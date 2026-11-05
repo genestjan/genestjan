@@ -171,8 +171,14 @@
             <option value="this-half">This half-month</option><option value="last-half">Last half-month</option>
             <option value="this-month">This month</option><option value="last-month">Last month</option>
             <option value="this-week">This week</option><option value="last-week">Last week</option>
+            <option value="custom">Choose dates</option>
           </select></div>
+        <div class="field rp-custom" id="hrCustom" hidden>
+          <label for="hrFrom">From and to</label>
+          <div class="inline"><input id="hrFrom" class="in" type="date"><label class="sr" for="hrTo">To</label><input id="hrTo" class="in" type="date"></div>
+        </div>
       </div>
+      <div class="card-ft"><button id="hrAdd" class="btn" type="button">+ Add time I forgot to track</button></div>
     </div>
     <div id="hrOut" class="rp-out"></div>
   </section>

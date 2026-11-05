@@ -582,6 +582,7 @@ table.pp-items { width: 100%; border-collapse: collapse; }
 
 /* reports */
 .rp-controls { margin-bottom: 16px; }
+.table-wrap { overflow-x: auto; } /* a wide table scrolls sideways on a phone */
 .rp-fields { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
 .rp-custom .inline .in { min-width: 0; }
 .rp-out { display: grid; gap: 16px; }
