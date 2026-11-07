@@ -74,3 +74,5 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          timeout: 1800000 # 30 minutes: GitHub Pages sometimes takes longer than the 10-minute default to copy the files
