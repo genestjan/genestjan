@@ -109,6 +109,25 @@ function defaultRun() {
   const end = addDays(today(), -1);
   return { start: iso(addDays(end, -12)), end: iso(end), payDate: iso(today()), hours: {}, commission: {}, rateOverride: {}, frozen: null, saved: false };
 }
+// how often a client's partners are paid: the next pay period follows from the last one
+const SCHEDULES = ['biweekly', 'semimonthly', 'weekly', 'monthly'];
+const SCHEDULE_TEXT = { biweekly: 'Paid every 2 weeks', semimonthly: 'Paid for the 1st to the 15th, and the 16th to the end of the month', weekly: 'Paid every week', monthly: 'Paid every month' };
+function nextPeriod(prevEnd, schedule) {
+  const start = addDays(prevEnd, 1);
+  const y = start.getFullYear(), m = start.getMonth();
+  if (schedule === 'semimonthly') return [start, start.getDate() <= 15 ? new Date(y, m, 15) : new Date(y, m + 1, 0)];
+  if (schedule === 'monthly') return [start, new Date(y, m + 1, 0)];
+  return [start, addDays(start, schedule === 'weekly' ? 6 : 13)];
+}
+// a client's first pay run: the latest period that ended yesterday or is still running
+function defaultRunFor(schedule) {
+  const end0 = addDays(today(), -1), y = end0.getFullYear(), m = end0.getMonth();
+  let start, end = end0;
+  if (schedule === 'semimonthly') { start = new Date(y, m, end0.getDate() <= 15 ? 1 : 16); end = end0.getDate() <= 15 ? new Date(y, m, 15) : new Date(y, m + 1, 0); }
+  else if (schedule === 'monthly') { start = new Date(y, m, 1); end = new Date(y, m + 1, 0); }
+  else start = addDays(end0, schedule === 'weekly' ? -6 : -13);
+  return { ...defaultRun(), start: iso(start), end: iso(end), payDate: iso(addDays(end, 1)) };
+}
 const KEY = /^[A-Za-z0-9_-]{1,40}\|[A-Za-z0-9_-]{1,40}$/;
 function cleanRates(x) {
   const out = {};
@@ -149,19 +168,35 @@ function cleanSheet(x) {
   return d;
 }
 // the Payroll tab's own state: null until something is changed, so an untouched app syncs nothing.
-// Its parts sync on their own (at = when each was last changed), so an edit to one part on one device
-// never undoes an edit to another part on another device.
-const PARTS = ['settings', 'run', 'sheet'];
+// Each client has its own pay run (its own dates, hours and commission). The parts sync on their own
+// (at = when each was last changed): the settings, the hours calculator, and each client's run, so an
+// edit to one never undoes an edit to another made on another device.
+const parts = P => ['settings', 'sheet', ...Object.keys(P.runs).sort().map(c => 'run:' + c)];
+const part = (P, k) => (k.startsWith('run:') ? P.runs[k.slice(4)] : P[k]);
+const setPart = (P, k, v) => { if (k.startsWith('run:')) P.runs[k.slice(4)] = v; else P[k] = v; };
+// an older single pay run for every client becomes one run per client, each with that client's hours
+function splitRun(x) {
+  const r = cleanRun(x), out = {};
+  const ids = new Set([...Object.keys(r.hours).map(k => k.split('|')[1]), ...Object.keys(r.commission)]);
+  for (const cid of ids) {
+    if (!validId(cid)) continue;
+    out[cid] = { ...clone(r), hours: Object.fromEntries(Object.entries(r.hours).filter(([k]) => k.endsWith('|' + cid))), commission: r.commission[cid] ? { [cid]: clone(r.commission[cid]) } : {} };
+  }
+  return out;
+}
 function cleanPayroll(x) {
   if (!x || typeof x !== 'object') return null;
   const s = obj(x.settings), at = obj(x.at), u = +x.updatedAt || 0;
-  return {
+  const legacy = !x.runs && x.run && typeof x.run === 'object';
+  const runs = legacy ? splitRun(x.run) : Object.fromEntries(Object.entries(obj(x.runs)).filter(([c]) => validId(c)).sort().map(([c, r]) => [c, cleanRun(r)]));
+  const P = {
     settings: { preparedBy: String(s.preparedBy ?? 'Genest Jan Ramirez').slice(0, 80), location: String(s.location ?? '').slice(0, 80), split: parseInt(s.split, 10) >= 1 ? parseInt(s.split, 10) : 3 },
-    run: cleanRun(x.run), sheet: cleanSheet(x.sheet), updatedAt: u,
-    at: Object.fromEntries(PARTS.map(k => [k, +at[k] > 0 ? +at[k] : u])),
+    runs, sheet: cleanSheet(x.sheet), updatedAt: u, at: {},
   };
+  for (const k of parts(P)) { const t = legacy && k.startsWith('run:') ? +at.run : +at[k]; P.at[k] = t > 0 ? t : u; }
+  return P;
 }
-const blankPayroll = () => ({ settings: { preparedBy: 'Genest Jan Ramirez', location: '', split: 3 }, run: defaultRun(), sheet: defaultSheet(), updatedAt: 0, at: { settings: 0, run: 0, sheet: 0 } });
+const blankPayroll = () => ({ settings: { preparedBy: 'Genest Jan Ramirez', location: '', split: 3 }, runs: {}, sheet: defaultSheet(), updatedAt: 0, at: { settings: 0, sheet: 0 } });
 // a saved pay run keeps the partners, clients, rates and hours of that day, so its payslips never change
 function cleanSnapSettings(x) {
   const o = obj(x);
@@ -175,6 +210,7 @@ function cleanSnapSettings(x) {
     })),
   };
 }
+const sameClients = (a, b) => JSON.stringify(((a.settings && a.settings.clients) || []).map(c => c.id).sort()) === JSON.stringify(((b.settings && b.settings.clients) || []).map(c => c.id).sort());
 function cleanPayRun(x) {
   if (!x || typeof x !== 'object' || !validId(x.id) || !x.run || typeof x.run !== 'object' || !parseIso(x.run.start) || !parseIso(x.run.end)) return null;
   return {
@@ -328,6 +364,8 @@ function mount(H) {
       <div class="col-in stack">
         <section class="card" aria-labelledby="pr-h-period">
           <div class="card-hd"><h2 id="pr-h-period">Pay period</h2><span class="chip" id="prDays"></span></div>
+          <div class="field"><label for="prClient">Client</label><select id="prClient" class="in"></select></div>
+          <p class="note" id="prSched"></p>
           <div class="fields three">
             <div class="field"><label for="prStart">From</label><input type="date" id="prStart" class="in"></div>
             <div class="field"><label for="prEnd">To</label><input type="date" id="prEnd" class="in"></div>
@@ -418,6 +456,12 @@ function mount(H) {
   /* ---- period */
   function renderPeriod() {
     const run = P().run;
+    const all = H.allClients(), cid = H.client();
+    const opts = all.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+    const sel = $('#prClient');
+    if (sel.dataset.html !== opts) { sel.innerHTML = opts; sel.dataset.html = opts; }
+    sel.value = cid;
+    $('#prSched').textContent = `${SCHEDULE_TEXT[H.schedule()] || SCHEDULE_TEXT.biweekly}. Each client has its own pay run; change how often under Clients.`;
     setVal('prStart', run.start); setVal('prEnd', run.end); setVal('prPay', run.payDate);
     $('#prPeriodNote').textContent = run.saved
       ? 'This is a saved pay run, with the hours as saved. Time tracked since then is not added unless you change the dates.'
@@ -643,13 +687,14 @@ function mount(H) {
     const run = effectiveRun();
     const ctx = ctxFor(s, run);
     return {
-      id: 'run' + run.start.replace(/-/g, '') + run.end.replace(/-/g, ''), savedAt: Date.now(),
+      id: ('r' + run.start.replace(/-/g, '') + run.end.replace(/-/g, '') + '-' + s.clients.map(c => c.id).join('-')).slice(0, 40), savedAt: Date.now(),
       settings: clone({ preparedBy: s.preparedBy, location: s.location, feePct: s.feePct, split: s.split, partners: s.partners, clients: s.clients }),
       run: clone({ ...run, frozen: null, saved: false }), rates: clone(ctx.rates),
       totals: ctx.R.active.map(x => ({ name: x.partner.name, hours: x.hours, total: x.total })), grand: ctx.R.grand,
     };
   }
   const histRun = h => ({ ...cleanRun(h.run), frozen: h.rates || {}, saved: true });
+  const histClient = h => { const cs = (h.settings && h.settings.clients) || []; return cs.length === 1 && H.allClients().some(c => c.id === cs[0].id) ? cs[0].id : ''; };
   function renderHistory() {
     const box = $('#prHistList');
     const runs = H.runs();
@@ -657,8 +702,9 @@ function mount(H) {
     box.innerHTML = runs.map(h => {
       const per = periodText(parseIso(h.run.start), parseIso(h.run.end), ' – ');
       const who = (h.totals || []).map(t => `${esc(t.name)} ${peso(t.total)}`).join(' · ');
+      const cl = ((h.settings && h.settings.clients) || []).map(c => c.name).join(', ');
       return `<div class="hist">
-        <div class="hist-main"><span class="hist-period">${esc(per)}</span><span class="hist-sub">Paid ${esc(isoDateText(h.run.payDate))} · ${who}</span></div>
+        <div class="hist-main"><span class="hist-period">${cl ? esc(cl) + ' · ' : ''}${esc(per)}</span><span class="hist-sub">Paid ${esc(isoDateText(h.run.payDate))} · ${who}</span></div>
         <div class="hist-total">${peso(h.grand)}</div>
         <div class="hist-actions">
           <button class="btn btn-sm gold" type="button" data-h-pdf="${esc(h.id)}">Payslips PDF</button>
@@ -683,7 +729,7 @@ function mount(H) {
       <td class="r">${sh.calc.length > 1 ? `<button class="icon-btn" type="button" data-cdel="${i}" aria-label="Remove row ${i + 1}">×</button>` : ''}</td>
     </tr>`).join('');
     $('#prSumRows').innerHTML = sh.sums.map((v, i) => `<div class="sum-slot"><label for="prsh_${i}">Hours ${i + 1}</label><input id="prsh_${i}" class="in time" data-sum="${i}" value="${esc(v)}" placeholder="H:MM" inputmode="decimal" autocomplete="off"><span class="echo" data-sum-e="${i}"></span></div>`).join('');
-    const ps = H.partners(), cs = H.clients();
+    const ps = H.partners(), cs = H.allClients();
     $('#prSendPartner').innerHTML = ps.map(p => `<option value="${esc(p.id)}" ${p.id === sh.sendPid ? 'selected' : ''}>${esc(p.name)}</option>`).join('') || '<option value="">No partners yet</option>';
     $('#prSendClient').innerHTML = cs.map(c => `<option value="${esc(c.id)}" ${c.id === sh.sendCid ? 'selected' : ''}>${esc(c.name)}</option>`).join('') || '<option value="">No clients yet</option>';
     updateSheet();
@@ -761,9 +807,7 @@ function mount(H) {
     if (b.id === 'prNewNo') { $('#prNewConfirm').hidden = true; $('#prNew').hidden = false; return; }
     if (b.id === 'prNewYes') {
       const prevEnd = parseIso(P().run.end) || addDays(today(), -1);
-      const start = addDays(prevEnd, 1);
-      let end = addDays(today(), -1);
-      if (end < start) end = addDays(start, 13);
+      const [start, end] = nextPeriod(prevEnd, H.schedule());
       H.change(st => { st.run = { start: iso(start), end: iso(end), payDate: iso(addDays(end, 1)), hours: {}, commission: {}, rateOverride: {}, frozen: null, saved: false }; });
       $('#prNewConfirm').hidden = true; $('#prNew').hidden = false;
       render();
@@ -786,7 +830,7 @@ function mount(H) {
     if (b.id === 'prPdfAll') { allPdf(); return; }
     if (b.id === 'prSave') {
       const snap = snapshot();
-      const had = H.runs().some(h => h.id === snap.id || (h.run.start === snap.run.start && h.run.end === snap.run.end));
+      const had = H.runs().some(h => h.id === snap.id || (h.run.start === snap.run.start && h.run.end === snap.run.end && sameClients(h, snap)));
       H.saveRun(snap);
       H.toast(had ? 'Updated this pay run in history.' : 'Saved to history.', { label: 'View', run: () => setView('history') });
       return;
@@ -795,6 +839,7 @@ function mount(H) {
     if (d.hPdf) { const h = find(d.hPdf); if (h) allPdf(cleanSnapSettings(h.settings), histRun(h)); return; }
     // opening a saved run replaces the current one: asked first when something was typed in it
     const typed = r => Object.keys(r.hours).length > 0 || Object.values(r.commission).some(c => c && c.on) || Object.keys(r.rateOverride).length > 0;
+    if (d.hOpen || d.hOyes) { const hc = histClient(find(d.hOpen || d.hOyes) || {}); if (hc && hc !== H.client()) H.setClient(hc, true); }
     if (d.hOpen && typed(P().run) && !P().run.saved) { $(`[data-h-oconfirm="${d.hOpen}"]`, root).hidden = false; b.hidden = true; return; }
     if (d.hOno) { $(`[data-h-oconfirm="${d.hOno}"]`, root).hidden = true; $(`[data-h-open="${d.hOno}"]`, root).hidden = false; return; }
     if (d.hOpen || d.hOyes) {
@@ -828,8 +873,9 @@ function mount(H) {
       const total = sumResult().total;
       const sh = P().sheet;
       const p = H.partners().find(x => x.id === ($('#prSendPartner').value || sh.sendPid));
-      const c = H.clients().find(x => x.id === ($('#prSendClient').value || sh.sendCid));
+      const c = H.allClients().find(x => x.id === ($('#prSendClient').value || sh.sendCid));
       if (!(total > 0) || !p || !c) return;
+      if (c.id !== H.client()) H.setClient(c.id, true); // that client's pay run
       const key = p.id + '|' + c.id;
       const before = P().run.hours[key];
       H.change(st => { st.run.hours[key] = fmtHM(total); });
@@ -841,6 +887,7 @@ function mount(H) {
   });
   root.addEventListener('input', e => {
     const t = e.target, d = t.dataset;
+    if (t.id === 'prClient') { H.setClient(t.value); return; }
     if (t.id === 'prStart' || t.id === 'prEnd' || t.id === 'prPay') {
       if (!parseIso(t.value)) return;
       const k = { prStart: 'start', prEnd: 'end', prPay: 'payDate' }[t.id];
@@ -889,6 +936,6 @@ function mount(H) {
 }
 
 window.PayrollKit = {
-  mount, cleanPayroll, blankPayroll, PARTS, BASE, cleanPayRun, cleanRun, cleanSheet, parseDuration, fmtHM, compute, rateInfo, CODES,
+  mount, cleanPayroll, blankPayroll, parts, part, setPart, defaultRunFor, SCHEDULES, BASE, cleanPayRun, cleanRun, cleanSheet, parseDuration, fmtHM, compute, rateInfo, CODES,
 };
 })();

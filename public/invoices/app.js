@@ -171,7 +171,7 @@ function cleanClient(x) {
     id: x.id, name: str(x.name, 120), company: str(x.company, 160), email: str(x.email, 200), cc: str(x.cc, 400),
     address: str(x.address, 600), currency: CODES.includes(x.currency) ? x.currency : 'USD', rate: str(x.rate, 20),
     dueDays: due >= 0 && due <= 365 ? due : 0, item: str(x.item, 400),
-    payRate: str(x.payRate, 20), commission: !!x.commission, about: str(x.about, 60),
+    payRate: str(x.payRate, 20), commission: !!x.commission, about: str(x.about, 60), paySchedule: PK.SCHEDULES.includes(x.paySchedule) ? x.paySchedule : 'biweekly',
     createdAt: +x.createdAt || 0, updatedAt: +x.updatedAt || 0,
   };
 }
@@ -314,7 +314,7 @@ function ownerLoad(d) {
   UI = {
     tab: TABS.includes(u.tab) ? u.tab : 'overview',
     filter: ['all', 'draft', 'unpaid', 'overdue', 'paid'].includes(u.filter) ? u.filter : 'all',
-    edId: validId(u.edId) ? u.edId : '', clId: validId(u.clId) ? u.clId : '', backTo: '',
+    edId: validId(u.edId) ? u.edId : '', clId: validId(u.clId) ? u.clId : '', backTo: '', payClient: validId(u.payClient) ? u.payClient : '',
   };
   rates = {};
   const r = d && d.rates && typeof d.rates === 'object' ? d.rates : {};
@@ -349,8 +349,10 @@ function merge(p, opts) {
     else {
       // each part on its own: the hours calculator on the phone never wipes hours typed on the laptop
       const L = S.payroll, R = r.payroll;
-      for (const k of PK.PARTS) {
-        if (R.at[k] > L.at[k] || (R.at[k] === L.at[k] && JSON.stringify(R[k]) > JSON.stringify(L[k]))) { L[k] = R[k]; L.at[k] = R.at[k]; }
+      for (const k of new Set([...PK.parts(L), ...PK.parts(R)])) {
+        const rv = PK.part(R, k), lv = PK.part(L, k), rt = R.at[k] || 0, lt = L.at[k] || 0;
+        if (rv === undefined) continue;
+        if (lv === undefined || rt > lt || (rt === lt && JSON.stringify(rv) > JSON.stringify(lv))) { PK.setPart(L, k, rv); L.at[k] = rt; }
       }
       L.updatedAt = Math.max(L.updatedAt, R.updatedAt);
     }
@@ -1509,6 +1511,7 @@ function renderClients() {
   const dueOpts = [[0, 'Due on receipt'], [7, '7 days'], [14, '14 days'], [30, '30 days']];
   if (!dueOpts.some(o => o[0] === c.dueDays)) dueOpts.push([c.dueDays, c.dueDays + ' days']);
   fillSelect($('#clDue'), dueOpts.map(([v, t]) => [String(v), t]), String(c.dueDays));
+  $('#clPaySched').value = c.paySchedule;
   for (const el of $$('[data-cf]')) {
     if (el.type === 'checkbox') el.checked = !!c[el.dataset.cf];
     else if (el.tagName !== 'SELECT') setVal(el.id, String(c[el.dataset.cf] ?? ''));
@@ -2335,7 +2338,12 @@ const payrollPartners = () => activePartners().map(p => ({ id: p.id, name: p.nam
 const payrollClients = () => Object.values(S.clients)
   .filter(c => num(c.payRate) > 0 || c.commission)
   .sort((a, b) => byStr((a.name || a.company).toLowerCase(), (b.name || b.company).toLowerCase()))
-  .map(c => ({ id: c.id, name: c.name || c.company, about: c.about, currency: PK.CODES.includes(c.currency) ? c.currency : 'USD', rate: num(c.payRate) > 0 ? num(c.payRate) : 0, commission: c.commission }));
+  .map(c => ({ id: c.id, name: c.name || c.company, about: c.about, currency: PK.CODES.includes(c.currency) ? c.currency : 'USD', rate: num(c.payRate) > 0 ? num(c.payRate) : 0, commission: c.commission, schedule: c.paySchedule }));
+// Payroll works on one client at a time: each client is paid on its own dates
+const payClient = () => { const list = payrollClients(); return list.some(c => c.id === UI.payClient) ? UI.payClient : list[0] ? list[0].id : ''; };
+const paySchedule = () => (S.clients[payClient()] && S.clients[payClient()].paySchedule) || 'biweekly';
+const firstRuns = {}; // a client's first pay run, until something in it is changed
+const runFor = (P, cid) => P.runs[cid] || (firstRuns[cid] = firstRuns[cid] || PK.defaultRunFor(paySchedule()));
 // each partner's tracked minutes per client in a pay period: { 'partner|client': minutes }
 function trackedHours(from, to) {
   const out = {};
@@ -2369,22 +2377,32 @@ async function payslipKit() {
 function initPayroll() {
   payrollView = PK.mount({
     root: $('#payrollRoot'),
-    state: () => S.payroll || (blankPayroll = blankPayroll || PK.blankPayroll()),
+    // what the Payroll tab works on: the settings, the hours calculator, and the chosen client's run
+    state: () => { const P = S.payroll || (blankPayroll = blankPayroll || PK.blankPayroll()); return { settings: P.settings, sheet: P.sheet, run: runFor(P, payClient()) }; },
     change: fn => {
       if (!S.payroll) S.payroll = blankPayroll || PK.blankPayroll();
-      const P = S.payroll;
-      const before = PK.PARTS.map(k => JSON.stringify(P[k]));
-      fn(P);
-      PK.PARTS.forEach((k, i) => { if (JSON.stringify(P[k]) !== before[i]) P.at[k] = Math.max(Date.now(), P.at[k] + 1); });
+      const P = S.payroll, cid = payClient();
+      const view = { settings: P.settings, sheet: P.sheet, run: runFor(P, cid) };
+      const before = { settings: JSON.stringify(view.settings), sheet: JSON.stringify(view.sheet), run: JSON.stringify(view.run) };
+      fn(view);
+      const bump = k => { P.at[k] = Math.max(Date.now(), (P.at[k] || 0) + 1); };
+      if (JSON.stringify(view.settings) !== before.settings) { P.settings = view.settings; bump('settings'); }
+      if (JSON.stringify(view.sheet) !== before.sheet) { P.sheet = view.sheet; bump('sheet'); }
+      if (cid && JSON.stringify(view.run) !== before.run) { P.runs[cid] = view.run; delete firstRuns[cid]; bump('run:' + cid); }
       P.updatedAt = stamp(P);
       save();
     },
+    allClients: payrollClients,
+    client: payClient,
+    schedule: paySchedule,
+    setClient: (id, quiet) => { UI.payClient = id; save(); if (!quiet && payrollView) { payrollView.render(); refreshRates(payrollView.codes()); } },
     runs: () => Object.values(S.payRuns).sort((a, b) => byStr(b.run.end, a.run.end) || b.savedAt - a.savedAt),
     saveRun: rec => {
       const r = PK.cleanPayRun(rec);
       if (!r) return;
       // one saved run per pay period: saving it again replaces the earlier copy
-      for (const h of Object.values(S.payRuns)) if (h.id !== r.id && h.run.start === r.run.start && h.run.end === r.run.end) { delete S.payRuns[h.id]; S.deleted[h.id] = Math.max(Date.now(), h.updatedAt); }
+      const ids = x => JSON.stringify(x.settings.clients.map(c => c.id).sort());
+      for (const h of Object.values(S.payRuns)) if (h.id !== r.id && h.run.start === r.run.start && h.run.end === r.run.end && ids(h) === ids(r)) { delete S.payRuns[h.id]; S.deleted[h.id] = Math.max(Date.now(), h.updatedAt); }
       r.updatedAt = Math.max(stamp(S.payRuns[r.id] || r), (S.deleted[r.id] || 0) + 1);
       S.payRuns[r.id] = r;
       delete S.deleted[r.id];
@@ -2392,7 +2410,7 @@ function initPayroll() {
     },
     deleteRun: id => { const h = S.payRuns[id]; delete S.payRuns[id]; S.deleted[id] = Math.max(Date.now(), h ? h.updatedAt : 0); save(); },
     partners: payrollPartners,
-    clients: payrollClients,
+    clients: () => payrollClients().filter(c => c.id === payClient()), // only the chosen client's work is paid in this run
     tracked: trackedHours,
     feePct: () => { const n = num(S.business.feePct); return n >= 0 && n < 50 ? n : 4; },
     live: () => rates,
@@ -2510,7 +2528,7 @@ async function importPayroll(password) {
   // the pay run in progress (with any rates it was frozen with), the hours calculator, payslip details;
   // Payroll that was only looked at in Work Hub (nothing typed yet) takes them too
   const P0 = S.payroll;
-  const untouched = !P0 || (!Object.keys(P0.run.hours).length && !Object.values(P0.run.commission).some(c => c && c.on) && !Object.keys(P0.run.rateOverride).length);
+  const untouched = !P0 || Object.values(P0.runs).every(r => !Object.keys(r.hours).length && !Object.values(r.commission).some(c => c && c.on) && !Object.keys(r.rateOverride).length);
   if (untouched) {
     const sheet = d.sheet && typeof d.sheet === 'object' ? { ...d.sheet, sendPid: pmap[d.sheet.sendPid] || '', sendCid: cmap[d.sheet.sendCid] || '' } : null;
     S.payroll = PK.cleanPayroll({ settings: { preparedBy: st.preparedBy, location: st.location, split: st.split }, run: remapRun(d.run), sheet, updatedAt: stamp(P0) });
