@@ -215,7 +215,10 @@ function view(H) {
       <select id="tmProject" class="in" aria-label="Project"></select>
       <div class="tclock" id="tmClock" aria-live="off">0:00:00</div>
       <button id="tmBtn" class="btn gold tm-btn" type="button">Start</button>
-      <p id="tmWarn" class="warn-text small tm-warn" hidden></p>
+      <div id="tmFix" class="tm-warn tm-fix" hidden>
+        <p id="tmWarn" class="warn-text small" hidden></p>
+        <button id="tmEarlier" class="link" type="button">Forgot to stop it? Set when you really stopped</button>
+      </div>
     </div>
     <div id="tmWorking" class="working" hidden></div>
     <div class="t-tools">
@@ -230,7 +233,7 @@ function view(H) {
     </div>
     <div class="card wk-card"><div class="wkbars" id="wkBars" role="img"></div></div>
     <div id="tmDays" class="tdays"></div>`;
-  if (!$('#entrySheet')) document.body.insertAdjacentHTML('beforeend', sheetHtml());
+  if (!$('#entrySheet')) document.body.insertAdjacentHTML('beforeend', sheetHtml() + stopHtml());
 
   const projById = () => Object.fromEntries([...(H.otherProjects ? H.otherProjects() : []), ...H.projects()].map(p => [p.id, p]));
   // a project's client, for choosing the client first
@@ -264,6 +267,7 @@ function view(H) {
     $('#tmBtn').classList.toggle('gold', !running);
     $('#tmBtn').classList.toggle('stop', running);
     $('#tmBar').classList.toggle('running', running);
+    $('#tmFix').hidden = !running;
     tickClock();
   }
   function tickClock() {
@@ -272,7 +276,7 @@ function view(H) {
     $('#tmClock').textContent = fmtHMS(ms);
     const long = ms > (H.longHours ? H.longHours() : 6) * 3600000;
     $('#tmWarn').hidden = !long;
-    if (long) $('#tmWarn').textContent = `This timer has been running ${fmtHM(ms / 60000)}. Still working? If not, stop it and fix the time.`;
+    if (long) $('#tmWarn').textContent = `This timer has been running ${fmtHM(ms / 60000)}. Still working? If not, set when you really stopped.`;
   }
   async function startStop() {
     const t = H.timer();
@@ -280,15 +284,16 @@ function view(H) {
       const end = new Date();
       const started = new Date(t.startedAt);
       const minutes = Math.round((end - started) / 60000);
+      const capped = minutes > 1440; // one entry holds 24 hours at most
       H.setTimer({ projectId: '', note: '', startedAt: 0, updatedAt: stamp(t) });
       if (minutes < 1) { GJCore.toast('Less than a minute, so nothing was saved.'); renderAll(); return; }
       // the id comes from when the timer started, so stopping it on two devices makes one entry
       const e = cleanEntry({
         id: 'e' + t.startedAt.toString(36), projectId: t.projectId, date: iso(started), minutes: Math.min(minutes, 1440),
-        start: clock(started), end: clock(end), note: t.note, source: 'timer', createdAt: Date.now(), updatedAt: Date.now(),
+        start: clock(started), end: clock(capped ? started : end), note: t.note, source: 'timer', edited: capped ? 1 : 0, createdAt: Date.now(), updatedAt: Date.now(),
       });
       H.save(H.me, e); // saved straight away, even a long one: closing the check below never loses it
-      if (minutes > (H.longHours ? H.longHours() : 6) * 60) { $('#tmNote').value = ''; renderAll(); openSheet(e, H.me, false, true); return; }
+      if (minutes > (H.longHours ? H.longHours() : 6) * 60) { $('#tmNote').value = ''; renderAll(); openSheet(e, H.me, false, capped ? 'capped' : true); return; }
       GJCore.toast(`Saved ${fmtHM(e.minutes)} on ${projectLabel(e.projectId)}.`);
       $('#tmNote').value = '';
       renderAll();
@@ -365,7 +370,7 @@ function view(H) {
               <span class="tnote">${e.note ? esc(e.note) : '<span class="muted">No description</span>'}</span>
             </button>
             <span class="ttime">${e.start && e.end ? `<span class="muted small">${esc(clock12(e.start))} - ${esc(clock12(e.end))}</span>` : ''}<b class="mono">${fmtHM(e.minutes)}</b></span>
-            ${e.who === H.me ? `<button class="icon-btn tplay" type="button" data-again="${esc(e.id)}" title="Start again" aria-label="Start this again">▶</button>` : '<span></span>'}
+            <span class="tacts">${canEdit ? `<button class="icon-btn tedit" type="button" data-edit="${esc(e.who)}|${esc(e.id)}" title="Edit or delete" aria-label="Edit or delete this time">${PENCIL}</button>` : ''}${e.who === H.me ? `<button class="icon-btn tplay" type="button" data-again="${esc(e.id)}" title="Start again" aria-label="Start this again">▶</button>` : ''}</span>
           </div>`;
         }).join('') + '</section>';
     }).join('') : `<div class="inv-empty">${esc(H.emptyText ? H.emptyText() : H.projects().length ? 'No time this week yet.' : 'Add a project under Clients first, then start the timer.')}</div>`;
@@ -381,7 +386,12 @@ function view(H) {
     const w = H.working ? H.working() : [];
     const box = $('#tmWorking');
     box.hidden = !w.length;
-    box.innerHTML = w.map(x => `<span class="wnow"><span class="live" aria-hidden="true"></span><b>${esc(x.name)}</b> ${esc(x.project)}${x.note ? ` · ${esc(x.note)}` : ''} <span class="mono muted">${fmtHM((Date.now() - x.since) / 60000)}</span></span>`).join('');
+    // someone else's timer running longer than the reminder setting was probably left on
+    const longMs = (H.longHours ? H.longHours() : 6) * 3600000;
+    box.innerHTML = w.map(x => {
+      const ms = Date.now() - x.since, long = ms > longMs;
+      return `<span class="wnow${long ? ' wlong' : ''}"><span class="live" aria-hidden="true"></span><b>${esc(x.name)}</b> ${esc(x.project)}${x.note ? ` · ${esc(x.note)}` : ''} <span class="mono muted">${fmtHM(ms / 60000)}</span>${long ? '<span class="warn-text small">Running a long time. Left on?</span>' : ''}</span>`;
+    }).join('');
   }
   function renderAll() { renderTimer(); renderWho(); renderWorking(); renderWeek(); }
 
@@ -405,7 +415,7 @@ function view(H) {
     $('#esNote').value = entry.note;
     $('#esDel').hidden = !!isNew;
     $('#esDelConfirm').hidden = true;
-    $('#esEcho').textContent = check ? `Timed ${fmtHM(entry.minutes)}, which is longer than usual. It's saved; fix it here if the timer was left running.` : '';
+    $('#esEcho').textContent = check === 'capped' ? `The timer ran for more than a day, so this was saved as 24:00, the most one entry can hold. Change "How long" to what you really worked, or delete it.` : check ? `Timed ${fmtHM(entry.minutes)}, which is longer than usual. It's saved; fix it here if the timer was left running.` : '';
     $('#entrySheet').hidden = false;
     document.body.classList.add('sheet-open');
     // unless a field in it already has the cursor (typing must never jump to another field)
@@ -467,10 +477,83 @@ function view(H) {
     if (H.onChange) H.onChange();
   }
 
+  /* ---- a timer left running: stop it at the time the work really ended, or throw it away */
+  let stopping = 0; // the start of the timer the sheet is about
+  const whenText = d => `${dayLabel(d)}, ${clock12(clock(d))}`;
+  function openStop() {
+    const t = H.timer();
+    if (!t.startedAt) return;
+    stopping = t.startedAt;
+    const started = new Date(t.startedAt);
+    $('#ssInfo').textContent = `This timer started ${whenText(started)} on ${projectLabel(t.projectId)}. Type when you really stopped working.`;
+    $('#ssDate').value = iso(started);
+    $('#ssDate').min = iso(started);
+    $('#ssDate').max = iso(new Date());
+    $('#ssTime').value = '';
+    $('#ssEcho').textContent = '';
+    $('#ssDropConfirm').hidden = true;
+    $('#stopSheet').hidden = false;
+    document.body.classList.add('sheet-open');
+    setTimeout(() => $('#ssTime').focus(), 30);
+  }
+  function closeStop() {
+    $('#stopSheet').hidden = true;
+    if (!$$('.sheet').some(s => !s.hidden)) document.body.classList.remove('sheet-open');
+    stopping = 0;
+  }
+  // { minutes, end } for the time typed, or { error }
+  function stopChoice() {
+    const t = H.timer();
+    if (!t.startedAt || t.startedAt !== stopping) return { gone: true };
+    const d = parseIso($('#ssDate').value), c = clockOk($('#ssTime').value);
+    if (!d) return { error: 'Choose the day you stopped.', el: '#ssDate' };
+    if (!c) return { error: 'Type the time you stopped.', el: '#ssTime' };
+    const started = new Date(t.startedAt);
+    started.setSeconds(0, 0);
+    const end = new Date(d.getFullYear(), d.getMonth(), d.getDate(), +c.slice(0, 2), +c.slice(3));
+    const minutes = Math.round((end - started) / 60000);
+    if (minutes < 1) return { error: `That's before the timer started (${whenText(started)}). If you did no work at all, use "Don't save any time".`, el: '#ssTime' };
+    if (end.getTime() > Date.now() + 60000) return { error: "That's later than now.", el: '#ssTime' };
+    if (minutes > 1440) return { error: 'One entry can be up to 24 hours. Choose an earlier time, then add the rest with + Add time.', el: '#ssTime' };
+    return { minutes, started, end };
+  }
+  function stopEcho() {
+    const r = stopChoice();
+    $('#ssEcho').textContent = r.gone ? '' : r.error && $('#ssTime').value ? r.error : r.minutes ? `= ${fmtHM(r.minutes)} of work, ${clock12(clock(r.started))} to ${clock12(clock(r.end))}. The rest of the timer is not counted.` : '';
+  }
+  function stopSave() {
+    const r = stopChoice();
+    if (r.gone) { closeStop(); renderAll(); return; }
+    if (r.error) { GJCore.toast(r.error); $(r.el).focus(); return; }
+    const t = H.timer();
+    H.setTimer({ projectId: '', note: '', startedAt: 0, updatedAt: stamp(t) });
+    // the same id a plain Stop would give, and marked as changed so the team report shows it
+    const e = cleanEntry({
+      id: 'e' + t.startedAt.toString(36), projectId: t.projectId, date: iso(r.started), minutes: r.minutes,
+      start: clock(r.started), end: clock(r.end), note: t.note, source: 'timer', edited: 1, createdAt: Date.now(), updatedAt: Date.now(),
+    });
+    H.save(H.me, e);
+    $('#tmNote').value = '';
+    closeStop();
+    renderAll();
+    if (H.onChange) H.onChange();
+    GJCore.toast(`Saved ${fmtHM(e.minutes)} on ${projectLabel(e.projectId)}.`);
+  }
+  function stopDrop() {
+    const t = H.timer();
+    if (t.startedAt && t.startedAt === stopping) H.setTimer({ projectId: '', note: '', startedAt: 0, updatedAt: stamp(t) });
+    $('#tmNote').value = '';
+    closeStop();
+    renderAll();
+    if (H.onChange) H.onChange();
+    GJCore.toast('Timer thrown away. No time was saved.');
+  }
+
   /* ---- wiring */
   root.addEventListener('click', e => {
     const t = e.target;
     if (t.closest('#tmBtn')) { startStop(); return; }
+    if (t.closest('#tmEarlier')) { openStop(); return; }
     if (t.closest('#tmAdd')) {
       // today when the week shown is this one, else that week's Monday
       const d = today() >= week && today() < addDays(week, 7) ? today() : week;
@@ -528,13 +611,53 @@ function view(H) {
     if (H.onChange) H.onChange();
     GJCore.toast('Time entry deleted.');
   });
+  const stopSheet = $('#stopSheet');
+  stopSheet.addEventListener('input', stopEcho);
+  $('#ssSave').addEventListener('click', stopSave);
+  $('#ssClose').addEventListener('click', closeStop);
+  $('#ssDrop').addEventListener('click', () => { $('#ssDropConfirm').hidden = false; });
+  $('#ssDropNo').addEventListener('click', () => { $('#ssDropConfirm').hidden = true; });
+  $('#ssDropYes').addEventListener('click', stopDrop);
+  stopSheet.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); stopSave(); } });
+  let downOnStop = false;
+  stopSheet.addEventListener('pointerdown', e => { downOnStop = e.target === stopSheet; });
+  stopSheet.addEventListener('click', e => { if (e.target === stopSheet && downOnStop) closeStop(); downOnStop = false; });
   let downOnBackdrop = false;
   sheet.addEventListener('pointerdown', e => { downOnBackdrop = e.target === sheet; });
   sheet.addEventListener('click', e => { if (e.target === sheet && downOnBackdrop) closeSheet(); downOnBackdrop = false; });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+  document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (!sheet.hidden) closeSheet(); else if (!stopSheet.hidden) closeStop(); });
   setInterval(() => { if (!root.offsetParent) return; if (H.timer().startedAt) tickClock(); if (H.working && H.working().length) renderWorking(); }, 1000);
 
-  return { render: renderAll, openNew: () => $('#tmAdd').click() };
+  // open an entry to fix or delete it, from anywhere in the app
+  function openEdit(wh, id) {
+    const e0 = H.entries().find(x => x.who === wh && x.id === id);
+    if (!e0 || (H.canEdit && !H.canEdit(wh))) return;
+    const { who: _w, ...entry } = e0;
+    openSheet(entry, wh, false);
+  }
+  return { render: renderAll, openNew: () => $('#tmAdd').click(), openEdit };
+}
+
+const PENCIL = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+
+// for a timer that was left running: when the work really stopped, or no time at all
+function stopHtml() {
+  return `<div id="stopSheet" class="sheet small-sheet" role="dialog" aria-modal="true" aria-labelledby="ssTitle" hidden>
+  <div class="sheet-card">
+    <div class="card-hd"><h2 id="ssTitle">When did you really stop?</h2><button id="ssClose" class="link" type="button">Close</button></div>
+    <p id="ssInfo" class="small"></p>
+    <div class="fields two">
+      <div class="field"><label for="ssDate">Day you stopped</label><input id="ssDate" class="in" type="date"></div>
+      <div class="field"><label for="ssTime">Time you stopped</label><input id="ssTime" class="in" type="time"></div>
+    </div>
+    <p id="ssEcho" class="muted small" aria-live="polite"></p>
+    <div class="card-ft">
+      <button id="ssSave" class="btn gold" type="button">Stop and save this time</button>
+      <button id="ssDrop" class="btn ghost" type="button">Don't save any time</button>
+      <div id="ssDropConfirm" class="confirm" hidden><span>Throw this timer away? No time is saved.</span><button id="ssDropYes" class="btn btn-sm" type="button">Yes, throw it away</button><button id="ssDropNo" class="link" type="button">Cancel</button></div>
+    </div>
+  </div>
+</div>`;
 }
 
 function sheetHtml() {

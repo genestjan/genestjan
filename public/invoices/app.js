@@ -2092,7 +2092,8 @@ function renderWorkCards() {
   const ready = readyToInvoice();
   const projName = id => { const p = projectList().find(x => x.id === id); return p ? `${p.clientName} · ${p.name}` : ''; };
   box.hidden = !running.length && !ready.length;
-  box.innerHTML = (running.length ? `<section class="card"><div class="card-hd"><h2>Working now</h2></div>${running.map(r => `<div class="wnow"><span class="live" aria-hidden="true"></span><b>${esc(r.name)}</b> ${esc(projName(r.t.projectId))}${r.t.note ? ` · ${esc(r.t.note)}` : ''} <span class="mono muted">${TK.fmtHM((Date.now() - r.t.startedAt) / 60000)}</span></div>`).join('')}</section>` : '') +
+  const longMs = (num(S.business.timerLong) > 0 && num(S.business.timerLong) <= 24 ? num(S.business.timerLong) : 6) * 3600000;
+  box.innerHTML = (running.length ? `<section class="card"><div class="card-hd"><h2>Working now</h2></div>${running.map(r => `<div class="wnow"><span class="live" aria-hidden="true"></span><b>${esc(r.name)}</b> ${esc(projName(r.t.projectId))}${r.t.note ? ` · ${esc(r.t.note)}` : ''} <span class="mono muted">${TK.fmtHM((Date.now() - r.t.startedAt) / 60000)}</span>${Date.now() - r.t.startedAt > longMs ? '<span class="warn-text small">Running a long time. Left on?</span>' : ''}</div>`).join('')}</section>` : '') +
     (ready.length ? `<section class="card"><div class="card-hd"><h2>Ready to invoice</h2><span class="muted small">Tracked time not on an invoice yet</span></div>${ready.map(r => {
       const amt = round2(TK.decimal(r.minutes) * (num(r.client.rate) || 0));
       return `<div class="ready-row"><div><b>${esc(r.client.name || r.client.company)}</b><div class="muted small">${TK.fmtHM(r.minutes)} · ${esc(periodText(parseIso(r.from), parseIso(r.to)))}${amt ? ` · about ${esc(fmt(amt, r.client.currency))}` : ''}</div></div><button class="btn btn-sm gold" type="button" data-bill="${esc(r.client.id)}|${esc(r.from)}|${esc(r.to)}">Create invoice</button></div>`;
@@ -2701,12 +2702,12 @@ function renderHours() {
   const rows = Object.entries(per).map(([id, m]) => ({ name: names[id] || 'Removed project', minutes: m })).sort((x, y) => y.minutes - x.minutes);
   const days = new Set(list.map(e => e.date)).size;
   const when = W.timed ? `${shortDate(W.a)}${W.ft ? ', ' + TK.clock12(W.ft) : ''} – ${shortDate(W.b)}${W.tt ? ', ' + TK.clock12(W.tt) : ''}` : periodText(W.a, W.b);
-  const row = e => `<tr><td>${esc(shortDate(parseIso(e.date)))}</td><td class="muted small">${e.start && e.end ? `${esc(TK.clock12(e.start))} - ${esc(TK.clock12(e.end))}` : ''}</td><td>${esc(names[e.projectId] || 'Removed project')}</td><td>${esc(e.note)}</td><td class="r mono">${TK.fmtHM(e.minutes)}${e.minutes < e.whole ? `<div class="muted small">of ${TK.fmtHM(e.whole)}</div>` : ''}</td></tr>`;
+  const row = e => `<tr><td>${esc(shortDate(parseIso(e.date)))}</td><td class="muted small">${e.start && e.end ? `${esc(TK.clock12(e.start))} - ${esc(TK.clock12(e.end))}` : ''}</td><td>${esc(names[e.projectId] || 'Removed project')}</td><td>${esc(e.note)}</td><td class="r mono">${TK.fmtHM(e.minutes)}${e.minutes < e.whole ? `<div class="muted small">of ${TK.fmtHM(e.whole)}</div>` : ''}</td><td class="r"><button class="link" type="button" data-hr-edit="${esc(e.id)}">Edit</button></td></tr>`;
   out.innerHTML = `
     <div class="r-hero card"><div><span class="eyebrow">Your time</span><div class="big">${TK.fmtLong(total)}</div><div class="muted small">${esc(when)} · ${days} day${days === 1 ? '' : 's'} worked</div></div>${dayBars(perDay(list.filter(e => e.date >= from), from, to))}</div>
     <section class="card"><h3>By project</h3><table class="rtable">${barRows(rows, total) || '<tr><td class="muted">No time in this period</td></tr>'}</table></section>
-    <section class="card"><div class="card-hd"><h3>What you did</h3><span class="muted small">To fix an entry, tap it on the Time tab</span></div>
-      <div class="table-wrap"><table class="rtable sheet-t"><thead><tr><th>Date</th><th>Time</th><th>Project</th><th>Work done</th><th class="r">Hours</th></tr></thead><tbody>${list.slice().sort((x, y) => byStr(x.date, y.date) || byStr(x.start || '99', y.start || '99')).map(row).join('') || '<tr><td colspan="5" class="muted">No time in this period</td></tr>'}</tbody></table></div></section>`;
+    <section class="card"><div class="card-hd"><h3>What you did</h3><span class="muted small">Wrong time? Tap Edit to fix or delete it</span></div>
+      <div class="table-wrap"><table class="rtable sheet-t"><thead><tr><th>Date</th><th>Time</th><th>Project</th><th>Work done</th><th class="r">Hours</th><th><span class="sr">Edit</span></th></tr></thead><tbody>${list.slice().sort((x, y) => byStr(x.date, y.date) || byStr(x.start || '99', y.start || '99')).map(row).join('') || '<tr><td colspan="6" class="muted">No time in this period</td></tr>'}</tbody></table></div></section>`;
 }
 function renderPartner() {
   if (MODE !== 'partner') return;
@@ -2879,6 +2880,7 @@ function wire() {
   });
   $('#hrPreset').addEventListener('input', renderHours);
   for (const id of ['#hrFrom', '#hrTo', '#hrFromT', '#hrToT']) $(id).addEventListener('input', renderHours);
+  $('#hrOut').addEventListener('click', e => { const b = e.target.closest('[data-hr-edit]'); if (b && timeView) timeView.openEdit('me', b.dataset.hrEdit); });
   $('#hrAdd').addEventListener('click', () => { if (timeView) timeView.openNew(); }); // the same sheet as + Add time on the Time tab
   $('#meSyncNow').addEventListener('click', () => syncChannel());
   $('#ownPwForm').addEventListener('submit', async e => {
