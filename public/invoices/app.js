@@ -1806,7 +1806,30 @@ function timeFor(inv) {
     desc: `${p.name} - {hours} hours` + (inv.pStart && inv.pEnd ? ' for the period of {period}' : ''),
     qty: TK.fmtHM(per[p.id]), rate: p.rate.trim() || (client ? client.rate : ''),
   }));
-  return { lines, refs: list.map(entryKey).sort(), minutes: list.reduce((t, e) => t + e.minutes, 0), projects: Object.keys(per).length, entries: list };
+  return { lines, refs: list.map(entryKey).sort(), minutes: list.reduce((t, e) => t + e.minutes, 0), projects: Object.keys(per).length, entries: list, held: heldElsewhere(inv, ids) };
+}
+// time in this invoice's client and period that another invoice already bills: [{ inv, minutes, status }]
+function heldElsewhere(inv, ids) {
+  const mins = {};
+  for (const e of allEntries()) if (ids.has(e.projectId) && (!inv.pStart || e.date >= inv.pStart) && (!inv.pEnd || e.date <= inv.pEnd)) mins[entryKey(e)] = e.minutes;
+  const out = [];
+  for (const o of Object.values(S.invoices)) {
+    if (o.id === inv.id || o.voidAt) continue;
+    const m = o.timeRefs.reduce((t, k) => t + (mins[k] || 0), 0);
+    if (m) out.push({ inv: o, minutes: m, status: statusOf(o) });
+  }
+  return out.sort((a, b) => b.minutes - a.minutes);
+}
+const heldText = h => `${TK.fmtHM(h.minutes)} is already on invoice ${h.inv.number} (${h.status === 'draft' ? 'a draft' : h.status})`;
+// take tracked time off a draft so another invoice can bill it
+function releaseTime(id) {
+  const o = S.invoices[id];
+  if (!o || statusOf(o) !== 'draft') return;
+  o.items = o.items.filter(i => !i.src);
+  if (!o.items.length) o.items = [cleanItem({}, 0)];
+  o.timeRefs = [];
+  o.timeLink = false;
+  touch(o);
 }
 // put the time lines on the invoice (one per project), keeping lines typed by hand
 function applyTime(inv, t) {
@@ -1824,7 +1847,13 @@ function fillFromTime() {
   const inv = cur();
   if (!inv) return;
   const t = timeFor(inv);
-  if (!t || !t.lines.length) { toast('No tracked time to bill for this client in this work period.'); return; }
+  if (!t || !t.lines.length) {
+    const h = t && t.held[0];
+    if (!h) { toast('No tracked time to bill for this client in this work period. Check the work period dates, and that the projects are marked billable under Clients.'); return; }
+    if (h.status === 'draft') toast(`${heldText(h)}. Time can only be on one invoice.`, { label: `Move it here`, run: () => { releaseTime(h.inv.id); fillFromTime(); } });
+    else toast(`${heldText(h)}, so it has been billed already. Void that invoice first if it was a mistake.`, { label: 'Open it', run: () => openEditor(h.inv.id) });
+    return;
+  }
   applyTime(inv, t);
   inv.timeLink = true;
   touch(inv);
@@ -1852,7 +1881,8 @@ function renderEditorTime(inv) {
   $('#edTimeSum').textContent = t.minutes ? TK.fmtHM(t.minutes) : '';
   $('#edTimeText').textContent = sent
     ? (inv.timeRefs.length ? `This invoice billed ${inv.timeRefs.length} time entr${inv.timeRefs.length === 1 ? 'y' : 'ies'}. It no longer changes now it has gone out.` : 'Sent invoices keep their lines as they are.')
-    : t.minutes ? `${TK.fmtHM(t.minutes)} tracked for ${period} across ${t.projects} project${t.projects === 1 ? '' : 's'}, not on any other invoice.` : `No unbilled time for ${period} yet.`;
+    : (t.minutes ? `${TK.fmtHM(t.minutes)} tracked for ${period} across ${t.projects} project${t.projects === 1 ? '' : 's'}, not on any other invoice.` : `No unbilled time for ${period} yet.`)
+      + (t.held.length ? ` ${t.held.map(heldText).join('; ')}.` : '');
   $('#edTimeFill').hidden = sent;
   $('#edTimeLinkWrap').hidden = sent;
   $('#edTimeLink').checked = inv.timeLink;
