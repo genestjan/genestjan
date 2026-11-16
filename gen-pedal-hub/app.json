@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Gen Pedal Hub",
+    "slug": "gen-pedal-hub",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "genpedalhub",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.genestjan.genpedalhub",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#173B32",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#173B32",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Gen Pedal Hub uses your location to record your ride.",
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false,
+      "reactCompiler": true,
+      "baseUrl": "/pedalhub"
+    }
+  }
+}

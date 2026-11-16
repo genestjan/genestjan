@@ -27,6 +27,7 @@ jobs:
             package-lock.json
             ridewise/package-lock.json
             fetch/package-lock.json
+            gen-pedal-hub/package-lock.json
       - run: npm ci
       - run: npm run build
       # next.config.mjs sets output:'export', so the static site lands in out/
@@ -50,6 +51,20 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ vars.FETCH_SUPABASE_ANON_KEY }}
           VITE_TTS_URL: ${{ vars.FETCH_TTS_URL }}
       - run: cp -r fetch/dist out/fetch
+      # Gen Pedal Hub (cycling app): web version at /pedalhub/, installable on iPhone from Safari
+      - run: npm ci
+        working-directory: gen-pedal-hub
+      - run: npm test
+        working-directory: gen-pedal-hub
+      - run: npm run build:web
+        working-directory: gen-pedal-hub
+      - run: cp -r gen-pedal-hub/dist out/pedalhub
+      # The Android APK is built by pedalhub-apk.yml; copy the newest one next to the web app
+      - name: Add the Android APK
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download pedalhub-latest --pattern gen-pedal-hub.apk --dir out/pedalhub
       # Monggols VPN home-screen app for iPhone: the shared screen from vpn/ui, served at /monggols/
       - run: cp -r vpn/ui out/monggols
       # Beki's draft website: built from beki-site/ (its words and pictures are edited at /BekiEakinsdraftwebsite/admin/)

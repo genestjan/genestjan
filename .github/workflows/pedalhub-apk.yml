@@ -1,0 +1,66 @@
+name: Build Gen Pedal Hub Android APK
+
+# Builds the Android app and publishes it as the "pedalhub-latest" release.
+# The website build then copies that APK to genestjanramirez.com/pedalhub/gen-pedal-hub.apk
+
+on:
+  push:
+    branches: [main, ccr-5395684b-0kz7wl]
+    paths:
+      - 'gen-pedal-hub/**'
+      - '.github/workflows/pedalhub-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pedalhub-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: gen-pedal-hub
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: gen-pedal-hub/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc --noEmit
+      # Every build gets a higher version number so Android accepts it as an update.
+      - name: Set version code
+        run: |
+          node -e "const f='app.json',c=require('./'+f);c.expo.android.versionCode=${{ github.run_number }};require('fs').writeFileSync(f,JSON.stringify(c,null,2))"
+      # Generates the android/ folder from app.json
+      - run: npx expo prebuild --platform android --no-install
+      - name: Build APK
+        working-directory: gen-pedal-hub/android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk gen-pedal-hub.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gen-pedal-hub-apk
+          path: gen-pedal-hub/gen-pedal-hub.apk
+      - name: Publish as the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view pedalhub-latest >/dev/null 2>&1 || gh release create pedalhub-latest \
+            --title "Gen Pedal Hub (latest Android build)" \
+            --notes "Latest Android APK of Gen Pedal Hub, rebuilt automatically." \
+            --prerelease --target "${{ github.sha }}"
+          gh release upload pedalhub-latest gen-pedal-hub.apk --clobber
