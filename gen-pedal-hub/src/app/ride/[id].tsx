@@ -3,13 +3,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
-import { RouteShape } from '@/components/route-shape';
+import { addPost, hasBackend, removeUploadedRide, useSession } from '@/backend';
+import { TileMap } from '@/components/tile-map';
 import { Button, Card, Choices, Field, H2, P, Screen, Stat } from '@/components/ui';
-import { confirm } from '@/lib/confirm';
+import { rideCalories } from '@/lib/calories';
+import { confirm, notify } from '@/lib/confirm';
+import { difficulty } from '@/lib/difficulty';
 import { fmtDate, fmtDist, fmtHours, fmtSpeed, fmtTime, speedUnit } from '@/lib/format';
 import { toGpx } from '@/lib/gpx';
 import { bests } from '@/lib/stats';
-import { deleteRide, loadPoints, updateRide, useStore } from '@/store';
+import { deleteRide, loadPoints, saveRoute, updateRide, useStore } from '@/store';
 import { radius, space, useTheme } from '@/theme';
 import type { Point } from '@/types';
 
@@ -21,6 +24,8 @@ export default function RideDetail() {
   const rides = useStore((s) => s.rides);
   const bikes = useStore((s) => s.bikes);
   const units = useStore((s) => s.profile.units);
+  const weightKg = useStore((s) => s.profile.weightKg);
+  const session = useSession();
   const [points, setPoints] = useState<Point[]>([]);
 
   useEffect(() => {
@@ -91,9 +96,7 @@ export default function RideDetail() {
         </Text>
       </View>
 
-      <Card style={{ backgroundColor: '#14261F', borderColor: '#14261F', padding: 0, overflow: 'hidden' }}>
-        <RouteShape points={points} height={210} />
-      </Card>
+      {points.length > 1 ? <TileMap points={points} height={240} controls /> : null}
 
       <Card>
         <View style={styles.statsRow}>
@@ -103,6 +106,10 @@ export default function RideDetail() {
         <View style={styles.statsRow}>
           <Stat value={ride.elevGainM.toFixed(0)} unit="m" label="climbed" />
           <Stat value={fmtSpeed(ride.maxSpeedMs, units)} unit={speedUnit(units)} label="top speed" />
+        </View>
+        <View style={styles.statsRow}>
+          <Stat value={rideCalories(ride, weightKg).toLocaleString('en-GB')} unit="kcal" label="burned (estimate)" />
+          <Stat value={difficulty(ride.distanceM, ride.elevGainM)} label="how hard" />
         </View>
       </Card>
 
@@ -120,6 +127,31 @@ export default function RideDetail() {
         ) : null}
       </Card>
 
+      {hasBackend && session.userId ? (
+        <Button
+          label="Post this ride to the community"
+          icon="people-outline"
+          onPress={async () => {
+            try {
+              await addPost('', null, ride.id);
+              notify('Posted', 'Your ride is now on the community feed.');
+            } catch (e) {
+              notify('Could not post', e instanceof Error ? e.message : 'Try again.');
+            }
+          }}
+        />
+      ) : null}
+      {points.length > 1 ? (
+        <Button
+          label="Keep as a route to ride again"
+          icon="bookmark-outline"
+          kind="plain"
+          onPress={async () => {
+            const route = await saveRoute(ride.title, ride.distanceM, ride.elevGainM, points);
+            router.push(`/route/local-${route.id}`);
+          }}
+        />
+      ) : null}
       <Button label={Platform.OS === 'web' ? 'Save route file (GPX)' : 'Share this ride'} icon="share-outline" kind="plain" onPress={share} />
       <Button
         label="Delete this ride"
@@ -127,6 +159,7 @@ export default function RideDetail() {
         kind="danger"
         onPress={async () => {
           if (await confirm('Delete this ride?', 'This cannot be undone.', 'Delete', true)) {
+            removeUploadedRide(ride.id).catch(() => {});
             deleteRide(ride.id);
             router.replace('/rides');
           }

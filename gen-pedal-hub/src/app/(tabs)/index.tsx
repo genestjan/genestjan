@@ -5,7 +5,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { RideRow } from '@/components/ride-row';
 import { Bar, Button, Card, H2, P, Screen, Stat } from '@/components/ui';
 import { distValue, fmtDist, fmtHours } from '@/lib/format';
+import { monthChallenges, monthName } from '@/lib/challenges';
 import { bikeChecks, streakWeeks, weekOf } from '@/lib/stats';
+import { todayWorkout } from '@/lib/training';
 import { useRecorder } from '@/recorder';
 import { useStore } from '@/store';
 import { radius, space, useTheme } from '@/theme';
@@ -18,6 +20,7 @@ export default function Home() {
   const profile = useStore((s) => s.profile);
   const rides = useStore((s) => s.rides);
   const bikes = useStore((s) => s.bikes);
+  const training = useStore((s) => s.training);
   const rec = useRecorder();
   const loaded = useStore((s) => s.loaded);
 
@@ -27,12 +30,16 @@ export default function Home() {
   const units = profile.units;
   const goalM = profile.weeklyGoalKm * 1000;
   const leftM = Math.max(0, goalM - week.distanceM);
-  const today = (new Date(now).getDay() + 6) % 7;
+  const weekday = (new Date(now).getDay() + 6) % 7;
   const maxDay = Math.max(...week.days, 1);
   const due = bikes.flatMap((b) => bikeChecks(b, rides).filter((c) => c.due).map((c) => ({ bike: b.name, ...c })));
 
   // The greeting and dates depend on the clock, so wait until the app has started.
   if (!loaded) return <Screen>{null}</Screen>;
+
+  const today = todayWorkout(training, rides, now);
+  const month = monthChallenges(rides, profile.monthlyGoalKm, now);
+  const monthDone = month.filter((c) => c.done).length;
 
   const hour = new Date(now).getHours();
   const hello = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -102,7 +109,7 @@ export default function Home() {
                   }}
                 />
               </View>
-              <Text style={{ fontSize: 13, color: i === today ? t.text : t.muted, fontWeight: i === today ? '800' : '500' }}>
+              <Text style={{ fontSize: 13, color: i === weekday ? t.text : t.muted, fontWeight: i === weekday ? '800' : '500' }}>
                 {DAY_LETTERS[i]}
               </Text>
             </View>
@@ -114,6 +121,43 @@ export default function Home() {
           <Stat value={fmtHours(week.movingMs)} label="riding time" />
         </View>
       </Card>
+
+      {today ? (
+        <Pressable accessibilityRole="button" accessibilityLabel="Open my training plan" onPress={() => router.push('/training')}>
+          <Card>
+            <View style={styles.dueRow}>
+              <Ionicons name={today.workout.kind === 'rest' ? 'bed' : today.done ? 'checkmark-circle' : 'calendar'} size={24} color={t.accentText} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: t.muted, fontSize: 14, fontWeight: '600' }}>Today's training</Text>
+                <Text style={{ color: t.text, fontSize: 17, fontWeight: '700' }}>
+                  {today.workout.title}
+                  {today.workout.minutes > 0 ? ` · ${today.workout.minutes} min` : ''}
+                </Text>
+                <Text style={{ color: t.muted, fontSize: 15 }}>
+                  {today.workout.kind === 'rest' ? 'No ride planned. Resting is part of the plan.' : today.done ? 'Done. Nice work.' : today.workout.how}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={t.muted} />
+            </View>
+          </Card>
+        </Pressable>
+      ) : null}
+
+      <Pressable accessibilityRole="button" accessibilityLabel="Open this month's challenges" onPress={() => router.push('/challenges')}>
+        <Card>
+          <View style={styles.rowBetween}>
+            <H2>{monthName(now)} challenges</H2>
+            <Text style={{ color: t.muted, fontSize: 15, fontWeight: '600' }}>
+              {monthDone} of {month.length} done
+            </Text>
+          </View>
+          <Text style={{ color: t.text, fontSize: 16 }}>{month[0].title}</Text>
+          <Bar fraction={month[0].value / month[0].target} />
+          <Text style={{ color: t.muted, fontSize: 15 }}>
+            {month[0].done ? 'Done. Tap to see the others.' : `${month[0].value.toFixed(1)} of ${month[0].target} km. Tap to see all four.`}
+          </Text>
+        </Card>
+      </Pressable>
 
       {due.length > 0 ? (
         <Pressable accessibilityRole="button" onPress={() => router.push('/garage')}>
@@ -141,6 +185,7 @@ export default function Home() {
         ) : (
           rides.slice(0, 3).map((r) => <RideRow key={r.id} ride={r} units={units} />)
         )}
+        {rides.length > 3 ? <Button label="See all my rides" kind="plain" onPress={() => router.push('/rides')} /> : null}
       </View>
     </Screen>
   );

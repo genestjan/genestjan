@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Bar, Button, Card, Choices, Field, H2, P, Screen } from '@/components/ui';
+import { BackTitle, Bar, Button, Card, Choices, Field, H2, P, Screen } from '@/components/ui';
 import { confirm } from '@/lib/confirm';
 import { bikeChecks, bikeKm } from '@/lib/stats';
-import { addBike, deleteBike, markCheckDone, useStore } from '@/store';
+import { fmtDate } from '@/lib/format';
+import { addBike, addServiceEntry, deleteBike, markCheckDone, useStore } from '@/store';
 import { space, useTheme } from '@/theme';
 
 const KINDS = ['Road', 'Mountain', 'Gravel', 'Folding', 'City', 'Other'];
@@ -18,6 +19,18 @@ export default function Garage() {
   const [name, setName] = useState('');
   const [kind, setKind] = useState('Road');
   const [km, setKm] = useState('');
+  // Which bike's "add a repair" form is open, and what has been typed in it.
+  const [logFor, setLogFor] = useState<string | null>(null);
+  const [note, setNote] = useState('');
+  const [cost, setCost] = useState('');
+
+  const saveLog = (bikeId: string) => {
+    if (!note.trim()) return;
+    addServiceEntry(bikeId, note.trim(), Math.max(0, Number(cost) || 0));
+    setLogFor(null);
+    setNote('');
+    setCost('');
+  };
 
   const save = () => {
     addBike(name.trim() || `My ${kind.toLowerCase()} bike`, kind, Math.max(0, Number(km) || 0));
@@ -27,7 +40,8 @@ export default function Garage() {
   };
 
   return (
-    <Screen title="My bikes">
+    <Screen>
+      <BackTitle title="My bikes" />
       <P muted>The app counts the distance on each bike and tells you when it needs care.</P>
 
       {bikes.map((b) => {
@@ -64,6 +78,33 @@ export default function Garage() {
                 {c.due ? <Button label="I did this" icon="checkmark" kind="plain" onPress={() => markCheckDone(b.id, c.key, total)} /> : null}
               </View>
             ))}
+
+            <View style={[styles.logBox, { borderTopColor: t.line }]}>
+              <Text style={{ color: t.text, fontSize: 16, fontWeight: '700' }}>Repairs and services</Text>
+              {b.log.length === 0 ? (
+                <Text style={{ color: t.muted, fontSize: 15 }}>Nothing written down yet.</Text>
+              ) : (
+                b.log.slice(0, 5).map((e) => (
+                  <View key={e.id} style={styles.checkTop}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: t.text, fontSize: 15 }}>{e.note}</Text>
+                      <Text style={{ color: t.muted, fontSize: 13 }}>{fmtDate(e.at)}</Text>
+                    </View>
+                    {e.cost > 0 ? <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>₱{e.cost.toLocaleString('en-GB')}</Text> : null}
+                  </View>
+                ))
+              )}
+              {logFor === b.id ? (
+                <View style={{ gap: space.sm }}>
+                  <Field label="What was done?" value={note} onChangeText={setNote} placeholder="For example: new brake pads" />
+                  <Field label="Cost in pesos (leave empty if free)" value={cost} onChangeText={setCost} placeholder="0" keyboardType="numeric" />
+                  <Button label="Save" icon="checkmark" onPress={() => saveLog(b.id)} disabled={!note.trim()} />
+                  <Button label="Cancel" kind="plain" onPress={() => setLogFor(null)} />
+                </View>
+              ) : (
+                <Button label="Write down a repair" icon="create-outline" kind="plain" onPress={() => { setLogFor(b.id); setNote(''); setCost(''); }} />
+              )}
+            </View>
           </Card>
         );
       })}
@@ -90,4 +131,5 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   check: { gap: space.sm },
   checkTop: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  logBox: { borderTopWidth: 1, paddingTop: space.md, gap: space.sm },
 });

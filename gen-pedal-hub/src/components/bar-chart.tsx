@@ -74,9 +74,9 @@ const styles = StyleSheet.create({
   bars: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs, paddingHorizontal: space.sm },
   col: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
   bar: { width: '100%', maxWidth: 44, borderTopLeftRadius: 4, borderTopRightRadius: 4 },
-  value: { width: 80, textAlign: 'center', fontSize: 12, fontWeight: '700', marginBottom: 4, fontVariant: ['tabular-nums'] },
+  value: { width: 80, flexShrink: 0, textAlign: 'center', fontSize: 12, fontWeight: '700', marginBottom: 4, fontVariant: ['tabular-nums'] },
   axis: { height: 1 },
   labels: { flexDirection: 'row', gap: space.xs, paddingHorizontal: space.sm, marginTop: space.xs },
-  labelCell: { flex: 1, alignItems: 'center' },
-  label: { width: 56, textAlign: 'center', fontSize: 12 },
+  labelCell: { flex: 1, alignItems: 'center', overflow: 'visible' },
+  label: { width: 56, flexShrink: 0, textAlign: 'center', fontSize: 12 },
 });

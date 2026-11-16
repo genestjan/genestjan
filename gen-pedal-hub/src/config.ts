@@ -14,7 +14,13 @@ export const OVERPASS_URLS = [
 
 /**
  * The shared server (Supabase) used for accounts, community, rankings and events.
- * Both values are public by design. Leave empty to run the app without those features.
+ * Both values are public by design: they ship inside every copy of the app, and
+ * the database's own rules decide what a rider may read or change.
+ * Leave both empty to run the app without those features.
  */
-export const SUPABASE_URL = '';
-export const SUPABASE_ANON_KEY = '';
+const DEFAULT_SUPABASE_URL = '';
+const DEFAULT_SUPABASE_ANON_KEY = '';
+
+// A build can point at a different server by setting these two variables.
+export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;

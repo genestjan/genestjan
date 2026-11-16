@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 
 import { RideRow } from '@/components/ride-row';
-import { Button, Card, P, Screen, Stat } from '@/components/ui';
+import { BackTitle, Button, Card, P, Screen, Stat } from '@/components/ui';
 import { fmtDist, fmtHours } from '@/lib/format';
 import { totals } from '@/lib/stats';
 import { useStore } from '@/store';
@@ -13,7 +13,8 @@ export default function Rides() {
   const all = totals(rides);
 
   return (
-    <Screen title="My rides">
+    <Screen>
+      <BackTitle title="My rides" />
       {rides.length === 0 ? (
         <Card>
           <P>You have not recorded a ride yet.</P>

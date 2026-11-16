@@ -2,7 +2,7 @@
   "expo": {
     "name": "Gen Pedal Hub",
     "slug": "gen-pedal-hub",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "genpedalhub",
@@ -35,6 +35,18 @@
         {
           "locationWhenInUsePermission": "Gen Pedal Hub uses your location to record your ride.",
           "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#173B32"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Gen Pedal Hub lets you add a photo to a post you share."
         }
       ]
     ],
