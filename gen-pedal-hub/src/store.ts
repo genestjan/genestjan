@@ -1,12 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
-import type { Bike, CheckKey, Point, Profile, Ride } from './types';
+import type { Bike, CheckKey, Point, Profile, Ride, SavedRoute, TrainingState } from './types';
 
 const KEY = 'gph:v1';
 const ptsKey = (id: string) => `gph:pts:${id}`;
 
-export type State = { loaded: boolean; profile: Profile; rides: Ride[]; bikes: Bike[] };
+export type State = {
+  loaded: boolean;
+  profile: Profile;
+  rides: Ride[];
+  bikes: Bike[];
+  training: TrainingState;
+  routes: SavedRoute[];
+};
 
 const defaultProfile: Profile = {
   onboarded: false,
@@ -17,17 +24,24 @@ const defaultProfile: Profile = {
   units: 'km',
   emergencyName: '',
   emergencyPhone: '',
+  weightKg: 70,
+  monthlyGoalKm: 120,
+  drinkEveryMin: 20,
+  restDayReminders: true,
+  city: '',
 };
 
-let state: State = { loaded: false, profile: defaultProfile, rides: [], bikes: [] };
+const defaultTraining: TrainingState = { planId: null, startedAt: 0, done: {} };
+
+let state: State = { loaded: false, profile: defaultProfile, rides: [], bikes: [], training: defaultTraining, routes: [] };
 const listeners = new Set<() => void>();
 
 function set(next: Partial<State>, save = true) {
   state = { ...state, ...next };
   listeners.forEach((l) => l());
   if (save) {
-    const { profile, rides, bikes } = state;
-    AsyncStorage.setItem(KEY, JSON.stringify({ profile, rides, bikes })).catch(() => {});
+    const { profile, rides, bikes, training, routes } = state;
+    AsyncStorage.setItem(KEY, JSON.stringify({ profile, rides, bikes, training, routes })).catch(() => {});
   }
 }
 
@@ -57,7 +71,9 @@ export async function loadStore(): Promise<void> {
           loaded: true,
           profile: { ...defaultProfile, ...saved.profile },
           rides: saved.rides ?? [],
-          bikes: saved.bikes ?? [],
+          bikes: (saved.bikes ?? []).map((b: Bike) => ({ ...b, log: b.log ?? [] })),
+          training: { ...defaultTraining, ...saved.training },
+          routes: saved.routes ?? [],
         },
         false
       );
@@ -105,6 +121,7 @@ export function addBike(name: string, kind: string, startKm: number): Bike {
     kind,
     startKm,
     doneAtKm: { chain: startKm, tyres: startKm, service: startKm },
+    log: [],
   };
   set({ bikes: [...state.bikes, bike] });
   return bike;
@@ -118,6 +135,38 @@ export function markCheckDone(bikeId: string, key: CheckKey, atKm: number) {
   });
 }
 
+export function addServiceEntry(bikeId: string, note: string, cost: number) {
+  set({
+    bikes: state.bikes.map((b) =>
+      b.id === bikeId ? { ...b, log: [{ id: newId(), at: Date.now(), note, cost }, ...b.log] } : b
+    ),
+  });
+}
+
+export function setTraining(patch: Partial<TrainingState>) {
+  set({ training: { ...state.training, ...patch } });
+}
+
+export async function saveRoute(name: string, distanceM: number, elevGainM: number, points: Point[]): Promise<SavedRoute> {
+  const route: SavedRoute = {
+    id: newId(),
+    name,
+    distanceM,
+    elevGainM,
+    createdAt: Date.now(),
+    startLat: points[0]?.lat ?? 0,
+    startLon: points[0]?.lon ?? 0,
+  };
+  await AsyncStorage.setItem(ptsKey(route.id), JSON.stringify(points)).catch(() => {});
+  set({ routes: [route, ...state.routes] });
+  return route;
+}
+
+export function deleteRoute(id: string) {
+  AsyncStorage.removeItem(ptsKey(id)).catch(() => {});
+  set({ routes: state.routes.filter((r) => r.id !== id) });
+}
+
 export function deleteBike(id: string) {
   set({
     bikes: state.bikes.filter((b) => b.id !== id),
@@ -128,5 +177,5 @@ export function deleteBike(id: string) {
 export async function eraseEverything() {
   const keys = await AsyncStorage.getAllKeys();
   await AsyncStorage.multiRemove(keys.filter((k) => k.startsWith('gph:')));
-  set({ profile: defaultProfile, rides: [], bikes: [] }, false);
+  set({ profile: defaultProfile, rides: [], bikes: [], training: defaultTraining, routes: [] }, false);
 }

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import {
   Pressable,
@@ -36,6 +37,28 @@ export function Screen({ children, title, right }: { children: ReactNode; title?
       ) : null}
       {children}
     </ScrollView>
+  );
+}
+
+/** Title row with a back button, for pages that are not one of the main tabs. */
+export function BackTitle({ title, right }: { title: string; right?: ReactNode }) {
+  const t = useTheme();
+  const router = useRouter();
+  return (
+    <View style={styles.backRow}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        hitSlop={10}
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        style={[styles.backButton, { backgroundColor: t.card, borderColor: t.line }]}>
+        <Ionicons name="chevron-back" size={24} color={t.text} />
+      </Pressable>
+      <Text accessibilityRole="header" style={[styles.h1b, { color: t.text }]} numberOfLines={1}>
+        {title}
+      </Text>
+      {right}
+    </View>
   );
 }
 
@@ -164,6 +187,9 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   h1: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
   h2: { fontSize: 19, fontWeight: '700' },
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  backButton: { width: 46, height: 46, borderRadius: 23, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  h1b: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5, flex: 1 },
   p: { fontSize: 16, lineHeight: 23 },
   card: { borderRadius: radius.md, borderWidth: 1, padding: space.lg, gap: space.md },
   button: {

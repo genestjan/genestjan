@@ -55,3 +55,21 @@ export function rideTitle(t: number): string {
   const part = h < 5 ? 'Night' : h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : h < 21 ? 'Evening' : 'Night';
   return `${part} ride`;
 }
+
+/** "just now", "5 min ago", "3 h ago", "2 days ago", then the date. */
+export function fmtAgo(iso: string, now = Date.now()): string {
+  const t = new Date(iso).getTime();
+  const min = Math.floor((now - t) / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min} min ago`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h} h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d} day${d === 1 ? '' : 's'} ago`;
+  return fmtDate(t);
+}
+
+export function fmtDateTime(iso: string): string {
+  const t = new Date(iso).getTime();
+  return `${fmtDate(t)}, ${fmtTime(t)}`;
+}

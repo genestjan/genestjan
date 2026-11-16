@@ -57,7 +57,9 @@ jobs:
         with:
           name: gen-pedal-hub-apk
           path: gen-pedal-hub/gen-pedal-hub.apk
+      # Only the live branch publishes. Other branches just prove the build works.
       - name: Publish as the latest release
+        if: github.ref_name == github.event.repository.default_branch
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

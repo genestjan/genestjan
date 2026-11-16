@@ -1,17 +1,28 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { hasBackend, reportHazard, useSession, type HazardKind } from '@/backend';
+import { TileMap } from '@/components/tile-map';
 import { confirm, notify } from '@/lib/confirm';
 import { fmtClock, fmtDist, fmtSpeed, speedUnit } from '@/lib/format';
-import { discardRide, elapsedMs, finishRide, pauseRide, resumeRide, startRide, useRecorder } from '@/recorder';
+import { clearAlert, discardRide, drankWater, elapsedMs, finishRide, pauseRide, resumeRide, startRide, useRecorder } from '@/recorder';
 import { useStore } from '@/store';
 import { rideTheme as c } from '@/theme';
 import type { IconName } from '@/components/ui';
+
+const DANGERS: { kind: HazardKind; label: string }[] = [
+  { kind: 'pothole', label: 'Pothole' },
+  { kind: 'traffic', label: 'Heavy traffic' },
+  { kind: 'flood', label: 'Flooding' },
+  { kind: 'dogs', label: 'Loose dogs' },
+  { kind: 'roadworks', label: 'Roadworks' },
+  { kind: 'other', label: 'Something else' },
+];
 
 function gpsLabel(acc: number | null, recording: boolean): { text: string; color: string } {
   if (!recording) return { text: 'GPS off', color: c.muted };
@@ -58,6 +69,9 @@ export default function Record() {
   const insets = useSafeAreaInsets();
   const rec = useRecorder();
   const profile = useStore((s) => s.profile);
+  const session = useSession();
+  const [showMap, setShowMap] = useState(false);
+  const [picking, setPicking] = useState(false);
   const units = profile.units;
   const tr = rec.track;
   const gps = gpsLabel(tr.accuracyM, rec.status === 'recording');
@@ -77,6 +91,29 @@ export default function Record() {
     const ride = await finishRide();
     if (ride) router.replace(`/ride/${ride.id}?done=1`);
     else close();
+  };
+
+  const here = tr.last ?? tr.points[tr.points.length - 1] ?? null;
+
+  const report = async (kind: HazardKind) => {
+    setPicking(false);
+    if (!here) return;
+    try {
+      await reportHazard(here.lat, here.lon, kind, '');
+      notify('Thank you', 'Other riders will be warned when they come near this spot.');
+    } catch (e) {
+      notify('Could not send', e instanceof Error ? e.message : 'Try again later.');
+    }
+  };
+
+  const startReport = () => {
+    if (!hasBackend || !session.userId) {
+      notify('Sign in first', 'Danger reports are shared with other riders, so they need an account. Open Me, then Settings.');
+    } else if (!here) {
+      notify('No GPS yet', 'Wait until GPS has found you, then try again.');
+    } else {
+      setPicking(true);
+    }
   };
 
   const sos = () => {
@@ -121,13 +158,62 @@ export default function Record() {
         </View>
       ) : null}
 
-      <View style={styles.speedBox}>
-        <Text style={styles.metricLabel}>{rec.status === 'paused' ? 'PAUSED' : 'SPEED'}</Text>
-        <Text style={styles.speed} numberOfLines={1} adjustsFontSizeToFit>
-          {fmtSpeed(rec.status === 'recording' ? tr.speedMs : 0, units)}
-        </Text>
-        <Text style={styles.speedUnit}>{speedUnit(units)}</Text>
-      </View>
+      {rec.alert ? (
+        <Pressable accessibilityRole="button" accessibilityLabel={`${rec.alert} Tap to close.`} onPress={clearAlert} style={[styles.notice, { backgroundColor: c.danger }]}>
+          <Ionicons name="warning" size={22} color="#FFFFFF" />
+          <Text style={[styles.noticeText, { fontWeight: '700' }]}>{rec.alert}</Text>
+        </Pressable>
+      ) : null}
+      {rec.drinkDue ? (
+        <Pressable accessibilityRole="button" accessibilityLabel="Time for a drink. Tap when you have had some water." onPress={drankWater} style={[styles.notice, { backgroundColor: '#1D4E89' }]}>
+          <Ionicons name="water" size={22} color="#FFFFFF" />
+          <Text style={[styles.noticeText, { fontWeight: '700' }]}>Time for a drink. Tap here when you have had some water.</Text>
+        </Pressable>
+      ) : null}
+
+      {picking ? (
+        <View style={styles.pickBox}>
+          <Text style={[styles.metricLabel, { textAlign: 'center' }]}>WHAT IS THE DANGER HERE?</Text>
+          <View style={styles.pickGrid}>
+            {DANGERS.map((d) => (
+              <Pressable key={d.kind} accessibilityRole="button" accessibilityLabel={d.label} onPress={() => report(d.kind)} style={styles.pick}>
+                <Text style={styles.pickText}>{d.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Cancel" onPress={() => setPicking(false)} style={[styles.pick, { width: '100%', backgroundColor: 'transparent' }]}>
+            <Text style={[styles.pickText, { color: c.muted }]}>Cancel</Text>
+          </Pressable>
+        </View>
+      ) : showMap && here ? (
+        <View style={{ flex: 1, justifyContent: 'center', gap: 8 }}>
+          <TileMap points={tr.points} follow={here} zoom={16} height={300} controls lineColor="#1F7A4D" />
+          <Text style={[styles.speedUnit, { textAlign: 'center', color: c.text }]}>
+            {fmtSpeed(rec.status === 'recording' ? tr.speedMs : 0, units)} {speedUnit(units)}
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.speedBox}>
+          <Text style={styles.metricLabel}>{rec.status === 'paused' ? 'PAUSED' : 'SPEED'}</Text>
+          <Text style={styles.speed} numberOfLines={1} adjustsFontSizeToFit>
+            {fmtSpeed(rec.status === 'recording' ? tr.speedMs : 0, units)}
+          </Text>
+          <Text style={styles.speedUnit}>{speedUnit(units)}</Text>
+        </View>
+      )}
+
+      {rec.status !== 'idle' ? (
+        <View style={styles.tools}>
+          <Pressable accessibilityRole="button" accessibilityLabel={showMap ? 'Show speed' : 'Show map'} onPress={() => setShowMap((v) => !v)} style={styles.tool}>
+            <Ionicons name={showMap ? 'speedometer-outline' : 'map-outline'} size={20} color={c.text} />
+            <Text style={styles.toolText}>{showMap ? 'Speed' : 'Map'}</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Report a danger here" onPress={startReport} style={styles.tool}>
+            <Ionicons name="warning-outline" size={20} color={c.warn} />
+            <Text style={styles.toolText}>Report danger</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       <View style={styles.grid}>
         <Metric label="DISTANCE" value={fmtDist(tr.distanceM, units)} unit={units} />
@@ -179,6 +265,13 @@ const styles = StyleSheet.create({
   metricLabel: { color: c.muted, fontSize: 13, fontWeight: '700', letterSpacing: 1 },
   metricValue: { color: c.text, fontSize: 34, fontWeight: '800', fontVariant: ['tabular-nums'] },
   metricUnit: { color: c.muted, fontSize: 16, fontWeight: '600' },
+  tools: { flexDirection: 'row', gap: 10 },
+  tool: { flex: 1, height: 48, borderRadius: 24, backgroundColor: c.panel, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  toolText: { color: c.text, fontSize: 15, fontWeight: '700' },
+  pickBox: { flex: 1, justifyContent: 'center', gap: 10 },
+  pickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  pick: { width: '48.5%', flexGrow: 1, minHeight: 60, borderRadius: 16, backgroundColor: c.panel, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  pickText: { color: c.text, fontSize: 17, fontWeight: '700', textAlign: 'center' },
   actions: { flexDirection: 'row', gap: 10 },
   bigButton: { flex: 1, height: 84, borderRadius: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   bigButtonText: { fontSize: 24, fontWeight: '800' },

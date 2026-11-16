@@ -2,10 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { useSyncExternalStore } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Vibration } from 'react-native';
 
+import { hasBackend, loadHazards, currentUserId, uploadRides, type Hazard } from './backend';
 import { rideTitle } from './lib/format';
-import { addFix, breakTrack, emptyTrack, thin, type Fix, type Track } from './lib/track';
+import { addFix, breakTrack, emptyTrack, haversineM, thin, type Fix, type Track } from './lib/track';
+import { startDrinkReminders, stopDrinkReminders } from './notify';
 import { addRide, getState, newId } from './store';
 import type { Ride } from './types';
 
@@ -26,6 +28,10 @@ export type Snapshot = {
   error: string | null;
   /** True when an unfinished ride was found after the app was closed. */
   restored: boolean;
+  /** True when it is time to drink. Cleared when the rider says they drank. */
+  drinkDue: boolean;
+  /** A danger reported close by, in words, or null. */
+  alert: string | null;
   tick: number;
 };
 
@@ -37,10 +43,68 @@ let snap: Snapshot = {
   pausedAt: null,
   error: null,
   restored: false,
+  drinkDue: false,
+  alert: null,
   tick: 0,
 };
 
 const listeners = new Set<() => void>();
+
+// Drink reminders and danger alerts for the ride in progress.
+let nextDrinkMs = 0;
+let hazards: Hazard[] | null = null;
+const warned = new Set<string>();
+const HAZARD_WORDS: Record<string, string> = {
+  pothole: 'a pothole',
+  traffic: 'heavy traffic',
+  flood: 'flooding',
+  dogs: 'loose dogs',
+  roadworks: 'roadworks',
+  other: 'a danger',
+};
+
+function buzz() {
+  try {
+    Vibration.vibrate([0, 400, 200, 400]);
+  } catch {
+    // Some browsers have no vibration.
+  }
+}
+
+function drinkGapMs(): number {
+  return Math.max(0, getState().profile.drinkEveryMin) * 60000;
+}
+
+/** Warns once about each reported danger within 250 m of the rider. */
+function checkHazards(lat: number, lon: number) {
+  if (hazards === null) {
+    hazards = [];
+    if (hasBackend && currentUserId()) {
+      loadHazards(lat, lon, 80)
+        .then((list) => {
+          hazards = list;
+        })
+        .catch(() => {});
+    }
+    return;
+  }
+  for (const h of hazards) {
+    if (warned.has(h.id) || haversineM(lat, lon, h.lat, h.lon) > 250) continue;
+    warned.add(h.id);
+    buzz();
+    emit({ alert: `Careful: ${HAZARD_WORDS[h.kind] ?? 'a danger'} reported near here.${h.note ? ` ${h.note}` : ''}` });
+    return;
+  }
+}
+
+export function drankWater() {
+  emit({ drinkDue: false });
+}
+
+export function clearAlert() {
+  emit({ alert: null });
+}
+
 let webWatch: Location.LocationSubscription | null = null;
 let timer: ReturnType<typeof setInterval> | null = null;
 let lastSave = 0;
@@ -89,6 +153,8 @@ function onLocations(locations: Location.LocationObject[]) {
     };
     addFix(snap.track, fix);
   }
+  const here = snap.track.last;
+  if (here) checkHazards(here.lat, here.lon);
   saveActive();
   emit();
 }
@@ -148,7 +214,17 @@ async function stopLocation() {
 }
 
 function startTimer() {
-  if (!timer) timer = setInterval(() => emit(), 1000);
+  if (timer) return;
+  timer = setInterval(() => {
+    const gap = drinkGapMs();
+    if (gap > 0 && elapsedMs(snap) >= nextDrinkMs && nextDrinkMs > 0) {
+      nextDrinkMs += gap;
+      buzz();
+      emit({ drinkDue: true });
+    } else {
+      emit();
+    }
+  }, 1000);
 }
 
 function stopTimer() {
@@ -170,7 +246,13 @@ export async function startRide() {
     pausedAt: null,
     error: null,
     restored: false,
+    drinkDue: false,
+    alert: null,
   });
+  hazards = null;
+  warned.clear();
+  nextDrinkMs = drinkGapMs();
+  startDrinkReminders(getState().profile.drinkEveryMin);
   startTimer();
   saveActive(true);
 }
@@ -180,6 +262,7 @@ export async function pauseRide() {
   breakTrack(snap.track);
   emit({ status: 'paused', pausedAt: Date.now() });
   stopTimer();
+  stopDrinkReminders();
   saveActive(true);
   await stopLocation();
 }
@@ -198,14 +281,19 @@ export async function resumeRide() {
     error: null,
     restored: false,
   });
+  // Count the next drink from now, not from before the pause.
+  const gap = drinkGapMs();
+  nextDrinkMs = gap > 0 ? elapsedMs(snap) + gap : 0;
+  startDrinkReminders(getState().profile.drinkEveryMin);
   startTimer();
 }
 
 async function reset() {
   stopTimer();
+  stopDrinkReminders();
   await stopLocation();
   await AsyncStorage.removeItem(ACTIVE_KEY).catch(() => {});
-  emit({ status: 'idle', track: emptyTrack(), startedAt: 0, pausedMs: 0, pausedAt: null, error: null, restored: false });
+  emit({ status: 'idle', track: emptyTrack(), startedAt: 0, pausedMs: 0, pausedAt: null, error: null, restored: false, drinkDue: false, alert: null });
 }
 
 /** Saves the ride and returns it, or null when nothing was recorded. */
@@ -230,6 +318,8 @@ export async function finishRide(): Promise<Ride | null> {
       bikeId: bikes.length === 1 ? bikes[0].id : null,
     };
     await addRide(ride, thin(track.points, MAX_SAVED_POINTS));
+    // Send the summary to the rankings if the rider is signed in. Failing is fine: it is sent again next time.
+    if (hasBackend && currentUserId()) uploadRides().catch(() => {});
   }
   await reset();
   return ride;
@@ -252,7 +342,8 @@ export async function restoreRide() {
     const saved = JSON.parse(raw);
     if (Platform.OS !== 'web' && saved.status === 'recording' && (await Location.hasStartedLocationUpdatesAsync(TASK))) {
       // The background service is still running, so carry on recording.
-      emit({ ...saved, status: 'recording', error: null, restored: false });
+      emit({ ...saved, status: 'recording', error: null, restored: false, drinkDue: false, alert: null });
+      nextDrinkMs = drinkGapMs() > 0 ? elapsedMs(snap) + drinkGapMs() : 0;
       startTimer();
       return;
     }

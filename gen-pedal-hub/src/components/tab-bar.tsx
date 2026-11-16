@@ -9,8 +9,8 @@ import type { IconName } from './ui';
 
 const TABS: Record<string, { label: string; icon: IconName; iconOn: IconName }> = {
   index: { label: 'Home', icon: 'home-outline', iconOn: 'home' },
-  rides: { label: 'My rides', icon: 'list-outline', iconOn: 'list' },
-  garage: { label: 'My bikes', icon: 'construct-outline', iconOn: 'construct' },
+  explore: { label: 'Explore', icon: 'map-outline', iconOn: 'map' },
+  community: { label: 'Community', icon: 'people-outline', iconOn: 'people' },
   me: { label: 'Me', icon: 'person-outline', iconOn: 'person' },
 };
 
