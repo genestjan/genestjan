@@ -61,7 +61,7 @@ test('personal bests compare with earlier rides only', () => {
 });
 
 test('bike care becomes due by distance and resets when done', () => {
-  const bike: Bike = { id: 'b', name: 'Bike', kind: 'Road', startKm: 1000, doneAtKm: { chain: 1000, tyres: 1000, service: 1000 } };
+  const bike: Bike = { id: 'b', name: 'Bike', kind: 'Road', startKm: 1000, doneAtKm: { chain: 1000, tyres: 1000, service: 1000 }, log: [] };
   const rides = [ride(MON, 320, { bikeId: 'b' }), ride(MON, 500)]; // second ride is on no bike
   const checks = bikeChecks(bike, rides);
   assert.equal(checks.find((c) => c.key === 'chain')?.due, true);
