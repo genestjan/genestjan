@@ -52,8 +52,10 @@ All tables start with `ph_`, so the project can be shared with another app.
 - Map pictures come from OpenStreetMap's public server, which is for light use. A busy app needs a tile provider.
 - The APK is signed with the standard debug key. Fine for installing directly, not accepted by Google Play.
 - Not yet tested on a real phone: locked-screen recording, notifications, photo picking.
-- The server screens were tested against a stand-in server, and the database rules against a local
-  PostgreSQL. They have not run against a live Supabase project yet.
+- The shared server is live (Supabase project `gen-pedal-hub`, Singapore, free plan). Sign-up, profiles,
+  rides, posts with photos, likes, comments, follows, rankings, group rankings and monthly challenges were
+  tested against it. Events and shared routes were only tested against a local PostgreSQL.
+- A free Supabase project pauses after a week with no use. Open the dashboard and click Restore if that happens.
 
 ## Commands
 

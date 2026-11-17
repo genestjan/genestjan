@@ -18,8 +18,9 @@ export const OVERPASS_URLS = [
  * the database's own rules decide what a rider may read or change.
  * Leave both empty to run the app without those features.
  */
-const DEFAULT_SUPABASE_URL = '';
-const DEFAULT_SUPABASE_ANON_KEY = '';
+const DEFAULT_SUPABASE_URL = 'https://byizxdimzrekpbfwxovx.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5aXp4ZGltenJla3BiZnd4b3Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ4NjUzMjAsImV4cCI6MjExMDQ0MTMyMH0.7JxBhgvjCiWbYEV-S_675FzbNdfe-fk6ICzvi4o_G4E';
 
 // A build can point at a different server by setting these two variables.
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
