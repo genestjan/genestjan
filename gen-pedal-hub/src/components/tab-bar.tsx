@@ -3,15 +3,15 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useTheme } from '@/theme';
+import { glow, useTheme } from '@/theme';
 
 import type { IconName } from './ui';
 
 const TABS: Record<string, { label: string; icon: IconName; iconOn: IconName }> = {
   index: { label: 'Home', icon: 'home-outline', iconOn: 'home' },
-  explore: { label: 'Explore', icon: 'map-outline', iconOn: 'map' },
+  explore: { label: 'Map', icon: 'map-outline', iconOn: 'map' },
   community: { label: 'Community', icon: 'people-outline', iconOn: 'people' },
-  me: { label: 'Me', icon: 'person-outline', iconOn: 'person' },
+  me: { label: 'Profile', icon: 'person-outline', iconOn: 'person' },
 };
 
 type Props = {
@@ -53,7 +53,7 @@ export function TabBar({ state, navigateToTab }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Ride"
           onPress={() => router.push('/record')}
-          style={({ pressed }) => [styles.ride, { backgroundColor: t.accent, borderColor: t.card, opacity: pressed ? 0.85 : 1 }]}>
+          style={({ pressed }) => [styles.ride, { backgroundColor: t.accent, borderColor: t.brandLight, opacity: pressed ? 0.85 : 1 }, glow]}>
           <Ionicons name="bicycle" size={30} color={t.onAccent} />
         </Pressable>
         <Text style={[styles.label, { color: t.text, fontWeight: '700' }]}>Ride</Text>
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    borderWidth: 4,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: -34,

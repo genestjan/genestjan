@@ -21,7 +21,7 @@ export default function ClubPage() {
     return (
       <Screen>
         <BackTitle title="Group" />
-        <P muted>{!on ? 'Sign in (Me, then Settings) to see groups.' : clubs.loading ? 'Loading…' : 'This group could not be found.'}</P>
+        <P muted>{!on ? 'Sign in (Profile, then Settings) to see groups.' : clubs.loading ? 'Loading…' : 'This group could not be found.'}</P>
       </Screen>
     );
   }

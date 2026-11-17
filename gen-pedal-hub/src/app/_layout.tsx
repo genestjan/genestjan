@@ -48,7 +48,7 @@ export default function RootLayout() {
   // sees the welcome screen flash. New riders get the welcome screen on top.
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="record" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />

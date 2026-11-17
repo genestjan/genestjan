@@ -25,7 +25,7 @@ export function MenuRow({ icon, title, hint, to, onPress, badge }: { icon: IconN
       </View>
       {badge ? (
         <View style={[styles.badge, { backgroundColor: t.warn }]}>
-          <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '800' }}>{badge}</Text>
+          <Text style={{ color: '#1B1300', fontSize: 13, fontWeight: '800' }}>{badge}</Text>
         </View>
       ) : null}
       <Ionicons name="chevron-forward" size={18} color={t.muted} />

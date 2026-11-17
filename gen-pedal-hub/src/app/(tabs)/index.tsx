@@ -3,10 +3,11 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RideRow } from '@/components/ride-row';
-import { Bar, Button, Card, H2, P, Screen, Stat } from '@/components/ui';
+import { Avatar, Bar, Button, Card, H2, Hero, P, Ring, Screen, Shortcut } from '@/components/ui';
+import { rideCalories } from '@/lib/calories';
 import { distValue, fmtDist, fmtHours } from '@/lib/format';
 import { monthChallenges, monthName } from '@/lib/challenges';
-import { bikeChecks, streakWeeks, weekOf } from '@/lib/stats';
+import { bikeChecks, streakWeeks, weekOf, weekStart } from '@/lib/stats';
 import { todayWorkout } from '@/lib/training';
 import { useRecorder } from '@/recorder';
 import { useStore } from '@/store';
@@ -41,53 +42,89 @@ export default function Home() {
   const month = monthChallenges(rides, profile.monthlyGoalKm, now);
   const monthDone = month.filter((c) => c.done).length;
 
-  const hour = new Date(now).getHours();
-  const hello = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const since = weekStart(now);
+  const weekKcal = rides.filter((r) => r.startedAt >= since).reduce((n, r) => n + rideCalories(r, profile.weightKg), 0);
+  const activeDays = week.days.filter((m) => m > 0).length;
 
   return (
     <Screen>
-      <View>
-        <Text style={{ color: t.muted, fontSize: 16 }}>{hello}</Text>
-        <Text accessibilityRole="header" style={[styles.name, { color: t.text }]}>
-          {profile.name || 'Rider'}
-        </Text>
+      <View style={styles.header}>
+        <Avatar name={profile.name} />
+        <View style={{ flex: 1 }}>
+          <Text accessibilityRole="header" style={[styles.name, { color: t.text }]} numberOfLines={1}>
+            Hi, {profile.name || 'Rider'}!
+          </Text>
+          <Text style={{ color: t.muted, fontSize: 15 }}>Let's ride today.</Text>
+        </View>
+        {streak > 0 ? (
+          <View style={[styles.pill, { backgroundColor: t.soft, borderColor: t.line }]}>
+            <Ionicons name="flame" size={16} color={t.warn} />
+            <Text style={{ color: t.text, fontWeight: '700', fontSize: 14 }}>
+              {streak} wk{streak === 1 ? '' : 's'}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
-      {rec.status !== 'idle' ? (
+      <Hero>
+        <View style={styles.rowBetween}>
+          <View style={styles.heroTag}>
+            <Ionicons name={rec.status !== 'idle' ? 'radio-button-on' : 'calendar'} size={16} color="#FFFFFF" />
+            <Text style={styles.heroTagText}>{rec.status !== 'idle' ? 'Live ride' : today ? "Today's training" : 'This week'}</Text>
+          </View>
+          <Text style={styles.heroTagText}>{new Date(now).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</Text>
+        </View>
+        <Text style={styles.heroTitle} numberOfLines={2}>
+          {rec.status === 'recording' ? 'Ride in progress' : rec.status === 'paused' ? 'Ride paused' : today ? today.workout.title : 'Ready to ride?'}
+        </Text>
+        <Text style={styles.heroSub}>
+          {fmtDist(week.distanceM, units)} of {distValue(goalM, units).toFixed(0)} {units} this week
+          {today && today.workout.minutes > 0 && rec.status === 'idle' ? ` · ${today.workout.minutes} min today` : ''}
+        </Text>
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={rec.status === 'idle' ? 'Start a ride' : 'Open my ride'}
           onPress={() => router.push('/record')}
-          style={[styles.live, { backgroundColor: t.accent }]}>
-          <Ionicons name="radio-button-on" size={22} color={t.onAccent} />
-          <Text style={[styles.liveText, { color: t.onAccent }]}>
-            {rec.status === 'recording' ? 'Ride in progress. Tap to open.' : 'Ride paused. Tap to carry on.'}
-          </Text>
+          style={({ pressed }) => [styles.heroButton, { opacity: pressed ? 0.85 : 1 }]}>
+          <Ionicons name={rec.status === 'idle' ? 'bicycle' : 'chevron-forward'} size={24} color={t.brand} />
+          <Text style={[styles.heroButtonText, { color: t.brand }]}>{rec.status === 'idle' ? 'Start a ride' : rec.status === 'recording' ? 'Open my ride' : 'Carry on'}</Text>
         </Pressable>
-      ) : (
-        <Button label="Start a ride" icon="bicycle" kind="accent" big onPress={() => router.push('/record')} />
-      )}
+      </Hero>
+
+      <View style={styles.grid}>
+        <Shortcut icon="map" label="Routes" onPress={() => router.push('/explore')} />
+        <Shortcut icon="calendar" label="Training" onPress={() => router.push('/training')} />
+        <Shortcut icon="stats-chart" label="Stats" onPress={() => router.push('/progress')} />
+        <Shortcut icon="people" label="Community" onPress={() => router.push('/community')} />
+      </View>
+
+      <View style={{ gap: space.md }}>
+        <View style={styles.rowBetween}>
+          <H2>Your stats this week</H2>
+          <Pressable accessibilityRole="button" accessibilityLabel="See all my stats" hitSlop={10} onPress={() => router.push('/progress')} style={styles.seeAll}>
+            <Text style={{ color: t.accentText, fontSize: 15, fontWeight: '700' }}>See all</Text>
+            <Ionicons name="chevron-forward" size={16} color={t.accentText} />
+          </Pressable>
+        </View>
+        <View style={styles.grid}>
+          <Ring fraction={goalM > 0 ? week.distanceM / goalM : 0} color={t.good} icon="speedometer" value={`${fmtDist(week.distanceM, units)} ${units}`} label="Distance" />
+          <Ring fraction={activeDays / 7} color={t.brandLight} icon="stopwatch" value={fmtHours(week.movingMs)} label="Ride time" />
+          <Ring fraction={week.rides > 0 ? 1 : 0} color={t.warn} icon="flame" value={Math.round(weekKcal).toLocaleString('en-GB')} label="Calories" />
+        </View>
+      </View>
+
+      <View style={{ gap: space.md }}>
+        <H2>Quick tools</H2>
+        <View style={styles.grid}>
+          <Shortcut icon="construct" label="Bike care" color={due.length > 0 ? t.warn : undefined} onPress={() => router.push('/garage')} />
+          <Shortcut icon="trophy" label="Challenges" color={t.warn} onPress={() => router.push('/challenges')} />
+          <Shortcut icon="ribbon" label="Badges" onPress={() => router.push('/badges')} />
+          <Shortcut icon="medkit" label="SOS setup" color={t.danger} onPress={() => router.push('/settings')} />
+        </View>
+      </View>
 
       <Card>
-        <View style={styles.rowBetween}>
-          <H2>This week</H2>
-          {streak > 0 ? (
-            <View style={[styles.pill, { backgroundColor: t.soft }]}>
-              <Ionicons name="flame" size={16} color={t.warn} />
-              <Text style={{ color: t.text, fontWeight: '700', fontSize: 14 }}>
-                {streak} week{streak === 1 ? '' : 's'} in a row
-              </Text>
-            </View>
-          ) : null}
-        </View>
-
-        <Text style={[styles.bigNumber, { color: t.text }]}>
-          {fmtDist(week.distanceM, units)}
-          <Text style={[styles.bigUnit, { color: t.muted }]}>
-            {' '}
-            of {distValue(goalM, units).toFixed(0)} {units}
-          </Text>
-        </Text>
-        <Bar fraction={goalM > 0 ? week.distanceM / goalM : 0} />
+        <H2>This week, day by day</H2>
         <P muted style={{ fontSize: 15 }}>
           {week.rides === 0
             ? 'No rides yet this week. A short one counts.'
@@ -95,7 +132,6 @@ export default function Home() {
               ? `${fmtDist(leftM, units)} ${units} to go to reach your weekly goal.`
               : 'Weekly goal reached. Well done.'}
         </P>
-
         <View style={styles.days}>
           {week.days.map((m, i) => (
             <View key={i} style={styles.day}>
@@ -116,10 +152,6 @@ export default function Home() {
           ))}
         </View>
 
-        <View style={styles.statsRow}>
-          <Stat value={String(week.rides)} label={week.rides === 1 ? 'ride' : 'rides'} />
-          <Stat value={fmtHours(week.movingMs)} label="riding time" />
-        </View>
       </Card>
 
       {today ? (
@@ -192,16 +224,20 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  name: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  name: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+  grid: { flexDirection: 'row', gap: space.sm },
+  seeAll: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  heroTag: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  heroTagText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  heroTitle: { color: '#FFFFFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
+  heroSub: { color: '#FFFFFF', fontSize: 15, opacity: 0.92 },
+  heroButton: { alignSelf: 'flex-start', minHeight: 52, borderRadius: radius.pill, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.xl, marginTop: space.xs },
+  heroButtonText: { fontSize: 18, fontWeight: '800' },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill },
-  bigNumber: { fontSize: 44, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },
-  bigUnit: { fontSize: 17, fontWeight: '600', letterSpacing: 0 },
+  pill: { borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill },
   days: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
   day: { flex: 1, alignItems: 'center', gap: 4 },
   dayBarBox: { height: 56, width: '100%', justifyContent: 'flex-end' },
-  statsRow: { flexDirection: 'row', gap: space.lg },
   dueRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  live: { minHeight: 68, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, paddingHorizontal: space.xl },
-  liveText: { fontSize: 18, fontWeight: '700' },
 });

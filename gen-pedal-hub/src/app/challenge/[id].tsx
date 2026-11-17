@@ -20,7 +20,7 @@ export default function ChallengePage() {
     return (
       <Screen>
         <BackTitle title="Ranking" />
-        <P muted>{!on ? 'Sign in (Me, then Settings) to see this.' : list.loading ? 'Loading…' : 'This one has ended or could not be found.'}</P>
+        <P muted>{!on ? 'Sign in (Profile, then Settings) to see this.' : list.loading ? 'Loading…' : 'This one has ended or could not be found.'}</P>
       </Screen>
     );
   }

@@ -49,7 +49,7 @@ export default function RideDetail() {
   const bikeName = bikes.find((b) => b.id === ride.bikeId)?.name ?? 'No bike';
 
   const share = async () => {
-    const text = `${ride.title}: ${fmtDist(ride.distanceM, units)} ${units} in ${fmtHours(ride.movingMs)}, recorded with Gen Pedal Hub.`;
+    const text = `${ride.title}: ${fmtDist(ride.distanceM, units)} ${units} in ${fmtHours(ride.movingMs)}, recorded with GenRide.`;
     if (Platform.OS === 'web') {
       // In the browser, save the route as a GPX file other apps can open.
       const url = URL.createObjectURL(new Blob([toGpx(ride, points)], { type: 'application/gpx+xml' }));
