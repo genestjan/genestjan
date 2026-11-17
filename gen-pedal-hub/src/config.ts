@@ -5,6 +5,17 @@
 /** Map pictures. OpenStreetMap's own server is fine for light use; swap for a paid tile provider if the app gets busy. */
 export const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 export const TILE_CREDIT = '© OpenStreetMap';
+/**
+ * OpenStreetMap blocks apps that do not say who they are, so the phone app
+ * sends this with every map picture. (A web browser sends its own.)
+ */
+export const TILE_HEADERS = {
+  'User-Agent': 'GenPedalHub/0.2 (+https://genestjanramirez.com/pedalhub/)',
+  Referer: 'https://genestjanramirez.com/pedalhub/',
+};
+/** Used instead if OpenStreetMap still refuses a map picture. Free for light use. */
+export const BACKUP_TILE_URL = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+export const BACKUP_TILE_CREDIT = '© OpenStreetMap © CARTO';
 
 /** Looks up water points and bike shops from OpenStreetMap. Tried in order. */
 export const OVERPASS_URLS = [

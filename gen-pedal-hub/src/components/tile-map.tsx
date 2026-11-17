@@ -2,7 +2,7 @@ import { useState, type JSX } from 'react';
 import { Image, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, G, Polyline, Text as SvgText } from 'react-native-svg';
 
-import { TILE_CREDIT, TILE_URL } from '@/config';
+import { BACKUP_TILE_CREDIT, BACKUP_TILE_URL, TILE_CREDIT, TILE_HEADERS, TILE_URL } from '@/config';
 import { fitView, tilesFor, tileUrl, toScreen, type LatLon, type View as MapView } from '@/lib/tiles';
 
 export type MapMarker = { key: string; lat: number; lon: number; color: string; label?: string };
@@ -22,6 +22,9 @@ const MIN_ZOOM = 3;
 const MAX_ZOOM = 18;
 const MAX_DRAWN_POINTS = 800;
 const FOLLOW_BLUE = '#2F7BEA';
+
+// Once OpenStreetMap refuses a picture, every map in the app uses the backup until it restarts.
+let osmRefused = false;
 
 const finite = (p: LatLon) => Number.isFinite(p.lat) && Number.isFinite(p.lon);
 
@@ -53,6 +56,13 @@ export function TileMap({
   follow = null,
 }: Props): JSX.Element {
   const [width, setWidth] = useState(0);
+  const [backup, setBackup] = useState(osmRefused);
+  const tileTemplate = backup ? BACKUP_TILE_URL : TILE_URL;
+  const onTileError = () => {
+    if (backup) return;
+    osmRefused = true;
+    setBackup(true);
+  };
   const [userZoom, setUserZoom] = useState<number | null>(null);
   // During a live ride the route grows with every fix, so only a new ride should reset the zoom.
   const sig = follow ? `follow:${points.length > 0 ? signature(points.slice(0, 1)) : ''}` : signature(points);
@@ -119,7 +129,8 @@ export function TileMap({
         {tiles.map((t) => (
           <Image
             key={t.key}
-            source={{ uri: tileUrl(TILE_URL, t) }}
+            source={{ uri: tileUrl(tileTemplate, t), headers: backup ? undefined : TILE_HEADERS }}
+            onError={onTileError}
             style={[styles.tile, { left: Math.round(t.left), top: Math.round(t.top) }]}
             fadeDuration={0}
           />
@@ -182,7 +193,7 @@ export function TileMap({
       )}
 
       <View style={styles.credit} pointerEvents="none">
-        <Text style={styles.creditText}>{TILE_CREDIT}</Text>
+        <Text style={styles.creditText}>{backup ? BACKUP_TILE_CREDIT : TILE_CREDIT}</Text>
       </View>
     </View>
   );
