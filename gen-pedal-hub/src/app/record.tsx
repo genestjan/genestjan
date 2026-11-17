@@ -108,7 +108,7 @@ export default function Record() {
 
   const startReport = () => {
     if (!hasBackend || !session.userId) {
-      notify('Sign in first', 'Danger reports are shared with other riders, so they need an account. Open Me, then Settings.');
+      notify('Sign in first', 'Danger reports are shared with other riders, so they need an account. Open Profile, then Settings.');
     } else if (!here) {
       notify('No GPS yet', 'Wait until GPS has found you, then try again.');
     } else {
