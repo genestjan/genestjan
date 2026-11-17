@@ -10,7 +10,7 @@ export const TILE_CREDIT = '© OpenStreetMap';
  * sends this with every map picture. (A web browser sends its own.)
  */
 export const TILE_HEADERS = {
-  'User-Agent': 'GenPedalHub/0.2 (+https://genestjanramirez.com/pedalhub/)',
+  'User-Agent': 'GenRide/0.3 (+https://genestjanramirez.com/pedalhub/)',
   Referer: 'https://genestjanramirez.com/pedalhub/',
 };
 /** Used instead if OpenStreetMap still refuses a map picture. Free for light use. */

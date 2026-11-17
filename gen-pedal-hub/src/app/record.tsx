@@ -27,7 +27,7 @@ const DANGERS: { kind: HazardKind; label: string }[] = [
 function gpsLabel(acc: number | null, recording: boolean): { text: string; color: string } {
   if (!recording) return { text: 'GPS off', color: c.muted };
   if (acc == null) return { text: 'Finding GPS…', color: c.warn };
-  if (acc <= 12) return { text: 'GPS strong', color: c.accent };
+  if (acc <= 12) return { text: 'GPS strong', color: c.good };
   if (acc <= 35) return { text: 'GPS fair', color: c.warn };
   return { text: 'GPS weak', color: c.danger };
 }
@@ -108,7 +108,7 @@ export default function Record() {
 
   const startReport = () => {
     if (!hasBackend || !session.userId) {
-      notify('Sign in first', 'Danger reports are shared with other riders, so they need an account. Open Me, then Settings.');
+      notify('Sign in first', 'Danger reports are shared with other riders, so they need an account. Open Profile, then Settings.');
     } else if (!here) {
       notify('No GPS yet', 'Wait until GPS has found you, then try again.');
     } else {
@@ -118,7 +118,7 @@ export default function Record() {
 
   const sos = () => {
     if (!profile.emergencyPhone) {
-      notify('No emergency contact yet', 'Open the Me tab and add an emergency contact first.');
+      notify('No emergency contact yet', 'Open Profile, then Settings, and add an emergency contact first.');
       return;
     }
     const where = tr.last ?? tr.points[tr.points.length - 1];
@@ -165,7 +165,7 @@ export default function Record() {
         </Pressable>
       ) : null}
       {rec.drinkDue ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Time for a drink. Tap when you have had some water." onPress={drankWater} style={[styles.notice, { backgroundColor: '#1D4E89' }]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Time for a drink. Tap when you have had some water." onPress={drankWater} style={[styles.notice, { backgroundColor: '#0E5FCC' }]}>
           <Ionicons name="water" size={22} color="#FFFFFF" />
           <Text style={[styles.noticeText, { fontWeight: '700' }]}>Time for a drink. Tap here when you have had some water.</Text>
         </Pressable>
@@ -187,7 +187,7 @@ export default function Record() {
         </View>
       ) : showMap && here ? (
         <View style={{ flex: 1, justifyContent: 'center', gap: 8 }}>
-          <TileMap points={tr.points} follow={here} zoom={16} height={300} controls lineColor="#1F7A4D" />
+          <TileMap points={tr.points} follow={here} zoom={16} height={300} controls lineColor="#1A7BF5" />
           <Text style={[styles.speedUnit, { textAlign: 'center', color: c.text }]}>
             {fmtSpeed(rec.status === 'recording' ? tr.speedMs : 0, units)} {speedUnit(units)}
           </Text>
@@ -250,30 +250,30 @@ export default function Record() {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: c.bg, paddingHorizontal: 16, gap: 14, width: '100%', maxWidth: 560, alignSelf: 'center' },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  topButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: c.panel, alignItems: 'center', justifyContent: 'center' },
-  gps: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.panel, paddingHorizontal: 14, height: 40, borderRadius: 20 },
+  topButton: { borderWidth: 1, borderColor: c.line, width: 48, height: 48, borderRadius: 24, backgroundColor: c.panel, alignItems: 'center', justifyContent: 'center' },
+  gps: { borderWidth: 1, borderColor: c.line, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.panel, paddingHorizontal: 14, height: 40, borderRadius: 20 },
   dot: { width: 10, height: 10, borderRadius: 5 },
   sos: { minWidth: 64, height: 48, borderRadius: 24, borderWidth: 2, borderColor: c.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
   sosText: { color: c.danger, fontSize: 17, fontWeight: '800', letterSpacing: 1 },
-  notice: { flexDirection: 'row', gap: 10, backgroundColor: c.panel, borderRadius: 14, padding: 14, alignItems: 'flex-start' },
+  notice: { borderWidth: 1, borderColor: c.line, flexDirection: 'row', gap: 10, backgroundColor: c.panel, borderRadius: 14, padding: 14, alignItems: 'flex-start' },
   noticeText: { color: c.text, fontSize: 15, lineHeight: 21, flex: 1 },
   speedBox: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 150 },
   speed: { color: c.text, fontSize: 124, fontWeight: '800', letterSpacing: -4, fontVariant: ['tabular-nums'], lineHeight: 132 },
   speedUnit: { color: c.muted, fontSize: 20, fontWeight: '600' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  metric: { width: '48.5%', flexGrow: 1, backgroundColor: c.panel, borderRadius: 16, padding: 14, gap: 2 },
+  metric: { borderWidth: 1, borderColor: c.line, width: '48.5%', flexGrow: 1, backgroundColor: c.panel, borderRadius: 16, padding: 14, gap: 2 },
   metricLabel: { color: c.muted, fontSize: 13, fontWeight: '700', letterSpacing: 1 },
   metricValue: { color: c.text, fontSize: 34, fontWeight: '800', fontVariant: ['tabular-nums'] },
   metricUnit: { color: c.muted, fontSize: 16, fontWeight: '600' },
   tools: { flexDirection: 'row', gap: 10 },
-  tool: { flex: 1, height: 48, borderRadius: 24, backgroundColor: c.panel, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  tool: { borderWidth: 1, borderColor: c.line, flex: 1, height: 48, borderRadius: 24, backgroundColor: c.panel, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   toolText: { color: c.text, fontSize: 15, fontWeight: '700' },
   pickBox: { flex: 1, justifyContent: 'center', gap: 10 },
   pickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  pick: { width: '48.5%', flexGrow: 1, minHeight: 60, borderRadius: 16, backgroundColor: c.panel, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  pick: { borderWidth: 1, borderColor: c.line, width: '48.5%', flexGrow: 1, minHeight: 60, borderRadius: 16, backgroundColor: c.panel, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
   pickText: { color: c.text, fontSize: 17, fontWeight: '700', textAlign: 'center' },
   actions: { flexDirection: 'row', gap: 10 },
-  bigButton: { flex: 1, height: 84, borderRadius: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  bigButton: { boxShadow: '0px 0px 18px rgba(30, 139, 255, 0.45)', flex: 1, height: 84, borderRadius: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   bigButtonText: { fontSize: 24, fontWeight: '800' },
   hint: { color: c.muted, fontSize: 15, textAlign: 'center' },
 });

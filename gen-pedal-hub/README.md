@@ -1,4 +1,6 @@
-# Gen Pedal Hub
+# GenRide
+
+Formerly Gen Pedal Hub. The folder, web address (`/pedalhub/`), Android package id and Supabase project keep the old name so existing installs and links carry on working.
 
 A cycling app: record rides, train, explore routes and ride with other people.
 

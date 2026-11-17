@@ -11,7 +11,7 @@ export function toGpx(ride: Ride, points: Point[]): string {
     })
     .join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="Gen Pedal Hub" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="GenRide" xmlns="http://www.topografix.com/GPX/1/1">
 <metadata><name>${esc(ride.title)}</name><time>${new Date(ride.startedAt).toISOString()}</time></metadata>
 <trk><name>${esc(ride.title)}</name><type>cycling</type><trkseg>
 ${pts}

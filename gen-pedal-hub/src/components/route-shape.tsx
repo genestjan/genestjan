@@ -4,7 +4,7 @@ import Svg, { Circle, Polyline } from 'react-native-svg';
 import type { Point } from '@/types';
 
 /** Draws the outline of a ride. Green dot is the start, white ring is the finish. */
-export function RouteShape({ points, height = 200, color = '#A6D96A' }: { points: Point[]; height?: number; color?: string }) {
+export function RouteShape({ points, height = 200, color = '#33B1FF' }: { points: Point[]; height?: number; color?: string }) {
   const W = 320;
   const H = height;
   const pad = 18;

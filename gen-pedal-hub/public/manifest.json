@@ -1,6 +1,6 @@
 {
-  "name": "Gen Pedal Hub",
-  "short_name": "Pedal Hub",
+  "name": "GenRide",
+  "short_name": "GenRide",
   "description": "Record your bike rides and see yourself improve.",
   "start_url": "/pedalhub/",
   "scope": "/pedalhub/",

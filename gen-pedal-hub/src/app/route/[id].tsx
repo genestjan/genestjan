@@ -71,7 +71,7 @@ export default function RouteDetail() {
     return (
       <Screen>
         <BackTitle title="Route" />
-        <P muted>{missing ? 'This route could not be found.' : 'Sign in (Me, then Settings) to see shared routes.'}</P>
+        <P muted>{missing ? 'This route could not be found.' : 'Sign in (Profile, then Settings) to see shared routes.'}</P>
       </Screen>
     );
   }

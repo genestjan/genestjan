@@ -51,7 +51,7 @@ export function TileMap({
   center,
   zoom,
   height = 220,
-  lineColor = '#1F7A4D',
+  lineColor = '#1A7BF5',
   controls = false,
   follow = null,
 }: Props): JSX.Element {

@@ -1,4 +1,4 @@
-name: Build Gen Pedal Hub Android APK
+name: Build GenRide Android APK
 
 # Builds the Android app and publishes it as the "pedalhub-latest" release.
 # Then it re-runs the website build, which copies that APK to
@@ -64,8 +64,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view pedalhub-latest >/dev/null 2>&1 || gh release create pedalhub-latest \
-            --title "Gen Pedal Hub (latest Android build)" \
-            --notes "Latest Android APK of Gen Pedal Hub, rebuilt automatically." \
+            --title "GenRide (latest Android build)" \
+            --notes "Latest Android APK of GenRide, rebuilt automatically." \
             --prerelease --target "${{ github.sha }}"
           gh release upload pedalhub-latest gen-pedal-hub.apk --clobber
       # Re-run the website build so the new APK is copied onto the site

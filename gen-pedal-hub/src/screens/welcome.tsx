@@ -1,10 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Choices, Field, H2, P, Screen } from '@/components/ui';
 import { addBike, updateProfile } from '@/store';
-import { space, useTheme } from '@/theme';
+import { glow, space, useTheme } from '@/theme';
 
 const LEVELS = ['Beginner', 'Regular', 'Experienced'];
 const BIKES = ['Road', 'Mountain', 'Gravel', 'Folding', 'City', 'Other'];
@@ -23,10 +22,9 @@ export default function Welcome() {
 
   return (
     <Screen>
-      <View style={[styles.hero, { backgroundColor: t.brand }]}>
-        <Ionicons name="bicycle" size={44} color={t.accent === t.brand ? t.onBrand : t.accent} />
-        <Text style={[styles.brand, { color: t.onBrand }]}>Gen Pedal Hub</Text>
-        <Text style={[styles.tagline, { color: t.onBrand }]}>Record your rides. See yourself improve.</Text>
+      <View style={styles.hero}>
+        <Image source={require('../../assets/images/logo.png')} accessibilityLabel="GenRide. Ride. Explore. Go further." style={[styles.logo, glow]} />
+        <Text style={[styles.tagline, { color: t.muted }]}>Your cycling companion</Text>
       </View>
 
       <P muted>Three quick questions, then you are ready to ride. You can change these later.</P>
@@ -52,8 +50,8 @@ export default function Welcome() {
 }
 
 const styles = StyleSheet.create({
-  hero: { borderRadius: 24, padding: space.xl, gap: space.sm, alignItems: 'flex-start' },
-  brand: { fontSize: 32, fontWeight: '800', letterSpacing: -0.5 },
+  hero: { gap: space.md, alignItems: 'center' },
+  logo: { width: 200, height: 200, borderRadius: 44 },
   tagline: { fontSize: 17, opacity: 0.9 },
   block: { gap: space.md },
 });

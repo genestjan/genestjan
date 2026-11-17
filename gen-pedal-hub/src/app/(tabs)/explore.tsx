@@ -91,7 +91,7 @@ export default function Explore() {
             zoom={14}
             height={240}
             controls
-            markers={[{ key: 'me', lat: near.lat, lon: near.lon, color: '#173B32', label: 'You' }, ...placeMarkers(near.places, near.hazards)]}
+            markers={[{ key: 'me', lat: near.lat, lon: near.lon, color: '#0A1F5C', label: 'You' }, ...placeMarkers(near.places, near.hazards)]}
           />
         ) : null}
         {near ? (
@@ -129,7 +129,7 @@ export default function Explore() {
             <Button label="Report a danger where I am" icon="warning-outline" kind="plain" onPress={() => setReporting(true)} />
           )
         ) : null}
-        {near && !signedIn ? <P muted style={{ fontSize: 14 }}>Sign in (Me, then Settings) to see and report dangers.</P> : null}
+        {near && !signedIn ? <P muted style={{ fontSize: 14 }}>Sign in (Profile, then Settings) to see and report dangers.</P> : null}
       </Card>
 
       <View style={{ gap: space.md }}>
@@ -149,7 +149,7 @@ export default function Explore() {
           </Card>
         ) : !signedIn ? (
           <Card>
-            <P muted>Sign in (Me, then Settings) to see routes other riders have shared.</P>
+            <P muted>Sign in (Profile, then Settings) to see routes other riders have shared.</P>
           </Card>
         ) : shared.error ? (
           <Card>

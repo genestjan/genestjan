@@ -1,9 +1,8 @@
 import { Text, View } from 'react-native';
 
 import { MenuRow } from '@/components/menu-row';
-import { Card, Screen, Stat } from '@/components/ui';
+import { Avatar, Card, Screen } from '@/components/ui';
 import { hasBackend, useSession } from '@/backend';
-import { totalCalories } from '@/lib/calories';
 import { fmtDist, fmtHours } from '@/lib/format';
 import { badges, bikeChecks, totals } from '@/lib/stats';
 import { getPlan } from '@/lib/training';
@@ -24,24 +23,32 @@ export default function Me() {
 
   return (
     <Screen>
-      <View>
-        <Text accessibilityRole="header" style={{ color: t.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.5 }}>
+      <View style={{ alignItems: 'center', gap: space.sm }}>
+        <Avatar name={profile.name} size={104} />
+        <Text accessibilityRole="header" style={{ color: t.text, fontSize: 26, fontWeight: '800', letterSpacing: -0.5, marginTop: space.sm }}>
           {profile.name || 'Rider'}
         </Text>
-        <Text style={{ color: t.muted, fontSize: 16 }}>
+        <Text style={{ color: t.muted, fontSize: 15, textAlign: 'center' }}>
           {[profile.city, `${profile.bikeKind} bike`, profile.level].filter(Boolean).join(' · ')}
         </Text>
       </View>
 
-      <Card style={{ gap: space.lg }}>
-        <View style={{ flexDirection: 'row' }}>
-          <Stat value={fmtDist(all.distanceM, profile.units)} unit={profile.units} label="in total" />
-          <Stat value={String(all.rides)} label={all.rides === 1 ? 'ride' : 'rides'} />
-        </View>
-        <View style={{ flexDirection: 'row' }}>
-          <Stat value={fmtHours(all.movingMs)} label="riding time" />
-          <Stat value={totalCalories(rides, profile.weightKg).toLocaleString('en-GB')} unit="kcal" label="burned (estimate)" />
-        </View>
+      <Card style={{ flexDirection: 'row', gap: 0, paddingHorizontal: space.sm }}>
+        {[
+          [fmtDist(all.distanceM, profile.units), `${profile.units} in total`],
+          [fmtHours(all.movingMs), 'riding time'],
+          [String(all.rides), all.rides === 1 ? 'ride' : 'rides'],
+          [String(earned), earned === 1 ? 'badge' : 'badges'],
+        ].map(([value, label], i) => (
+          <View key={label} style={{ flex: 1, alignItems: 'center', borderLeftWidth: i ? 1 : 0, borderLeftColor: t.line }}>
+            <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', fontVariant: ['tabular-nums'] }} numberOfLines={1} adjustsFontSizeToFit>
+              {value}
+            </Text>
+            <Text style={{ color: t.muted, fontSize: 13 }} numberOfLines={1}>
+              {label}
+            </Text>
+          </View>
+        ))}
       </Card>
 
       <View style={{ gap: space.sm }}>

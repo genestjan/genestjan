@@ -99,7 +99,7 @@ export default function Settings() {
           }}
         />
       </Card>
-      <Text style={{ color: t.muted, fontSize: 13, textAlign: 'center' }}>Gen Pedal Hub 0.2</Text>
+      <Text style={{ color: t.muted, fontSize: 13, textAlign: 'center' }}>GenRide 0.3</Text>
     </Screen>
   );
 }

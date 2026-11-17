@@ -21,7 +21,7 @@ export default function RiderPage() {
     return (
       <Screen>
         <BackTitle title="Rider" />
-        <P muted>Sign in (Me, then Settings) to see other riders.</P>
+        <P muted>Sign in (Profile, then Settings) to see other riders.</P>
       </Screen>
     );
   }

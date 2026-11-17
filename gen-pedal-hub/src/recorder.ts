@@ -188,7 +188,7 @@ async function startLocation(): Promise<string | null> {
         activityType: Location.ActivityType.Fitness,
         pausesUpdatesAutomatically: false,
         foregroundService: {
-          notificationTitle: 'Gen Pedal Hub is recording your ride',
+          notificationTitle: 'GenRide is recording your ride',
           notificationBody: 'Open the app to pause or finish.',
           notificationColor: '#173B32',
         },

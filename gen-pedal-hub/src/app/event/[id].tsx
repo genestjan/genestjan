@@ -37,7 +37,7 @@ export default function EventPage() {
     return (
       <Screen>
         <BackTitle title="Event" />
-        <P muted>{!on ? 'Sign in (Me, then Settings) to see events.' : events.loading ? 'Loading…' : 'This event could not be found.'}</P>
+        <P muted>{!on ? 'Sign in (Profile, then Settings) to see events.' : events.loading ? 'Loading…' : 'This event could not be found.'}</P>
       </Screen>
     );
   }
