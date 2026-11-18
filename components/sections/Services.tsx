@@ -22,7 +22,9 @@ export default function Services() {
             <Reveal delay={(i % 3) * 0.07}>
               <GlassCard className="h-full">
                 <p className="mono-label text-signal">{s.n}</p>
-                <h3 className="mt-3 font-display text-h3 font-medium text-paper">{s.title}</h3>
+                <h3 className="mt-3 font-display text-h3 font-medium text-paper">
+                  <a href={`/services/${s.slug}/`} className="hover:text-signal">{s.title}</a>
+                </h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted">{s.body}</p>
                 <ul className="mt-5 flex flex-wrap gap-2">
                   {s.tags.map((t) => <li key={t}><ToolChip>{t}</ToolChip></li>)}

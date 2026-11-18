@@ -1,4 +1,27 @@
+# Search engines and AI assistants are welcome on the public site.
 User-agent: *
 Allow: /
+# Private tools and drafts: keep them out of search results.
+Disallow: /invoices/
+Disallow: /payroll/
+Disallow: /BekiEakinsdraftwebsite/
+Disallow: /monggols/
+Disallow: /fetch/driver/
+
+# AI search and answer engines (named so the welcome is explicit).
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /invoices/
+Disallow: /payroll/
+Disallow: /BekiEakinsdraftwebsite/
+Disallow: /monggols/
+Disallow: /fetch/driver/
 
 Sitemap: https://genestjanramirez.com/sitemap.xml

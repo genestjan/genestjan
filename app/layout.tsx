@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-import { site, faq } from '@/lib/content';
+import { site, faq, services } from '@/lib/content';
 import CursorGlow from '@/components/ui/CursorGlow';
 import ScrollProgress from '@/components/layout/ScrollProgress';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import CinematicCursor from '@/components/ui/CinematicCursor';
-import ApertureIntro from '@/components/ui/ApertureIntro';
 import SoundBoot from '@/components/ui/SoundBoot';
 import { HOMEPAGE_VISIBLE } from '@/lib/visibility';
 
@@ -37,14 +36,14 @@ export const metadata: Metadata = {
     siteName: site.name,
     title: site.title,
     description: site.description,
-    images: [{ url: '/logo-512.png', width: 512, height: 512, alt: site.name }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: site.title }],
     locale: 'en_GB',
   },
   twitter: {
     card: 'summary_large_image',
     title: site.title,
     description: site.description,
-    images: ['/logo-512.png'],
+    images: ['/og.png'],
   },
   icons: { icon: '/logo-512.png', apple: '/logo-512.png' },
 };
@@ -89,6 +88,15 @@ const jsonLd = {
         addressCountry: 'PH',
       },
       description: site.description,
+      knowsLanguage: ['English', 'Filipino', 'Cebuano'],
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: 'Services',
+        itemListElement: services.items.map((s) => ({
+          '@type': 'Offer',
+          itemOffered: { '@id': `${site.domain}/services/${s.slug}/#service` },
+        })),
+      },
     },
     {
       // The page renders these questions visibly; the schema mirrors them so
@@ -133,7 +141,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
             <a href="#main" className="skip-link">Skip to content</a>
-            <ApertureIntro />
             <SoundBoot />
             <SmoothScroll />
             <ScrollProgress />
