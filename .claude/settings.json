@@ -4,7 +4,8 @@
     "building-react-native-apps@callstack-agent-skills": true,
     "testing-react-native-apps@callstack-agent-skills": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
-    "frontend-design@anthropic-plugin-directory": true
+    "frontend-design@anthropic-plugin-directory": true,
+    "modern-web-guidance@googlechrome": true
   },
   "extraKnownMarketplaces": {
     "expo-plugins": {
@@ -23,6 +24,12 @@
       "source": {
         "source": "github",
         "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+      }
+    },
+    "googlechrome": {
+      "source": {
+        "source": "github",
+        "repo": "GoogleChrome/modern-web-guidance"
       }
     }
   }
