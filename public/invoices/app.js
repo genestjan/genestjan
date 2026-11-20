@@ -1792,45 +1792,71 @@ function billedKeys(exceptId) {
   return set;
 }
 // the tracked time an invoice can bill: its client's billable projects, inside its work period
-function timeFor(inv) {
-  const projects = Object.values(S.projects).filter(p => p.clientId === inv.clientId && p.billable);
-  if (!inv.clientId || !projects.length) return null;
-  const ids = new Set(projects.map(p => p.id));
-  const taken = billedKeys(inv.id);
-  const list = allEntries().filter(e => ids.has(e.projectId) && (!inv.pStart || e.date >= inv.pStart) && (!inv.pEnd || e.date <= inv.pEnd) && !taken.has(entryKey(e)));
+const billableProjects = clientId => Object.values(S.projects).filter(p => p.clientId === clientId && p.billable);
+// a client's billable time in a period (blank dates: any): what no other invoice has yet (free),
+// and what other invoices already bill (held: [{ inv, status, minutes, keys }], most first)
+function billingSplit(clientId, from, to, exceptId) {
+  const ids = new Set(billableProjects(clientId).map(p => p.id));
+  const all = allEntries().filter(e => ids.has(e.projectId) && (!from || e.date >= from) && (!to || e.date <= to));
+  const owner = {};
+  for (const o of Object.values(S.invoices)) if (o.id !== exceptId && !o.voidAt) for (const k of o.timeRefs) owner[k] = o;
+  const free = [], by = {};
+  for (const e of all) {
+    const o = owner[entryKey(e)];
+    if (!o) { free.push(e); continue; }
+    const h = by[o.id] = by[o.id] || { inv: o, status: statusOf(o), minutes: 0, keys: [] };
+    h.minutes += e.minutes;
+    h.keys.push(entryKey(e));
+  }
+  return { free, held: Object.values(by).sort((a, b) => b.minutes - a.minutes), total: all.reduce((t, e) => t + e.minutes, 0) };
+}
+// one line per project for the given entries, at the project's rate or the client's
+function timeLines(inv, list) {
   const per = {};
   for (const e of list) per[e.projectId] = (per[e.projectId] || 0) + e.minutes;
   const client = S.clients[inv.clientId];
-  const lines = projects.filter(p => per[p.id]).sort((a, b) => byStr(a.name.toLowerCase(), b.name.toLowerCase()) || byStr(a.id, b.id)).map(p => ({
+  return billableProjects(inv.clientId).filter(p => per[p.id]).sort((a, b) => byStr(a.name.toLowerCase(), b.name.toLowerCase()) || byStr(a.id, b.id)).map(p => ({
     id: 'tl' + p.id.slice(-30), src: 'time:' + p.id,
     desc: `${p.name} - {hours} hours` + (inv.pStart && inv.pEnd ? ' for the period of {period}' : ''),
     qty: TK.fmtHM(per[p.id]), rate: p.rate.trim() || (client ? client.rate : ''),
   }));
-  return { lines, refs: list.map(entryKey).sort(), minutes: list.reduce((t, e) => t + e.minutes, 0), projects: Object.keys(per).length, entries: list, held: heldElsewhere(inv, ids) };
 }
-// time in this invoice's client and period that another invoice already bills: [{ inv, minutes, status }]
-function heldElsewhere(inv, ids) {
-  const mins = {};
-  for (const e of allEntries()) if (ids.has(e.projectId) && (!inv.pStart || e.date >= inv.pStart) && (!inv.pEnd || e.date <= inv.pEnd)) mins[entryKey(e)] = e.minutes;
-  const out = [];
-  for (const o of Object.values(S.invoices)) {
-    if (o.id === inv.id || o.voidAt) continue;
-    const m = o.timeRefs.reduce((t, k) => t + (mins[k] || 0), 0);
-    if (m) out.push({ inv: o, minutes: m, status: statusOf(o) });
-  }
-  return out.sort((a, b) => b.minutes - a.minutes);
+// the tracked time an invoice can bill: its client's billable projects, inside its work period
+function timeFor(inv) {
+  if (!inv.clientId || !billableProjects(inv.clientId).length) return null;
+  const sp = billingSplit(inv.clientId, inv.pStart, inv.pEnd, inv.id);
+  const list = sp.free;
+  return { lines: timeLines(inv, list), refs: list.map(entryKey).sort(), minutes: list.reduce((t, e) => t + e.minutes, 0), projects: new Set(list.map(e => e.projectId)).size, entries: list, held: sp.held, total: sp.total };
 }
 const heldText = h => `${TK.fmtHM(h.minutes)} is already on invoice ${h.inv.number} (${h.status === 'draft' ? 'a draft' : h.status})`;
-// take tracked time off a draft so another invoice can bill it
-function releaseTime(id) {
-  const o = S.invoices[id];
+// take some tracked time off a draft so another invoice can bill it; the draft keeps the rest,
+// and stops following new time so it doesn't take it back
+function releaseTime(h) {
+  const o = S.invoices[h.inv.id];
   if (!o || statusOf(o) !== 'draft') return;
-  o.items = o.items.filter(i => !i.src);
-  if (!o.items.length) o.items = [cleanItem({}, 0)];
-  o.timeRefs = [];
+  const free = new Set(h.keys);
+  const keep = o.timeRefs.filter(k => !free.has(k));
+  const keepSet = new Set(keep);
+  applyTime(o, { lines: timeLines(o, allEntries().filter(e => keepSet.has(entryKey(e)))), refs: keep });
   o.timeLink = false;
   touch(o);
 }
+// move the time other drafts hold in this invoice's period onto it
+function moveFromDrafts(inv) {
+  const t = timeFor(inv);
+  const drafts = t ? t.held.filter(h => h.status === 'draft') : [];
+  if (!drafts.length) return;
+  const n = drafts.reduce((m, h) => m + h.minutes, 0);
+  for (const h of drafts) releaseTime(h);
+  const t2 = timeFor(inv);
+  applyTime(inv, t2);
+  inv.timeLink = true;
+  touch(inv);
+  $('#edItems').dataset.key = '';
+  renderEditor();
+  toast(`Moved ${TK.fmtHM(n)} here from draft${drafts.length === 1 ? '' : 's'} ${drafts.map(h => h.inv.number).join(', ')}. This invoice now bills ${TK.fmtHM(t2.minutes)}.`);
+}
+const draftHeld = t => (t ? t.held.filter(h => h.status === 'draft') : []);
 // put the time lines on the invoice (one per project), keeping lines typed by hand
 function applyTime(inv, t) {
   // lines typed by hand stay; a blank starter line (perhaps holding only the client's usual rate or item) goes
@@ -1850,7 +1876,7 @@ function fillFromTime() {
   if (!t || !t.lines.length) {
     const h = t && t.held[0];
     if (!h) { toast('No tracked time to bill for this client in this work period. Check the work period dates, and that the projects are marked billable under Clients.'); return; }
-    if (h.status === 'draft') toast(`${heldText(h)}. Time can only be on one invoice.`, { label: `Move it here`, run: () => { releaseTime(h.inv.id); fillFromTime(); } });
+    if (draftHeld(t).length) toast(`${heldText(draftHeld(t)[0])}. Time can only be on one invoice.`, { label: 'Move it here', run: () => moveFromDrafts(inv) });
     else toast(`${heldText(h)}, so it has been billed already. Void that invoice first if it was a mistake.`, { label: 'Open it', run: () => openEditor(h.inv.id) });
     return;
   }
@@ -1859,7 +1885,9 @@ function fillFromTime() {
   touch(inv);
   $('#edItems').dataset.key = '';
   renderEditor();
-  toast(`Filled ${TK.fmtHM(t.minutes)} across ${t.projects} project${t.projects === 1 ? '' : 's'}. It stays in step with new time while this is a draft.`);
+  const d = draftHeld(t);
+  if (d.length) toast(`Filled ${TK.fmtHM(t.minutes)}. Another ${d.map(heldText).join('; ')}.`, { label: 'Move it here', run: () => moveFromDrafts(inv) });
+  else toast(`Filled ${TK.fmtHM(t.minutes)} across ${t.projects} project${t.projects === 1 ? '' : 's'}.${t.held.length ? ` The rest of this period (${t.held.map(h => `invoice ${h.inv.number}, ${h.status}`).join('; ')}) was billed before.` : ''} It stays in step with new time while this is a draft.`);
 }
 // drafts that follow tracked time pick up new and changed entries; sent invoices never change.
 // Not stamped: an automatic refresh isn't an edit (each device works it out the same way), so it
@@ -1884,6 +1912,9 @@ function renderEditorTime(inv) {
     : (t.minutes ? `${TK.fmtHM(t.minutes)} tracked for ${period} across ${t.projects} project${t.projects === 1 ? '' : 's'}, not on any other invoice.` : `No unbilled time for ${period} yet.`)
       + (t.held.length ? ` ${t.held.map(heldText).join('; ')}.` : '');
   $('#edTimeFill').hidden = sent;
+  const dh = sent ? [] : draftHeld(t);
+  $('#edTimeMove').hidden = !dh.length;
+  if (dh.length) $('#edTimeMove').textContent = `Move ${TK.fmtHM(dh.reduce((m, h) => m + h.minutes, 0))} here from draft${dh.length === 1 ? '' : 's'} ${dh.map(h => h.inv.number).join(', ')}`;
   $('#edTimeLinkWrap').hidden = sent;
   $('#edTimeLink').checked = inv.timeLink;
 }
@@ -1986,6 +2017,20 @@ function dayBars(days) {
     return `<div class="wkcol" tabindex="0" data-tip="${esc(TK.dayLabel(dt))} · ${TK.fmtHM(d.minutes)}"><div class="wkplot">${i === peak && d.minutes ? `<span class="wkval">${TK.fmtHM(d.minutes)}</span>` : ''}<div class="wkbar" style="height:${d.minutes ? Math.max(2, Math.round(d.minutes / max * 100)) : 0}%"></div></div><div class="wkday">${days.length <= 16 ? `${['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][dt.getDay()]}<br>` : ''}<span>${dt.getDate()}</span></div></div>`;
   }).join('')}</div>`;
 }
+// for Jan only, on screen: how much of the report's billable time is on invoices already
+function billingCard(clientId, from, to) {
+  const sp = billingSplit(clientId, from, to, '');
+  if (!sp.total) return '';
+  const free = sp.free.reduce((t, e) => t + e.minutes, 0);
+  const word = st => (st === 'draft' ? 'draft' : st === 'partial' ? 'part paid' : st);
+  return `<section class="card bill-card"><div class="card-hd"><h3>Invoiced so far</h3><span class="muted small">Only you see this</span></div>
+    <table class="rtable">
+      <tr><td><b>Not on an invoice yet</b></td><td class="r mono">${TK.fmtHM(free)}</td><td></td></tr>
+      ${sp.held.map(h => `<tr><td>On invoice ${esc(h.inv.number)} <span class="tflag">${esc(word(h.status))}</span></td><td class="r mono">${TK.fmtHM(h.minutes)}</td><td class="r"><button class="link" type="button" data-open="${esc(h.inv.id)}">Open</button></td></tr>`).join('')}
+    </table>
+    ${sp.held.length ? `<p class="note">"Create invoice from this" bills only the time not on an invoice yet${sp.held.some(h => h.status === 'draft') ? ', and then offers to move the time held by drafts onto it' : ''}.</p>` : ''}
+  </section>`;
+}
 function renderReport() {
   if (!$('#rpOut')) return;
   for (const b of $$('[data-rmode]')) b.setAttribute('aria-pressed', String(b.dataset.rmode === R.mode));
@@ -2011,6 +2056,7 @@ function renderReport() {
     out.innerHTML = `
       ${leaks.length ? `<div class="card leak"><b>Fix before sending:</b> ${esc(leakMessage(leaks))}<ul>${leaks.slice(0, 6).map(l => `<li>${esc(l.where)}</li>`).join('')}</ul></div>` : ''}
       <div class="r-hero card"><div><span class="eyebrow">Total time</span><div class="big">${TK.fmtLong(rep.total)}</div><div class="muted small">${esc(rep.client.name || rep.client.company)} · ${esc(rep.period)} · ${rep.days} day${rep.days === 1 ? '' : 's'} worked</div></div>${dayBars(rep.perDay)}</div>
+      ${billingCard(R.clientId, from, to)}
       <div class="r-grid">
         <section class="card"><h3>By project</h3><table class="rtable">${barRows(rep.byProject, rep.total) || '<tr><td class="muted">No time in this period</td></tr>'}</table></section>
         <section class="card"><h3>By task</h3><table class="rtable">${barRows(rep.byTask.slice(0, 8), rep.total) || '<tr><td class="muted">No descriptions yet</td></tr>'}</table>${rep.byTask.length > 8 ? `<p class="muted small">and ${rep.byTask.length - 8} more</p>` : ''}</section>
@@ -2089,13 +2135,21 @@ function reportInvoice() {
   const inv = cur();
   inv.pStart = from; inv.pEnd = to;
   const t = timeFor(inv);
-  if (!t || !t.lines.length) { renderEditor(); toast('All the time in this period is already on an invoice, or none is billable.'); return; }
+  if (!t || !t.lines.length) {
+    renderEditor();
+    const d = draftHeld(t);
+    if (d.length) toast(`All the time in this period is on other invoices: ${d.map(heldText).join('; ')}.`, { label: 'Move it here', run: () => moveFromDrafts(inv) });
+    else toast(t && t.held.length ? `All the time in this period is already billed: ${t.held.map(heldText).join('; ')}.` : 'None of the time in this period is billable.');
+    return;
+  }
   applyTime(inv, t);
   inv.timeLink = true;
   touch(inv);
   $('#edItems').dataset.key = '';
   renderEditor();
-  toast(`Invoice filled with ${TK.fmtHM(t.minutes)} for ${periodText(parseIso(from), parseIso(to))}.`);
+  const d = draftHeld(t);
+  const rest = t.held.length ? ` The other ${TK.fmtHM(t.total - t.minutes)} of the report is on other invoices.` : '';
+  toast(`Invoice filled with ${TK.fmtHM(t.minutes)} for ${periodText(parseIso(from), parseIso(to))}.${rest}`, d.length ? { label: 'Move it here', run: () => moveFromDrafts(inv) } : undefined);
 }
 
 /* ---------- overview: working now, ready to invoice ---------- */
@@ -2934,6 +2988,7 @@ function wire() {
   // time, team, reports
   initTime();
   $('#edTimeFill').addEventListener('click', fillFromTime);
+  $('#edTimeMove').addEventListener('click', () => { const inv = cur(); if (inv) moveFromDrafts(inv); });
   $('#clAddProject').addEventListener('click', addProject);
   $('#clProjects').addEventListener('input', projectEvent);
   $('#clProjects').addEventListener('click', projectEvent);
