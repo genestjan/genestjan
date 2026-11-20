@@ -264,6 +264,7 @@
         <section class="card time-card" id="edTimeCard" aria-labelledby="h-time" hidden>
           <div class="card-hd"><h3 id="h-time">Tracked time</h3><span id="edTimeSum" class="mono"></span></div>
           <p id="edTimeText" class="note"></p>
+          <p id="edTimeWarn" class="warn-text small" hidden></p>
           <div class="card-ft">
             <button id="edTimeFill" class="btn gold" type="button">Fill items from tracked time</button>
             <label class="check check-sm" id="edTimeLinkWrap"><input type="checkbox" id="edTimeLink"> Keep in step with new time while it's a draft</label>
@@ -638,6 +639,7 @@
   <div class="sheet-card">
     <div class="card-hd"><h2 id="sdTitle">Send invoice</h2><button id="sdClose" class="link" type="button">Close</button></div>
     <p class="note" id="sdTo"></p>
+    <p class="warn-text small" id="sdDouble" hidden></p>
     <div class="field"><label for="sdSubject">Subject</label><input id="sdSubject" class="in" autocomplete="off"></div>
     <div class="field"><label for="sdBody">Message</label><textarea id="sdBody" class="in" rows="7"></textarea></div>
     <div class="act-grid">

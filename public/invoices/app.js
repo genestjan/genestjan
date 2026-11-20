@@ -1410,6 +1410,9 @@ function openSend() {
   $('#sdHint').textContent = share
     ? `Tap Share, pick Gmail, and the PDF and message go in. Then add ${r.to[0] || 'the client'} as the recipient (tap the address above to copy it).`
     : 'Gmail opens in a new tab with the email ready, and the PDF downloads. Drag the PDF into the email, then press Send.';
+  const dbl = inv.sentAt ? '' : doubleBilling(inv, timeFor(inv));
+  $('#sdDouble').hidden = !dbl;
+  $('#sdDouble').textContent = dbl ? `Check before sending: ${dbl}` : '';
   $('#sdReportWrap').hidden = !inv.timeRefs.length;
   $('#sdReport').checked = inv.timeRefs.length > 0;
   $('#sdMark').checked = !inv.sentAt;
@@ -1792,22 +1795,58 @@ function billedKeys(exceptId) {
   return set;
 }
 // the tracked time an invoice can bill: its client's billable projects, inside its work period
-function timeFor(inv) {
-  const projects = Object.values(S.projects).filter(p => p.clientId === inv.clientId && p.billable);
-  if (!inv.clientId || !projects.length) return null;
-  const ids = new Set(projects.map(p => p.id));
-  const taken = billedKeys(inv.id);
-  const list = allEntries().filter(e => ids.has(e.projectId) && (!inv.pStart || e.date >= inv.pStart) && (!inv.pEnd || e.date <= inv.pEnd) && !taken.has(entryKey(e)));
+const billableProjects = clientId => Object.values(S.projects).filter(p => p.clientId === clientId && p.billable);
+// a client's billable time in a period (blank dates: any): what no other invoice has yet (free),
+// and what other invoices already bill (held: [{ inv, status, minutes, keys }], most first)
+function billingSplit(clientId, from, to, exceptId) {
+  const ids = new Set(billableProjects(clientId).map(p => p.id));
+  const all = allEntries().filter(e => ids.has(e.projectId) && (!from || e.date >= from) && (!to || e.date <= to));
+  const owners = {}; // an entry can be on more than one invoice
+  for (const o of Object.values(S.invoices)) if (o.id !== exceptId && !o.voidAt) for (const k of o.timeRefs) (owners[k] = owners[k] || []).push(o);
+  const free = [], by = {};
+  for (const e of all) {
+    const os = owners[entryKey(e)];
+    if (!os) { free.push(e); continue; }
+    for (const o of os) {
+      const h = by[o.id] = by[o.id] || { inv: o, status: statusOf(o), minutes: 0, keys: [] };
+      h.minutes += e.minutes;
+      h.keys.push(entryKey(e));
+    }
+  }
+  return { all, free, held: Object.values(by).sort((a, b) => b.minutes - a.minutes), total: all.reduce((t, e) => t + e.minutes, 0) };
+}
+// one line per project for the given entries, at the project's rate or the client's
+function timeLines(inv, list) {
   const per = {};
   for (const e of list) per[e.projectId] = (per[e.projectId] || 0) + e.minutes;
   const client = S.clients[inv.clientId];
-  const lines = projects.filter(p => per[p.id]).sort((a, b) => byStr(a.name.toLowerCase(), b.name.toLowerCase()) || byStr(a.id, b.id)).map(p => ({
+  return billableProjects(inv.clientId).filter(p => per[p.id]).sort((a, b) => byStr(a.name.toLowerCase(), b.name.toLowerCase()) || byStr(a.id, b.id)).map(p => ({
     id: 'tl' + p.id.slice(-30), src: 'time:' + p.id,
     desc: `${p.name} - {hours} hours` + (inv.pStart && inv.pEnd ? ' for the period of {period}' : ''),
     qty: TK.fmtHM(per[p.id]), rate: p.rate.trim() || (client ? client.rate : ''),
   }));
-  return { lines, refs: list.map(entryKey).sort(), minutes: list.reduce((t, e) => t + e.minutes, 0), projects: Object.keys(per).length, entries: list };
 }
+// the tracked time an invoice bills: all of its client's billable time inside its work period,
+// exactly what the client report shows for the same dates. Time that another invoice also has is
+// still billed; held lists those invoices, so a sent or paid one can be warned about.
+function timeFor(inv) {
+  if (!inv.clientId || !billableProjects(inv.clientId).length) return null;
+  const sp = billingSplit(inv.clientId, inv.pStart, inv.pEnd, inv.id);
+  const list = sp.all;
+  return { lines: timeLines(inv, list), refs: list.map(entryKey).sort(), minutes: sp.total, projects: new Set(list.map(e => e.projectId)).size, entries: list, held: sp.held };
+}
+const statusWord = st => (st === 'partial' ? 'part paid' : st);
+// invoices already sent or paid that bill some of the same time: billing it again charges the client twice
+function doubleBilling(inv, t) {
+  const sent = t ? t.held.filter(h => h.status !== 'draft') : [];
+  if (!sent.length) return '';
+  const mins = sent.reduce((m, h) => m + h.minutes, 0);
+  const keys = new Set(sent.flatMap(h => h.keys));
+  const last = t.entries.filter(e => keys.has(entryKey(e))).map(e => e.date).sort().pop();
+  const next = last && (!inv.pEnd || last < inv.pEnd) ? shortDate(addDays(parseIso(last), 1)) : '';
+  return `${TK.fmtHM(mins)} of these dates was already billed on invoice${sent.length === 1 ? '' : 's'} ${sent.map(h => `${h.inv.number} (${statusWord(h.status)})`).join(', ')}. Sending this charges it again.${next ? ` To bill only new time, start the work period on ${next}.` : ''}`;
+}
+const draftsToo = t => { const d = t ? t.held.filter(h => h.status === 'draft') : []; return d.length ? `Draft${d.length === 1 ? '' : 's'} ${d.map(h => h.inv.number).join(', ')} also ha${d.length === 1 ? 's' : 've'} some of this time. Send only one, and delete the other.` : ''; };
 // put the time lines on the invoice (one per project), keeping lines typed by hand
 function applyTime(inv, t) {
   // lines typed by hand stay; a blank starter line (perhaps holding only the client's usual rate or item) goes
@@ -1824,13 +1863,14 @@ function fillFromTime() {
   const inv = cur();
   if (!inv) return;
   const t = timeFor(inv);
-  if (!t || !t.lines.length) { toast('No tracked time to bill for this client in this work period.'); return; }
+  if (!t || !t.lines.length) { toast('No tracked time for this client in this work period. Check the work period dates, and that the projects are marked billable under Clients.'); return; }
   applyTime(inv, t);
   inv.timeLink = true;
   touch(inv);
   $('#edItems').dataset.key = '';
   renderEditor();
-  toast(`Filled ${TK.fmtHM(t.minutes)} across ${t.projects} project${t.projects === 1 ? '' : 's'}. It stays in step with new time while this is a draft.`);
+  const dbl = doubleBilling(inv, t);
+  toast(dbl || `Filled ${TK.fmtHM(t.minutes)} across ${t.projects} project${t.projects === 1 ? '' : 's'}, the same as the client report for these dates. It stays in step with new time while this is a draft.`);
 }
 // drafts that follow tracked time pick up new and changed entries; sent invoices never change.
 // Not stamped: an automatic refresh isn't an edit (each device works it out the same way), so it
@@ -1852,7 +1892,10 @@ function renderEditorTime(inv) {
   $('#edTimeSum').textContent = t.minutes ? TK.fmtHM(t.minutes) : '';
   $('#edTimeText').textContent = sent
     ? (inv.timeRefs.length ? `This invoice billed ${inv.timeRefs.length} time entr${inv.timeRefs.length === 1 ? 'y' : 'ies'}. It no longer changes now it has gone out.` : 'Sent invoices keep their lines as they are.')
-    : t.minutes ? `${TK.fmtHM(t.minutes)} tracked for ${period} across ${t.projects} project${t.projects === 1 ? '' : 's'}, not on any other invoice.` : `No unbilled time for ${period} yet.`;
+    : t.minutes ? `${TK.fmtHM(t.minutes)} tracked for ${period} across ${t.projects} project${t.projects === 1 ? '' : 's'}, the same as the client report for these dates.` : `No tracked time for ${period} yet.`;
+  const warn = sent ? '' : [doubleBilling(inv, t), draftsToo(t)].filter(Boolean).join(' ');
+  $('#edTimeWarn').hidden = !warn;
+  $('#edTimeWarn').textContent = warn;
   $('#edTimeFill').hidden = sent;
   $('#edTimeLinkWrap').hidden = sent;
   $('#edTimeLink').checked = inv.timeLink;
@@ -1956,6 +1999,22 @@ function dayBars(days) {
     return `<div class="wkcol" tabindex="0" data-tip="${esc(TK.dayLabel(dt))} · ${TK.fmtHM(d.minutes)}"><div class="wkplot">${i === peak && d.minutes ? `<span class="wkval">${TK.fmtHM(d.minutes)}</span>` : ''}<div class="wkbar" style="height:${d.minutes ? Math.max(2, Math.round(d.minutes / max * 100)) : 0}%"></div></div><div class="wkday">${days.length <= 16 ? `${['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][dt.getDay()]}<br>` : ''}<span>${dt.getDate()}</span></div></div>`;
   }).join('')}</div>`;
 }
+// for Jan only, on screen: how much of the report's billable time is on invoices already
+function billingCard(clientId, from, to) {
+  const sp = billingSplit(clientId, from, to, '');
+  if (!sp.total) return '';
+  const free = sp.free.reduce((t, e) => t + e.minutes, 0);
+  const word = statusWord;
+  const sentMins = sp.held.filter(h => h.status !== 'draft').reduce((m, h) => m + h.minutes, 0);
+  return `<section class="card bill-card"><div class="card-hd"><h3>Invoiced so far</h3><span class="muted small">Only you see this</span></div>
+    <table class="rtable">
+      <tr><td><b>Not on an invoice yet</b></td><td class="r mono">${TK.fmtHM(free)}</td><td></td></tr>
+      ${sp.held.map(h => `<tr><td>On invoice ${esc(h.inv.number)} <span class="tflag">${esc(word(h.status))}</span></td><td class="r mono">${TK.fmtHM(h.minutes)}</td><td class="r"><button class="link" type="button" data-open="${esc(h.inv.id)}">Open</button></td></tr>`).join('')}
+    </table>
+    <p class="note">"Create invoice from this" bills all ${TK.fmtHM(sp.total)}, the same as this report.</p>
+    ${sentMins ? `<p class="warn-text small">${TK.fmtHM(sentMins)} of it is on an invoice already sent or paid, so it would be charged twice. Change the dates to skip those days if that isn't what you want.</p>` : ''}
+  </section>`;
+}
 function renderReport() {
   if (!$('#rpOut')) return;
   for (const b of $$('[data-rmode]')) b.setAttribute('aria-pressed', String(b.dataset.rmode === R.mode));
@@ -1981,6 +2040,7 @@ function renderReport() {
     out.innerHTML = `
       ${leaks.length ? `<div class="card leak"><b>Fix before sending:</b> ${esc(leakMessage(leaks))}<ul>${leaks.slice(0, 6).map(l => `<li>${esc(l.where)}</li>`).join('')}</ul></div>` : ''}
       <div class="r-hero card"><div><span class="eyebrow">Total time</span><div class="big">${TK.fmtLong(rep.total)}</div><div class="muted small">${esc(rep.client.name || rep.client.company)} · ${esc(rep.period)} · ${rep.days} day${rep.days === 1 ? '' : 's'} worked</div></div>${dayBars(rep.perDay)}</div>
+      ${billingCard(R.clientId, from, to)}
       <div class="r-grid">
         <section class="card"><h3>By project</h3><table class="rtable">${barRows(rep.byProject, rep.total) || '<tr><td class="muted">No time in this period</td></tr>'}</table></section>
         <section class="card"><h3>By task</h3><table class="rtable">${barRows(rep.byTask.slice(0, 8), rep.total) || '<tr><td class="muted">No descriptions yet</td></tr>'}</table>${rep.byTask.length > 8 ? `<p class="muted small">and ${rep.byTask.length - 8} more</p>` : ''}</section>
@@ -2059,13 +2119,13 @@ function reportInvoice() {
   const inv = cur();
   inv.pStart = from; inv.pEnd = to;
   const t = timeFor(inv);
-  if (!t || !t.lines.length) { renderEditor(); toast('All the time in this period is already on an invoice, or none is billable.'); return; }
+  if (!t || !t.lines.length) { renderEditor(); toast('None of the time in this period is billable.'); return; }
   applyTime(inv, t);
   inv.timeLink = true;
   touch(inv);
   $('#edItems').dataset.key = '';
   renderEditor();
-  toast(`Invoice filled with ${TK.fmtHM(t.minutes)} for ${periodText(parseIso(from), parseIso(to))}.`);
+  toast(doubleBilling(inv, t) || `Invoice filled with ${TK.fmtHM(t.minutes)} for ${periodText(parseIso(from), parseIso(to))}, the same as the report.`);
 }
 
 /* ---------- overview: working now, ready to invoice ---------- */
