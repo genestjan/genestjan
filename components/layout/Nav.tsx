@@ -24,7 +24,7 @@ export default function Nav() {
     >
       <div className="mx-auto flex max-w-content items-center justify-between px-5 py-3 sm:px-8">
         <a href="#top" className="flex items-center gap-3">
-          <Image src="/logo-512.png" alt="" width={34} height={34} className="h-8 w-8 object-contain" />
+          <Image src="/logo-128.webp" alt="" width={34} height={34} className="h-8 w-8 object-contain" />
           <span className="font-display text-sm font-medium tracking-tight text-paper">
             Genest Jan <span className="text-signal">Ramirez</span>
           </span>

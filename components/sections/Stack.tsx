@@ -15,20 +15,20 @@ export default function Stack() {
         <p className="mt-6 max-w-prose text-body text-muted">{stack.body}</p>
       </Reveal>
 
-      <dl className="mt-14 space-y-10">
+      <div className="mt-14 space-y-10">
         {stack.groups.map((g, i) => (
           <Reveal key={g.name} delay={i * 0.04}>
             <div className="grid gap-4 border-t border-line pt-6 lg:grid-cols-[220px_1fr]">
-              <dt className="mono-label text-current">{g.name}</dt>
-              <dd>
+              <h3 className="mono-label text-current">{g.name}</h3>
+              <div>
                 <ul className="flex flex-wrap gap-2">
                   {g.tools.map((t) => <li key={t}><ToolChip>{t}</ToolChip></li>)}
                 </ul>
-              </dd>
+              </div>
             </div>
           </Reveal>
         ))}
-      </dl>
+      </div>
     </Section>
   );
 }

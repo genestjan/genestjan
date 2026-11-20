@@ -12,15 +12,19 @@ export default function CursorGlow() {
     let raf = 0;
     const target = { x: -999, y: -999 };
     const cur = { x: -999, y: -999 };
-    const onMove = (e: PointerEvent) => { target.x = e.clientX; target.y = e.clientY; };
+    // Animates only while catching up with the pointer, then sleeps.
     const loop = () => {
       cur.x += (target.x - cur.x) * 0.18;
       cur.y += (target.y - cur.y) * 0.18;
       if (ref.current) ref.current.style.transform = `translate3d(${cur.x - 200}px, ${cur.y - 200}px, 0)`;
-      raf = requestAnimationFrame(loop);
+      const settled = Math.abs(target.x - cur.x) < 0.3 && Math.abs(target.y - cur.y) < 0.3;
+      raf = settled ? 0 : requestAnimationFrame(loop);
+    };
+    const onMove = (e: PointerEvent) => {
+      target.x = e.clientX; target.y = e.clientY;
+      if (!raf) raf = requestAnimationFrame(loop);
     };
     window.addEventListener('pointermove', onMove, { passive: true });
-    raf = requestAnimationFrame(loop);
     return () => { window.removeEventListener('pointermove', onMove); cancelAnimationFrame(raf); };
   }, [reduced]);
 

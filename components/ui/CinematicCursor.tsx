@@ -21,13 +21,16 @@ export default function CinematicCursor() {
     const r = { ...t };
     let raf = 0;
 
+    let last = '';
     const move = (e: PointerEvent) => {
       t.x = e.clientX; t.y = e.clientY;
+      if (!raf) raf = requestAnimationFrame(loop);
       const el = e.target as HTMLElement | null;
       const state =
         document.body.dataset.cursor ??
         (el?.closest('a,button') ? 'view' : '');
-      setLabel(state === 'zoom' ? 'ZOOM' : state === 'drag' ? 'DRAG' : state === 'view' ? 'VIEW' : '');
+      const next = state === 'zoom' ? 'ZOOM' : state === 'drag' ? 'DRAG' : state === 'view' ? 'VIEW' : '';
+      if (next !== last) { last = next; setLabel(next); }
     };
 
     const loop = () => {
@@ -35,7 +38,9 @@ export default function CinematicCursor() {
       r.x += (t.x - r.x) * 0.14; r.y += (t.y - r.y) * 0.14;
       if (dot.current) dot.current.style.transform = `translate3d(${d.x - 3}px,${d.y - 3}px,0)`;
       if (ring.current) ring.current.style.transform = `translate3d(${r.x - 22}px,${r.y - 22}px,0)`;
-      raf = requestAnimationFrame(loop);
+      // Sleep once the trailing ring has caught up; the next move wakes it.
+      const settled = Math.abs(t.x - r.x) < 0.3 && Math.abs(t.y - r.y) < 0.3;
+      raf = settled ? 0 : requestAnimationFrame(loop);
     };
 
     window.addEventListener('pointermove', move, { passive: true });

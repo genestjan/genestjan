@@ -27,7 +27,7 @@ export default function About() {
               />
             </div>
             <div className="absolute -bottom-6 -right-4 flex h-24 w-24 items-center justify-center rounded-full border border-line bg-ink p-5 sm:-right-6">
-              <img src="/logo-512.png" alt="" width={64} height={64} loading="lazy" className="w-full object-contain" />
+              <img src="/logo-128.webp" alt="" width={64} height={64} loading="lazy" className="w-full object-contain" />
             </div>
           </div>
         </Reveal>

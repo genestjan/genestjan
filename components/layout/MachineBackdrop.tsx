@@ -25,13 +25,17 @@ export default function MachineBackdrop() {
 
   useEffect(() => {
     if (reduced) return;
+    // Runs only while the film is still easing towards the scroll position,
+    // then sleeps until the next scroll instead of redrawing every frame.
     let raf = 0;
-    let cur = 0;
+    let cur = -1;
     const loop = () => {
       // Progress across the first viewport only: the film is a hero element,
       // so it finishes its move by the time the hero leaves the screen.
       const target = Math.min(scrollY / Math.max(innerHeight, 1), 1);
-      cur += (target - cur) * 0.08;
+      cur = cur < 0 ? target : cur + (target - cur) * 0.08;
+      const settled = Math.abs(target - cur) < 0.0005;
+      if (settled) cur = target;
       if (plate.current) {
         plate.current.style.transform =
           `translate3d(0, ${(-cur * 90).toFixed(1)}px, 0) scale(${(1.06 - cur * 0.04).toFixed(4)})`;
@@ -40,10 +44,17 @@ export default function MachineBackdrop() {
         // opacity composites; brightness() would repaint the whole frame
         veil.current.style.opacity = (0.22 + cur * 0.68).toFixed(3);
       }
-      raf = requestAnimationFrame(loop);
+      raf = settled ? 0 : requestAnimationFrame(loop);
     };
+    const wake = () => { if (!raf) raf = requestAnimationFrame(loop); };
+    window.addEventListener('scroll', wake, { passive: true });
+    window.addEventListener('resize', wake, { passive: true });
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      window.removeEventListener('scroll', wake);
+      window.removeEventListener('resize', wake);
+      cancelAnimationFrame(raf);
+    };
   }, [reduced]);
 
   return (

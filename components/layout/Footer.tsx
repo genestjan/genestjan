@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="mx-auto max-w-content px-5 sm:px-8">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-4">
-            <Image src="/logo-512.png" alt="" width={44} height={44} className="h-10 w-10 object-contain" />
+            <Image src="/logo-128.webp" alt="" width={44} height={44} className="h-10 w-10 object-contain" />
             <div>
               <p className="font-display text-sm text-paper">{site.name}</p>
               <p className="mono-label mt-1 text-muted">{site.location}</p>
