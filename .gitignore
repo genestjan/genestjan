@@ -6,3 +6,17 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 __pycache__/
 /apk/
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+# Ruflo memory and run data: never committed (this repo is public)
+.swarm/
+.claude-flow/metrics/
+.claude-flow/learning/
+.claude-flow/security/
+.claude/settings.json.bak-*

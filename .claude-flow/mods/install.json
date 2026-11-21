@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "installedAt": "2026-11-21T07:45:17.010Z",
+  "files": {
+    "/home/user/genestjan/.claude/settings.json": {
+      "plugins": [
+        "ruflo-mods@ruflo",
+        "ruflo-swarm@ruflo",
+        "ruflo-console@ruflo",
+        "ruflo-protector@ruflo"
+      ],
+      "marketplace": true,
+      "env": true,
+      "claudeInstalled": [
+        "ruflo-mods@ruflo",
+        "ruflo-swarm@ruflo",
+        "ruflo-console@ruflo",
+        "ruflo-protector@ruflo"
+      ]
+    }
+  }
+}

@@ -24,3 +24,13 @@ assumed.
 
 All copy lives in `lib/content.ts`. First person, British English, no em
 dashes.
+
+## Ruflo
+
+Ruflo (formerly Claude Flow, MIT, pinned to 3.80.0) is installed: agents,
+skills and commands in `.claude/`, its hooks in `.claude/settings.json`, its
+MCP server in `.mcp.json`. Use its swarms and multi-agent runs only when the
+owner asks, since they use up the Claude usage limit quickly. Its memory
+(`.swarm/`) and run data stay out of git because this repo is public: never
+commit them, and never store client details, partner names or passwords in
+its memory.
