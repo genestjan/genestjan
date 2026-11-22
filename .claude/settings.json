@@ -5,7 +5,11 @@
     "testing-react-native-apps@callstack-agent-skills": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
     "frontend-design@anthropic-plugin-directory": true,
-    "modern-web-guidance@googlechrome": true
+    "modern-web-guidance@googlechrome": true,
+    "ruflo-core@ruflo": true,
+    "ruflo-console@ruflo": true,
+    "ruflo-mods@ruflo": true,
+    "ruflo-swarm@ruflo": true
   },
   "extraKnownMarketplaces": {
     "expo-plugins": {
@@ -30,6 +34,12 @@
       "source": {
         "source": "github",
         "repo": "GoogleChrome/modern-web-guidance"
+      }
+    },
+    "ruflo": {
+      "source": {
+        "source": "github",
+        "repo": "ruvnet/ruflo"
       }
     }
   }
