@@ -6,3 +6,8 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 __pycache__/
 /apk/
+
+# Secrets: never commit real env files (examples are fine)
+.env
+.env.*
+!.env.example
