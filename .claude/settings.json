@@ -9,7 +9,8 @@
     "ruflo-core@ruflo": true,
     "ruflo-console@ruflo": true,
     "ruflo-mods@ruflo": true,
-    "ruflo-swarm@ruflo": true
+    "ruflo-swarm@ruflo": true,
+    "safe-anything@safe-anything": true
   },
   "extraKnownMarketplaces": {
     "expo-plugins": {
@@ -40,6 +41,12 @@
       "source": {
         "source": "github",
         "repo": "ruvnet/ruflo"
+      }
+    },
+    "safe-anything": {
+      "source": {
+        "source": "github",
+        "repo": "erkamyaman/safe-anything"
       }
     }
   }
