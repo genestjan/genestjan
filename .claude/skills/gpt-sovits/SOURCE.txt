@@ -1,0 +1,1 @@
+Source: https://github.com/RVC-Boss/GPT-SoVITS (MIT). The program itself (several GB) is installed on each computer, not stored in this repo.
