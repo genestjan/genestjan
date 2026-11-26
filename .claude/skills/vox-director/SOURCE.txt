@@ -1,0 +1,1 @@
+Source: https://github.com/Alisa0808/vox-director (MIT). Showcase videos left out to keep the repo small.
