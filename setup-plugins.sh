@@ -149,6 +149,11 @@ else
   echo "  SKIPPED 21st: set TWENTYFIRST_API_KEY and re-run to register it."
 fi
 
+say "GitHub Spec Kit (specify CLI)"
+if have uv; then uv tool install specify-cli || uv tool upgrade specify-cli || true
+else echo "  SKIPPED spec-kit: install uv first (https://astral.sh/uv)"; fi
+# Add it to any project with:  specify init --here --integration claude   (or --integration cline)
+
 say "done — verifying"
 claude mcp list
 claude plugin list
