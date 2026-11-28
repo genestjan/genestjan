@@ -335,17 +335,33 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
 
 // ---------- Overlays ----------
 
-function useEsc(onClose: () => void) {
+// Only the top-most open overlay closes on Escape.
+const escStack: (() => void)[] = [];
+if (typeof window !== 'undefined') {
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && escStack.length) {
+      e.stopImmediatePropagation();
+      escStack[escStack.length - 1]();
+    }
+  });
+}
+function useEsc(onClose: () => void, active = true) {
+  const ref = useRef(onClose);
+  ref.current = onClose;
   useEffect(() => {
-    const h = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onClose]);
+    if (!active) return;
+    const fn = () => ref.current();
+    escStack.push(fn);
+    return () => {
+      const i = escStack.lastIndexOf(fn);
+      if (i >= 0) escStack.splice(i, 1);
+    };
+  }, [active]);
 }
 
 /** Centered dialog on desktop, bottom sheet on phones. */
 export function Modal({ open, onClose, title, children, footer, wide }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode; footer?: ReactNode; wide?: boolean }) {
-  useEsc(onClose);
+  useEsc(onClose, open);
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center md:p-6">
@@ -368,7 +384,7 @@ export function Modal({ open, onClose, title, children, footer, wide }: { open: 
 
 /** Right-side drawer on desktop, full sheet on phones. */
 export function Drawer({ open, onClose, title, children, footer, sub }: { open: boolean; onClose: () => void; title: ReactNode; sub?: ReactNode; children: ReactNode; footer?: ReactNode }) {
-  useEsc(onClose);
+  useEsc(onClose, open);
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end">

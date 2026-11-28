@@ -115,6 +115,16 @@ export default function Screen() {
     setParams(next, { replace: true });
   }, [params, products.length, byProduct, addProduct, setParams]);
 
+  // ?customer=<id> from the Customers screen
+  useEffect(() => {
+    const id = params.get('customer');
+    if (!id) return;
+    setCustomerId(id);
+    const next = new URLSearchParams(params);
+    next.delete('customer');
+    setParams(next, { replace: true });
+  }, [params, setParams]);
+
   useEffect(() => focusSearch(), [focusSearch]);
 
   const onScan = () => {
