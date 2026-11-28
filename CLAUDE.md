@@ -24,3 +24,10 @@ assumed.
 
 All copy lives in `lib/content.ts`. First person, British English, no em
 dashes.
+
+## Advisor
+
+Consult the advisor (Opus 5.5):
+- before starting a large plan,
+- when the same error happens a second time,
+- before calling a long task done.
