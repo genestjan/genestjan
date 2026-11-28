@@ -3,7 +3,7 @@ import { AlertTriangle, Cloud, CloudOff, Download, FileUp, Lock, Pencil, Plus, R
 import { Badge, Button, Card, Empty, Field, Input, Modal, MoneyInput, PageHeader, Section, Segmented, Select, Table, Textarea, Toggle, run, toast, cx } from '@/ui/kit';
 import { db } from '@/data/db';
 import { useLiveQuery, useProducts, useServices, useSettings, useStaff } from '@/data/hooks';
-import { countUnsynced, exportBackup, importProducts, resetDemoData, restoreBackup, saveService, saveSettings, saveStaff, validateBackup, type Backup } from '@/data/settingsActions';
+import { countUnsynced, exportBackup, importProducts, resetDemoData, startFresh, restoreBackup, saveService, saveSettings, saveStaff, validateBackup, type Backup } from '@/data/settingsActions';
 import { useSession } from '@/app/session';
 import { getDevicePrefix, money, setDevicePrefix } from '@/domain/util';
 import type { Role, Service, Settings, Staff } from '@/domain/types';
@@ -396,6 +396,7 @@ function BackupCard() {
   const file = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<Backup | null>(null);
   const [reset, setReset] = useState<0 | 1 | 2>(0);
+  const [fresh, setFresh] = useState(false);
 
   const readBackup = async (f: File | undefined) => {
     if (!f) return;
@@ -427,6 +428,11 @@ function BackupCard() {
           <Button icon={<Upload className="h-4 w-4" />} onClick={() => file.current?.click()}>Choose backup file</Button>
         </div>
         <div className="border-t border-line pt-5">
+          <h3 className="text-sm font-semibold">Start fresh for the real shop</h3>
+          <p className="mb-2 mt-0.5 text-sm text-muted">Erases the sample products, suppliers, customers, sales and jobs. Keeps your shop details, labour price list and owner login. Do this once, then import your real products.</p>
+          <Button variant="danger" icon={<RotateCcw className="h-4 w-4" />} onClick={() => setFresh(true)}>Start fresh</Button>
+        </div>
+        <div className="border-t border-line pt-5">
           <h3 className="text-sm font-semibold">Reset demo data</h3>
           <p className="mb-2 mt-0.5 text-sm text-muted">Erases everything and loads the starter products again. Only for testing.</p>
           <Button variant="danger" icon={<RotateCcw className="h-4 w-4" />} onClick={() => setReset(1)}>Reset demo data</Button>
@@ -451,6 +457,19 @@ function BackupCard() {
         )}
       </Modal>
 
+      <Modal
+        open={fresh}
+        onClose={() => setFresh(false)}
+        title="Start fresh?"
+        footer={
+          <>
+            <Button className="flex-1" onClick={() => setFresh(false)}>Cancel</Button>
+            <Button variant="danger" className="flex-1" onClick={() => run(async () => { await startFresh(); setFresh(false); }, 'Ready for your real products')}>Yes, start fresh</Button>
+          </>
+        }
+      >
+        <p className="text-sm text-muted">All sample products, stock, suppliers, customers, sales and repair jobs on this device will be erased. Shop details, the labour price list and owner logins stay.</p>
+      </Modal>
       <Modal
         open={reset === 1}
         onClose={() => setReset(0)}

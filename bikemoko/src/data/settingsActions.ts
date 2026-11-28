@@ -178,5 +178,20 @@ export async function resetDemoData() {
   await seedIfEmpty();
 }
 
+/**
+ * Go live: erase the sample products, stock, suppliers, customers, sales and jobs,
+ * but keep shop settings, the labour price list and the owner login.
+ */
+export async function startFresh() {
+  await db.transaction('rw', TABLES.map(tableOf), async () => {
+    const owners = (await db.staff.toArray()).filter((x) => x.role === 'owner');
+    for (const t of TABLES) {
+      if (t === 'settings' || t === 'services') continue;
+      await tableOf(t).clear();
+    }
+    await db.staff.bulkPut(owners);
+  });
+}
+
 /** Number of changes not yet pushed to the cloud. */
 export const countUnsynced = () => db.outbox.filter((r) => r.syncedAt === null).count();

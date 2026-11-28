@@ -127,3 +127,19 @@ describe('backup, restore, reset', () => {
     expect(await db.staff.count()).toBe(5);
   });
 });
+
+describe('startFresh', () => {
+  it('erases sample data but keeps settings, services and owners', async () => {
+    const { startFresh } = await import('./settingsActions');
+    const { db } = await import('./db');
+    await startFresh();
+    expect(await db.products.count()).toBe(0);
+    expect(await db.customers.count()).toBe(0);
+    expect(await db.suppliers.count()).toBe(0);
+    expect(await db.services.count()).toBeGreaterThan(0);
+    expect(await db.settings.get('shop')).toBeTruthy();
+    const staff = await db.staff.toArray();
+    expect(staff.length).toBeGreaterThan(0);
+    expect(staff.every((s) => s.role === 'owner')).toBe(true);
+  });
+});
