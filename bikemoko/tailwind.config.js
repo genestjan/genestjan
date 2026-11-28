@@ -22,6 +22,7 @@ export default {
       fontFamily: {
         sans: ['"Inter Variable"', 'system-ui', 'sans-serif'],
         display: ['"Space Grotesk Variable"', '"Inter Variable"', 'sans-serif'],
+        brand: ['Oswald', '"Arial Narrow"', 'sans-serif'],
       },
       borderRadius: { xl: '14px', '2xl': '18px', '3xl': '24px' },
       boxShadow: {

@@ -1,6 +1,6 @@
 // Customer messages: pick a trigger, edit the text, open SMS / Viber / Messenger, then log it.
 import { useEffect, useMemo, useState } from 'react';
-import { Send } from 'lucide-react';
+import { Copy, Send } from 'lucide-react';
 import { db } from '@/data/db';
 import { logNotification } from '@/data/actions';
 import { useLiveQuery, useSettings } from '@/data/hooks';
@@ -15,6 +15,10 @@ const CHANNELS: { value: Channel; label: string }[] = [
   { value: 'viber', label: 'Viber' },
   { value: 'messenger', label: 'Messenger' },
 ];
+
+const isDesktop = () =>
+  typeof navigator !== 'undefined' &&
+  (/Electron/i.test(navigator.userAgent) || (!/Android|iPhone|iPad/i.test(navigator.userAgent) && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: fine)').matches));
 
 export interface NotifyPanelProps {
   workOrderId: string | null;
@@ -40,6 +44,7 @@ export function NotifyPanel({ workOrderId, customerId, trigger: first, estimate,
   const [channel, setChannel] = useState<Channel | null>(null);
   const [edited, setEdited] = useState<string | null>(null);
   const ch: Channel = channel ?? customer?.channel ?? 'sms';
+  const desktop = useMemo(isDesktop, []);
 
   useEffect(() => {
     if (first) {
@@ -65,9 +70,21 @@ export function NotifyPanel({ workOrderId, customerId, trigger: first, estimate,
 
   const rows = history.filter((h) => h.workOrderId === workOrderId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-  const send = async () => {
+  const send = async (copyOnly: boolean) => {
     if (!customer) throw new Error('Customer not found');
     if (!body.trim()) throw new Error('Write a message first');
+    if (copyOnly) {
+      try {
+        await navigator.clipboard.writeText(body);
+        toast.info('Copied. Paste it in Messenger or your phone.');
+      } catch {
+        throw new Error('Could not copy automatically. Copy the text by hand.');
+      }
+      await logNotification(customer.id, workOrderId, ch, trigger, body);
+      setEdited(null);
+      onSent?.();
+      return;
+    }
     if (ch === 'sms' && !customer.phone) throw new Error('This customer has no phone number');
     if (ch === 'viber' && !customer.phone) throw new Error('This customer has no phone number');
     if (ch === 'messenger') {
@@ -108,9 +125,16 @@ export function NotifyPanel({ workOrderId, customerId, trigger: first, estimate,
       <Textarea aria-label="Message" value={body} onChange={(e) => setEdited(e.target.value)} className="min-h-[120px]" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Segmented value={ch} onChange={setChannel} options={CHANNELS} />
-        <Button variant="primary" icon={<Send className="h-4 w-4" />} disabled={!customer} onClick={() => run(send, 'Message logged')}>
-          {ch === 'messenger' ? 'Copy and open Messenger' : `Open ${ch === 'sms' ? 'SMS' : 'Viber'}`}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {desktop && (
+            <Button variant="primary" icon={<Copy className="h-4 w-4" />} disabled={!customer} onClick={() => run(() => send(true), 'Message logged')}>
+              Copy message
+            </Button>
+          )}
+          <Button variant={desktop ? 'secondary' : 'primary'} icon={<Send className="h-4 w-4" />} disabled={!customer} onClick={() => run(() => send(false), 'Message logged')}>
+            {ch === 'messenger' ? 'Copy and open Messenger' : `Open ${ch === 'sms' ? 'SMS' : 'Viber'}`}
+          </Button>
+        </div>
       </div>
       <p className="text-xs text-faint">Your phone opens with the message ready. Press send there. We log it here once you tap the button.</p>
       <div>

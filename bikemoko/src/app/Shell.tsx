@@ -231,7 +231,7 @@ export function Shell({ children }: { children: ReactNode }) {
               </NavLink>
             ) : (
               <div key={'scan' + i} className="flex justify-center">
-                <button onClick={() => nav('/scan')} className="-mt-6 mb-1.5 grid h-16 w-16 place-items-center rounded-[22px] bg-brand text-white shadow-glow transition active:scale-95" aria-label="Scan">
+                <button onClick={() => nav('/scan')} className="-mt-6 mb-1.5 grid h-16 w-16 place-items-center rounded-[22px] bg-brand text-brand-ink shadow-glow transition active:scale-95" aria-label="Scan">
                   <SCAN_ICON className="h-7 w-7" />
                 </button>
               </div>

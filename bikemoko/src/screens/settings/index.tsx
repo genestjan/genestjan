@@ -5,12 +5,13 @@ import { db } from '@/data/db';
 import { useLiveQuery, useProducts, useServices, useSettings, useStaff } from '@/data/hooks';
 import { countUnsynced, exportBackup, importProducts, resetDemoData, restoreBackup, saveService, saveSettings, saveStaff, validateBackup, type Backup } from '@/data/settingsActions';
 import { useSession } from '@/app/session';
-import { money } from '@/domain/util';
+import { getDevicePrefix, money, setDevicePrefix } from '@/domain/util';
 import type { Role, Service, Settings, Staff } from '@/domain/types';
 import { IMPORT_TEMPLATE, parseProductCsv, type ParsedImport } from './csv';
 import { downloadText } from './files';
+import { CloudTab } from './cloud';
 
-type Tab = 'shop' | 'staff' | 'services' | 'data' | 'about';
+type Tab = 'shop' | 'staff' | 'services' | 'cloud' | 'data' | 'about';
 
 export default function SettingsScreen() {
   const { role } = useSession();
@@ -27,6 +28,7 @@ export default function SettingsScreen() {
             { value: 'shop', label: 'Shop' },
             { value: 'staff', label: 'Staff' },
             { value: 'services', label: 'Services' },
+            { value: 'cloud', label: 'Cloud' },
             { value: 'data', label: 'Data' },
             { value: 'about', label: 'About' },
           ]}
@@ -35,6 +37,7 @@ export default function SettingsScreen() {
       {tab === 'shop' && <ShopTab />}
       {tab === 'staff' && <StaffTab />}
       {tab === 'services' && <ServicesTab />}
+      {tab === 'cloud' && <CloudTab />}
       {tab === 'data' && <DataTab />}
       {tab === 'about' && <AboutTab />}
     </div>
@@ -49,6 +52,7 @@ const hourText = (h: number) => `${h % 12 === 0 ? 12 : h % 12}:00 ${h < 12 ? 'am
 function ShopTab() {
   const saved = useSettings();
   const [f, setF] = useState<Omit<Settings, 'id'> | null>(null);
+  const [device, setDevice] = useState(getDevicePrefix);
   useEffect(() => {
     if (saved && !f) {
       const { id: _id, ...rest } = saved;
@@ -80,7 +84,10 @@ function ShopTab() {
           <Select value={f.closeHour} onChange={(e) => set('closeHour', Number(e.target.value))}>{HOURS.map((h) => <option key={h} value={h}>{hourText(h)}</option>)}</Select>
         </Field>
       </div>
-      <Button variant="primary" onClick={() => run(() => saveSettings(f), 'Shop details saved')}>Save shop details</Button>
+      <Field label="Device code (e.g. PC1, PH2)" hint="Each device should have a different code so receipt numbers never clash. Saved on this device only.">
+        <Input value={device} maxLength={6} onChange={(e) => setDevice(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} />
+      </Field>
+      <Button variant="primary" onClick={() => run(async () => { setDevicePrefix(device); await saveSettings(f); }, 'Shop details saved')}>Save shop details</Button>
     </Card>
   );
 }

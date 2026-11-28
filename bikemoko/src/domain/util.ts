@@ -27,8 +27,30 @@ export const minsLabel = (m: number) => {
   return r ? `${h}h ${r}m` : `${h}h`;
 };
 
-/** Sequential human numbers like R-000123 */
-export const docNo = (prefix: string, n: number) => `${prefix}-${String(n).padStart(6, '0')}`;
+export const DEVICE_KEY = 'bm.device';
+
+/** Short code for this device (e.g. PC1), kept in localStorage so it is not shared by cloud settings. */
+export function getDevicePrefix(): string {
+  try {
+    return (localStorage.getItem(DEVICE_KEY) ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  } catch {
+    return '';
+  }
+}
+
+export function setDevicePrefix(code: string): void {
+  try {
+    const v = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (v) localStorage.setItem(DEVICE_KEY, v);
+    else localStorage.removeItem(DEVICE_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+/** Sequential human numbers like R-000123, or R-PC1-000123 when this device has a code. */
+export const docNo = (prefix: string, n: number, device: string = getDevicePrefix()) =>
+  `${prefix}-${device ? `${device}-` : ''}${String(n).padStart(6, '0')}`;
 
 export const daysBetween = (a: string | Date, b: string | Date) =>
   Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 86_400_000);

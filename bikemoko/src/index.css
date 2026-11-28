@@ -1,10 +1,12 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/space-grotesk';
+@import '@fontsource/oswald/600.css';
+@import '@fontsource/oswald/700.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Brand tokens. Change the brand colour here (and in src/brand/brand.ts) to match the official logo. */
+/* Brand tokens. Bikemoko orange #F7931E (dark); slightly deeper in light mode so white text stays readable. */
 :root,
 [data-theme='light'] {
   --bg: 244 243 240;
@@ -14,9 +16,9 @@
   --ink: 22 22 24;
   --muted: 98 98 106;
   --faint: 150 150 158;
-  --brand: 255 90 31;
-  --brand-ink: 255 255 255;
-  --brand-soft: 255 237 228;
+  --brand: 224 120 0;
+  --brand-ink: 20 16 10;
+  --brand-soft: 255 240 222;
   --ok: 22 163 74;
   --warn: 217 119 6;
   --bad: 220 38 38;
@@ -31,9 +33,9 @@
   --ink: 242 242 240;
   --muted: 160 161 170;
   --faint: 108 110 120;
-  --brand: 255 106 51;
-  --brand-ink: 255 255 255;
-  --brand-soft: 58 30 18;
+  --brand: 247 147 30;
+  --brand-ink: 20 16 10;
+  --brand-soft: 56 36 12;
   --ok: 52 211 153;
   --warn: 251 191 36;
   --bad: 248 113 113;

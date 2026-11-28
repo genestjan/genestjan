@@ -6,6 +6,8 @@ import type { Customer, Sale, Settings } from '@/domain/types';
 
 export type ReceiptSize = '58' | '80' | 'a4';
 
+const NOT_OFFICIAL = 'This is not an official receipt / BIR invoice.';
+
 const WIDTH: Record<ReceiptSize, string> = { '58': '58mm', '80': '80mm', a4: '210mm' };
 
 const fmtDate = (iso: string) =>
@@ -72,6 +74,7 @@ export function Receipt({ sale, settings, customer, staffName, size, portal }: P
       <div className="mt-3 border-t border-dashed border-black pt-2 text-center">
         {settings && settings.warrantyDays > 0 && <div>Warranty: {settings.warrantyDays} days on parts and labour</div>}
         {settings?.receiptFooter && <div className="mt-1">{settings.receiptFooter}</div>}
+        <div className={cx('mt-1 opacity-80', a4 ? 'text-[11px]' : 'text-[9px]')}>{NOT_OFFICIAL}</div>
       </div>
     </div>
   );

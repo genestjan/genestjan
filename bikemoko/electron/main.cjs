@@ -2,7 +2,7 @@
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('node:path');
 
-const isWeb = (url) => /^(https?:|mailto:|tel:)/i.test(url);
+const isExternal = (url) => /^(https?:|mailto:|tel:|sms:|smsto:|viber:)/i.test(url);
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -25,17 +25,21 @@ function createWindow() {
   win.once('ready-to-show', () => win.show());
   win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
 
-  // Links to the outside world open in the normal browser, never inside the app window.
+  // Blank pop-ups (window.open('') used for printing labels, POs, pick-lists, quotes) open as normal
+  // child windows. http(s) links go to the normal browser. Anything else is refused.
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (isWeb(url)) shell.openExternal(url);
+    if (!url || url === 'about:blank') return { action: 'allow' };
+    if (isExternal(url)) shell.openExternal(url);
     return { action: 'deny' };
   });
-  win.webContents.on('will-navigate', (event, url) => {
-    if (!url.startsWith('file://')) {
-      event.preventDefault();
-      if (isWeb(url)) shell.openExternal(url);
-    }
-  });
+  // Never navigate the app window away from the local app: sms:, viber:, mailto:, http(s) open outside.
+  const guardNav = (event, url) => {
+    if (url.startsWith('file:')) return;
+    event.preventDefault();
+    if (isExternal(url)) shell.openExternal(url);
+  };
+  win.webContents.on('will-navigate', guardNav);
+  win.webContents.on('will-frame-navigate', guardNav);
 
   // Printing: receipts and job tickets use window.print(); Ctrl+P also opens the print dialog.
   win.webContents.on('before-input-event', (event, input) => {

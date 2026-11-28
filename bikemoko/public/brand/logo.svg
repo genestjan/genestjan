@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <circle cx="250" cy="250" r="240" fill="#000"/>
+  <path fill="#fff" fill-rule="evenodd" d="M228.0,88.9 L231.2,66.2 L268.8,66.2 L272.0,88.9 L323.6,110.3 L341.9,96.5 L368.5,123.1 L354.7,141.4 L376.1,193.0 L398.8,196.2 L398.8,233.8 L376.1,237.0 L354.7,288.6 L368.5,306.9 L341.9,333.5 L323.6,319.7 L272.0,341.1 L268.8,363.8 L231.2,363.8 L228.0,341.1 L176.4,319.7 L158.1,333.5 L131.5,306.9 L145.3,288.6 L123.9,237.0 L101.2,233.8 L101.2,196.2 L123.9,193.0 L145.3,141.4 L131.5,123.1 L158.1,96.5 L176.4,110.3 Z M342,215 A92,92 0 1,0 158,215 A92,92 0 1,0 342,215 Z"/>
+  <g transform="translate(250 215)" fill="#fff">
+  <g transform="rotate(-45)">
+    <rect x="-6" y="-58" width="12" height="62" rx="3"/>
+    <rect x="-10" y="4" width="20" height="52" rx="7"/>
+  </g>
+  <g transform="rotate(45)">
+    <rect x="-6" y="-40" width="12" height="96" rx="5"/>
+    <path d="M-17,-62 a18,18 0 1,0 34,0 l-8,-6 v14 h-18 v-14 z"/>
+  </g>
+</g>
+  <rect x="90" y="282" width="320" height="100" fill="#000"/>
+  <text x="250" y="335" text-anchor="middle" font-family="Oswald, 'Arial Narrow', Impact, sans-serif" font-weight="700" font-size="62" letter-spacing="1" fill="#F7931E">BIKEMOKO</text>
+  <text x="250" y="365" text-anchor="middle" font-family="Oswald, Arial, sans-serif" font-weight="600" font-size="17" letter-spacing="1" fill="#fff">PARTS AND ACCESSORIES</text>
+</svg>

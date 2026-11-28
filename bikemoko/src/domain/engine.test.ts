@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LedgerTx, StockError, expandBundles, lowStock, replenishmentPickList, needsReorder, levelId } from './stock';
 import { compareSuppliers, pickSupplier, reliabilityFrom } from './po';
 import { jobTotals, findConflicts, canMove, bookedMins } from './jobs';
 import { settle, applyDiscount } from './payments';
 import { channelLink, phPhone, messageFor } from './notify';
-import { toCentavos } from './util';
+import { toCentavos, docNo } from './util';
 import type { Product, StockLevel, Supplier, SupplierProduct, WorkOrder, PurchaseOrder } from './types';
 
 const lvl = (productId: string, location: 'STORE' | 'WAREHOUSE', quantity: number, reorderPoint = 0, reserved = 0): StockLevel => ({
@@ -180,5 +180,17 @@ describe('notifications', () => {
     expect(m).toContain('Mark');
     expect(m).toContain('1,850.00');
     expect(m).not.toContain('—');
+  });
+});
+
+describe('docNo device prefix', () => {
+  afterEach(() => localStorage.removeItem('bm.device'));
+  it('has no device code by default', () => {
+    expect(docNo('R', 123)).toBe('R-000123');
+  });
+  it('adds the device code from localStorage', () => {
+    localStorage.setItem('bm.device', 'PC1');
+    expect(docNo('R', 123)).toBe('R-PC1-000123');
+    expect(docNo('R', 123, '')).toBe('R-000123');
   });
 });
