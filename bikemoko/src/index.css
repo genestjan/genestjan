@@ -1,0 +1,70 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/space-grotesk';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Brand tokens. Change the brand colour here (and in src/brand/brand.ts) to match the official logo. */
+:root,
+[data-theme='light'] {
+  --bg: 244 243 240;
+  --surface: 255 255 255;
+  --raised: 250 249 247;
+  --line: 228 226 221;
+  --ink: 22 22 24;
+  --muted: 98 98 106;
+  --faint: 150 150 158;
+  --brand: 255 90 31;
+  --brand-ink: 255 255 255;
+  --brand-soft: 255 237 228;
+  --ok: 22 163 74;
+  --warn: 217 119 6;
+  --bad: 220 38 38;
+  --info: 2 132 199;
+  color-scheme: light;
+}
+[data-theme='dark'] {
+  --bg: 10 11 13;
+  --surface: 19 20 23;
+  --raised: 26 27 31;
+  --line: 40 42 48;
+  --ink: 242 242 240;
+  --muted: 160 161 170;
+  --faint: 108 110 120;
+  --brand: 255 106 51;
+  --brand-ink: 255 255 255;
+  --brand-soft: 58 30 18;
+  --ok: 52 211 153;
+  --warn: 251 191 36;
+  --bad: 248 113 113;
+  --info: 56 189 248;
+  color-scheme: dark;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1, h2, h3 { @apply font-display tracking-tight; }
+  :focus-visible { @apply outline-none ring-2 ring-brand/70 ring-offset-2 ring-offset-bg; }
+  ::selection { background: rgb(var(--brand) / 0.3); }
+  * { scrollbar-width: thin; scrollbar-color: rgb(var(--line)) transparent; }
+}
+
+@layer utilities {
+  .num { font-variant-numeric: tabular-nums; }
+  .safe-b { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+  .safe-t { padding-top: max(env(safe-area-inset-top), 0px); }
+  .grain {
+    background-image: radial-gradient(1200px 600px at 100% -10%, rgb(var(--brand) / 0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgb(var(--info) / 0.06), transparent 60%);
+  }
+}
+
+@media print {
+  body { background: white; }
+  .no-print { display: none !important; }
+}
