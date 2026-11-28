@@ -54,13 +54,13 @@ export function StaffSwitcher({ open, onClose }: { open: boolean; onClose: () =>
   }, [open]);
   useEffect(() => {
     if (pick && pin.length === 4) {
+      setPin('');
       if (pin === pick.pin) {
         setStaffId(pick.id);
         toast.ok(`Welcome, ${pick.name.split(' ')[0]}`);
         onClose();
       } else {
         toast.bad('Wrong PIN');
-        setPin('');
       }
     }
   }, [pin, pick, setStaffId, onClose]);

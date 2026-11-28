@@ -145,7 +145,7 @@ export function Stat({ label, value, hint, tone, icon, onClick }: { label: strin
         {label}
         {icon && <span className={cx('grid h-8 w-8 place-items-center rounded-lg', tone ? TONE[tone] : 'bg-raised text-muted')}>{icon}</span>}
       </div>
-      <div className="num mt-2 font-display text-[26px] font-bold leading-none">{value}</div>
+      <div className="num mt-2 truncate font-display text-[clamp(19px,5.6vw,26px)] font-bold leading-none">{value}</div>
       {hint && <div className="mt-1.5 text-xs text-faint">{hint}</div>}
     </Tag>
   );

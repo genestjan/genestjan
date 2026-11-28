@@ -10,17 +10,17 @@ const P = (n: number) => Math.round(n * 100);
 type Row = [sku: string, name: string, category: string, brand: string, cost: number, price: number, store: number, wh: number, rpS: number, rpW: number, serial?: boolean];
 
 const ROWS: Row[] = [
-  ['FRM-MTB-29', 'Mountain Bike Frame 29er Alloy', 'Frames', 'Mountainpeak', 4200, 6500, 1, 3, 1, 2, true],
+  ['FRM-MTB-29', 'Mountain Bike Frame 29er Alloy', 'Frames', 'Mountainpeak', 4200, 6500, 1, 1, 1, 2, true],
   ['BK-MTB-275', 'Complete MTB 27.5 Hydraulic', 'Bikes', 'Trinx', 9800, 13500, 2, 4, 1, 2, true],
   ['BK-RB-700', 'Road Bike 700c Claris 16s', 'Bikes', 'Sava', 14500, 19900, 1, 2, 1, 1, true],
   ['GS-DEO-1X11', 'Groupset 1x11 Deore', 'Drivetrain', 'Shimano', 7800, 9850, 1, 3, 1, 2],
   ['CH-KMC-11', 'Chain 11-speed', 'Drivetrain', 'KMC', 520, 850, 6, 20, 4, 10],
-  ['CS-1150-1146', 'Cassette 11-46T', 'Drivetrain', 'Shimano', 1650, 2350, 2, 6, 2, 4],
+  ['CS-1150-1146', 'Cassette 11-46T', 'Drivetrain', 'Shimano', 1650, 2350, 2, 2, 2, 4],
   ['TR-275-2.1', 'Tyre 27.5 x 2.10', 'Tyres & Tubes', 'Kenda', 380, 650, 8, 24, 6, 12],
-  ['TR-700-25', 'Tyre 700 x 25c', 'Tyres & Tubes', 'Continental', 950, 1450, 4, 10, 4, 8],
+  ['TR-700-25', 'Tyre 700 x 25c', 'Tyres & Tubes', 'Continental', 950, 1450, 3, 4, 4, 8],
   ['TB-275-AV', 'Inner Tube 27.5 AV', 'Tyres & Tubes', 'Kenda', 95, 180, 12, 60, 10, 30],
   ['TB-700-PV', 'Inner Tube 700c Presta', 'Tyres & Tubes', 'Schwalbe', 160, 280, 10, 40, 8, 20],
-  ['BR-MT200', 'Hydraulic Brake Set MT200', 'Brakes', 'Shimano', 1450, 2200, 3, 8, 2, 4],
+  ['BR-MT200', 'Hydraulic Brake Set MT200', 'Brakes', 'Shimano', 1450, 2200, 2, 2, 2, 4],
   ['BP-RES', 'Brake Pads Resin (pair)', 'Brakes', 'Shimano', 180, 350, 10, 30, 8, 20],
   ['BC-CABLE', 'Brake Cable & Housing Kit', 'Brakes', 'Jagwire', 120, 250, 8, 25, 6, 15],
   ['BL-MIN-OIL', 'Mineral Oil Bleed Kit', 'Workshop', 'Shimano', 320, 550, 3, 10, 2, 5],
@@ -45,7 +45,17 @@ const SERVICES: [string, string, number, number, string[]][] = [
   ['Suspension Fork Service', 'Suspension', 900, 60, ['Strip fork', 'Clean stanchions', 'Replace oil', 'Check seals']],
 ];
 
-export async function seedIfEmpty() {
+let seeding: Promise<boolean> | null = null;
+
+/** Safe to call many times at once: only the first call seeds. */
+export function seedIfEmpty(): Promise<boolean> {
+  seeding ??= doSeed().finally(() => {
+    seeding = null;
+  });
+  return seeding;
+}
+
+async function doSeed() {
   if ((await db.products.count()) > 0) return false;
   const now = nowISO();
 
