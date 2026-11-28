@@ -1,0 +1,141 @@
+name: Build Bikemoko Android APK
+
+# Builds the Bikemoko Android app (Capacitor) and publishes it as the "bikemoko-android" prerelease.
+# The website build (pages.yml) copies that APK to genestjanramirez.com/bikemoko/.
+#
+# Signing: if the four BIKEMOKO_* secrets below exist the APK is signed with your keystore and called Bikemoko.apk.
+# Without them it is signed with a throwaway debug key and called Bikemoko-unsigned-test.apk (it installs, but cannot update a signed build).
+
+on:
+  push:
+    branches: [main, claude/vigilant-archimedes-hs65fw]
+    paths:
+      - 'bikemoko/**'
+      - '.github/workflows/bikemoko-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: bikemoko-android
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      VITE_SUPABASE_URL: ${{ vars.BIKEMOKO_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.BIKEMOKO_SUPABASE_ANON_KEY }}
+    defaults:
+      run:
+        working-directory: bikemoko
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: bikemoko/package-lock.json
+      # Capacitor 7 needs JDK 21
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - run: npm test
+      # "app" mode builds with relative paths so the app loads from the phone's own files
+      - run: npm run build:app
+
+      # android/ is not committed: generate it, then copy the web build into it
+      - run: npx cap add android
+      - run: npx cap sync android
+
+      - name: Prepare the Android project (camera permission, version)
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const file = 'android/app/src/main/AndroidManifest.xml';
+          let x = fs.readFileSync(file, 'utf8');
+          const before = (tag, key) => { if (!x.includes(key)) x = x.replace('<application', tag + '\n    <application'); };
+          before('<uses-permission android:name="android.permission.CAMERA" />', 'android.permission.CAMERA');
+          before('<uses-feature android:name="android.hardware.camera" android:required="false" />', 'android.hardware.camera');
+          // Lets Google Play services fetch the barcode scanner module when the app is installed
+          if (!x.includes('com.google.mlkit.vision.DEPENDENCIES')) {
+            x = x.replace(/(<application[^>]*>)/, '$1\n        <meta-data android:name="com.google.mlkit.vision.DEPENDENCIES" android:value="barcode_ui" />');
+          }
+          fs.writeFileSync(file, x);
+          NODE
+          grep -q 'android.permission.CAMERA' android/app/src/main/AndroidManifest.xml
+          # Every build gets a higher version number so Android accepts it as an update.
+          sed -i -E "s/versionCode [0-9]+/versionCode ${VERSION_CODE}/; s/versionName \"[^\"]*\"/versionName \"1.0.${VERSION_CODE}\"/" android/app/build.gradle
+          grep -E 'versionCode|versionName' android/app/build.gradle
+
+      - name: Build release APK
+        working-directory: bikemoko/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      # assembleRelease gives an unsigned APK. Align it, then sign it with the real key or, failing that, the debug key.
+      - name: Align and sign
+        env:
+          KS_B64: ${{ secrets.BIKEMOKO_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.BIKEMOKO_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.BIKEMOKO_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.BIKEMOKO_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          UNSIGNED="$(ls android/app/build/outputs/apk/release/*.apk | head -1)"
+          "$BT/zipalign" -f -p 4 "$UNSIGNED" aligned.apk
+          if [ -n "${KS_B64:-}" ] && [ -n "${KS_PASS:-}" ] && [ -n "${KEY_ALIAS:-}" ] && [ -n "${KEY_PASS:-}" ]; then
+            echo "Signing with the Bikemoko release keystore"
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/bikemoko.keystore"
+            "$BT/apksigner" sign --ks "$RUNNER_TEMP/bikemoko.keystore" --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass env:KS_PASS --key-pass env:KEY_PASS --out Bikemoko.apk aligned.apk
+            echo "APK_NAME=Bikemoko.apk" >> "$GITHUB_ENV"
+          else
+            echo "No release keystore secrets: signing with the debug key (test build)"
+            DEBUG_KS="$HOME/.android/debug.keystore"
+            if [ ! -f "$DEBUG_KS" ]; then
+              mkdir -p "$HOME/.android"
+              keytool -genkeypair -keystore "$DEBUG_KS" -storepass android -keypass android -alias androiddebugkey \
+                -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+            fi
+            "$BT/apksigner" sign --ks "$DEBUG_KS" --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android \
+              --out Bikemoko-unsigned-test.apk aligned.apk
+            echo "APK_NAME=Bikemoko-unsigned-test.apk" >> "$GITHUB_ENV"
+          fi
+          "$BT/apksigner" verify --print-certs "$(ls Bikemoko*.apk)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bikemoko-apk
+          path: bikemoko/Bikemoko*.apk
+
+      # main and the working branch publish; other branches only prove the build works.
+      - name: Publish to the bikemoko-android release
+        if: github.ref_name == 'main' || github.ref_name == 'claude/vigilant-archimedes-hs65fw'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view bikemoko-android >/dev/null 2>&1 || gh release create bikemoko-android \
+            --title "Bikemoko (latest Android build)" \
+            --notes "Latest Android APK of Bikemoko, rebuilt automatically." \
+            --prerelease --target "${{ github.sha }}"
+          gh release upload bikemoko-android "$APK_NAME" --clobber
+          # Keep exactly one APK on the release, so the website always copies the right one
+          gh release view bikemoko-android --json assets -q '.assets[].name' | grep '\.apk$' | grep -vx "$APK_NAME" | while read -r old; do
+            gh release delete-asset bikemoko-android "$old" -y
+          done || true
+
+      # Re-run the website build so the new APK is copied onto the site
+      - name: Refresh the website
+        if: github.ref_name == github.event.repository.default_branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref "${{ github.ref_name }}"

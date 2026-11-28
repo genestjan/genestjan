@@ -28,6 +28,7 @@ jobs:
             ridewise/package-lock.json
             fetch/package-lock.json
             gen-pedal-hub/package-lock.json
+            bikemoko/package-lock.json
       - run: npm ci
       - run: npm run build
       # next.config.mjs sets output:'export', so the static site lands in out/
@@ -65,6 +66,36 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release download pedalhub-latest --pattern gen-pedal-hub.apk --dir out/pedalhub
+      # Bikemoko (inventory, POS and repairs) is its own Vite app, served at /bikemoko/.
+      # Every Bikemoko step is continue-on-error, so a Bikemoko problem can never stop the main website.
+      - name: Bikemoko install
+        continue-on-error: true
+        run: npm ci
+        working-directory: bikemoko
+      - name: Bikemoko tests
+        id: bikemoko_tests
+        continue-on-error: true
+        run: npm test
+        working-directory: bikemoko
+      # Only publish Bikemoko when its tests passed.
+      - name: Bikemoko build
+        if: steps.bikemoko_tests.outcome == 'success'
+        continue-on-error: true
+        run: npm run build
+        working-directory: bikemoko
+        env:
+          VITE_SUPABASE_URL: ${{ vars.BIKEMOKO_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.BIKEMOKO_SUPABASE_ANON_KEY }}
+      - name: Add Bikemoko to the site
+        continue-on-error: true
+        run: |
+          if [ -d bikemoko/dist ]; then cp -r bikemoko/dist out/bikemoko; else echo "No Bikemoko build, skipping"; fi
+      # The Android APK is built by bikemoko-android.yml; copy the newest one next to the web app
+      - name: Add the Bikemoko Android APK
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download bikemoko-android --pattern '*.apk' --dir out/bikemoko
       # Monggols VPN home-screen app for iPhone: the shared screen from vpn/ui, served at /monggols/
       - run: cp -r vpn/ui out/monggols
       # Beki's draft website: built from beki-site/ (its words and pictures are edited at /BekiEakinsdraftwebsite/admin/)

@@ -4,6 +4,7 @@ import { SessionProvider } from './session';
 import { Shell, Splash } from './Shell';
 import { Toaster } from '@/ui/kit';
 import { seedIfEmpty } from '@/data/seed';
+import { startSync } from '@/data/sync';
 
 // Each module owns its folder in src/screens/<module>/.
 const Dashboard = lazy(() => import('@/screens/dashboard'));
@@ -25,7 +26,11 @@ const Settings = lazy(() => import('@/screens/settings'));
 export default function App() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    seedIfEmpty().finally(() => setReady(true));
+    seedIfEmpty().finally(() => {
+      setReady(true);
+      // Does nothing until the Supabase URL and key are set for the build.
+      startSync();
+    });
   }, []);
   if (!ready) return <Splash />;
   return (

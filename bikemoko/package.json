@@ -11,7 +11,8 @@
     "build:app": "tsc -b && vite build --mode app",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:build": "npm run build:app && electron-builder --win --publish never"
   },
   "dependencies": {
     "@capacitor-mlkit/barcode-scanning": "^7.5.0",
@@ -48,5 +49,37 @@
     "typescript": "^5.6.3",
     "vite": "^5.4.21",
     "vitest": "^2.1.9"
+  },
+  "author": "Bikemoko",
+  "build": {
+    "appId": "com.bikemoko.desktop",
+    "productName": "Bikemoko",
+    "artifactName": "Bikemoko-Setup.exe",
+    "directories": {
+      "output": "electron-dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "build/icon.ico",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

@@ -1,0 +1,50 @@
+name: Build Bikemoko for Windows
+
+# Builds the Bikemoko Windows installer (Electron) and publishes it as the "bikemoko-windows" release.
+# Always the same download address:
+# https://github.com/genestjan/genestjan/releases/download/bikemoko-windows/Bikemoko-Setup.exe
+
+on:
+  push:
+    branches: [main, claude/vigilant-archimedes-hs65fw]
+    paths:
+      - 'bikemoko/**'
+      - '.github/workflows/bikemoko-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bikemoko-windows
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      VITE_SUPABASE_URL: ${{ vars.BIKEMOKO_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.BIKEMOKO_SUPABASE_ANON_KEY }}
+    defaults:
+      run:
+        working-directory: bikemoko
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: bikemoko/package-lock.json
+      - run: npm ci
+      - run: npm test
+      # Builds the web app in "app" mode, then packs it into Bikemoko-Setup.exe (bikemoko/electron-dist/)
+      - run: npm run electron:build
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: bikemoko-windows
+          name: Bikemoko for Windows
+          body: Latest Windows build of Bikemoko (build ${{ github.run_number }}).
+          files: bikemoko/electron-dist/Bikemoko-Setup.exe
+          make_latest: false

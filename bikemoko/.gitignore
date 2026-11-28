@@ -4,3 +4,4 @@ android/app/build/
 electron-dist/
 *.keystore
 .env
+android/
