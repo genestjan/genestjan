@@ -995,27 +995,65 @@ begin
   return app.idem_end(p_idem, jsonb_build_object('ok', true));
 end $$;
 
--- First-time upload of a device's local catalogue and opening stock (owner only, only while the cloud has no products).
--- p_data keys: settings[], staff[], suppliers[], services[], customers[], bikes[], products[], supplierProducts[], stock[].
+-- First-time upload of a device's local catalogue and opening stock. Works only while the cloud has no staff rows at all:
+-- the signed-in user who calls it becomes the owner (their auth user is linked to the device's owner staff row).
+-- p_data keys: settings[], staff[], suppliers[], services[], customers[], bikes[], products[], supplierProducts[], stock[],
+-- and optionally ownerStaffId (which staff row is the person calling; defaults to the first active owner in staff[]).
 create or replace function public.bootstrap_import(p_idem uuid, p_data jsonb) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
-declare v_prev jsonb := app.idem_begin(p_idem, 'bootstrap_import'); r record; k record; v_n int := 0;
+declare v_prev jsonb := app.idem_begin(p_idem, 'bootstrap_import'); r record; k record; v_n int := 0; v_owner text;
 begin
   if v_prev is not null then return v_prev; end if;
-  perform app.require_role(array['owner']);
-  if exists (select 1 from public.products) then raise exception 'The cloud already has products, so nothing was imported' using errcode = 'BK004'; end if;
+  if auth.uid() is null then raise exception 'Sign in first' using errcode = '42501'; end if;
+  -- Two first-time uploads at once must not both pass the empty check.
+  perform pg_advisory_xact_lock(hashtext('bikemoko.bootstrap_import'));
+  if exists (select 1 from public.staff) or exists (select 1 from public.products) then
+    raise exception 'The cloud already has data, so nothing was imported' using errcode = 'BK004';
+  end if;
+  v_owner := coalesce(
+    (select s->>'id' from jsonb_array_elements(coalesce(p_data->'staff', '[]')) s
+      where s->>'id' = p_data->>'ownerStaffId' and s->>'role' = 'owner' and coalesce((s->>'active')::boolean, true) limit 1),
+    (select s->>'id' from jsonb_array_elements(coalesce(p_data->'staff', '[]')) s
+      where s->>'role' = 'owner' and coalesce((s->>'active')::boolean, true) limit 1));
+  if v_owner is null then raise exception 'This device has no active owner staff member to upload' using errcode = 'BK004'; end if;
   for k in select * from (values ('settings','settings'),('staff','staff'),('suppliers','suppliers'),('services','services'),('customers','customers'),
       ('bikes','customer_bikes'),('products','products'),('supplierProducts','supplier_products')) as t(key, tbl) loop
     for r in select value as j from jsonb_array_elements(coalesce(p_data->k.key, '[]')) loop
       perform app.upsert_json(k.tbl, r.j); v_n := v_n + 1;
     end loop;
   end loop;
+  update public.staff set user_id = auth.uid() where id = v_owner;
   insert into public.stock_levels (product_id, location, quantity, reserved, reorder_point, bin)
     select s->>'productId', (s->>'location')::public.location_code, coalesce((s->>'quantity')::int, 0), coalesce((s->>'reserved')::int, 0),
       coalesce((s->>'reorderPoint')::int, 0), coalesce(s->>'bin', '')
     from jsonb_array_elements(coalesce(p_data->'stock', '[]')) s
     on conflict (product_id, location) do nothing;
-  return app.idem_end(p_idem, jsonb_build_object('ok', true, 'rows', v_n));
+  return app.idem_end(p_idem, jsonb_build_object('ok', true, 'rows', v_n, 'ownerStaffId', v_owner));
+end $$;
+
+-- Staff members nobody has linked a login to yet (id, name, role only). Lets a freshly signed-in device offer a list to pick from.
+create or replace function public.unlinked_staff() returns table (id text, name text, role public.staff_role)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select s.id, s.name, s.role from public.staff s
+  where auth.uid() is not null and s.user_id is null and s.active
+    and not exists (select 1 from public.staff me where me.user_id = auth.uid())
+  order by s.name $$;
+
+-- Link the signed-in login to a staff member by choosing them and typing their PIN. Only unlinked, active staff; one login per person.
+create or replace function public.link_my_login(p_staff_id text, p_pin text) returns jsonb
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare s public.staff;
+begin
+  if auth.uid() is null then raise exception 'Sign in first' using errcode = '42501'; end if;
+  if exists (select 1 from public.staff where user_id = auth.uid()) then
+    raise exception 'This login is already linked to a staff member' using errcode = 'BK004';
+  end if;
+  select * into s from public.staff where id = p_staff_id for update;
+  if not found or not s.active then raise exception 'Staff member not found' using errcode = 'BK005'; end if;
+  if s.user_id is not null then raise exception 'That staff member already has a login linked' using errcode = 'BK004'; end if;
+  if s.pin = '' or s.pin is distinct from p_pin then raise exception 'That PIN is not right' using errcode = 'BK012'; end if;
+  update public.staff set user_id = auth.uid() where id = p_staff_id;
+  return jsonb_build_object('ok', true, 'role', s.role);
 end $$;
 
 -- ---------------------------------------------------------------- privileges

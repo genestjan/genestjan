@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTestDb, db } from './db';
-import { camelRow, isTransientError, PULL_TABLES, pushOutbox, retryFailed, startSync, syncEnabled, syncStatus, toRpc, type RpcClient } from './sync';
+import { camelRow, cloudConfigured, isTransientError, PULL_TABLES, pullAll, pushOutbox, retryFailed, startSync, syncEnabled, syncStatus, toRpc, type RpcClient } from './sync';
 
 const IDEM = '11111111-1111-4111-8111-111111111111';
 const AT = '2026-03-01T09:00:00.000Z';
@@ -102,7 +102,13 @@ describe('isTransientError', () => {
     expect(isTransientError({ message: 'x' }, 503)).toBe(true);
     expect(isTransientError({ message: 'JWT expired' }, 401)).toBe(true);
     expect(isTransientError({ message: 'Only 1 available in store', code: 'BK001' }, 400)).toBe(false);
-    expect(isTransientError({ message: 'Your role cannot do this', code: '42501' }, 403)).toBe(false);
+    expect(isTransientError({ message: 'Your role (cashier) cannot do this', code: '42501' }, 403)).toBe(false);
+    // Auth problems must never park a row
+    expect(isTransientError({ message: 'Invalid JWT' }, 401)).toBe(true);
+    expect(isTransientError({ message: 'permission denied for table stock_levels', code: '42501' }, 403)).toBe(true);
+    expect(isTransientError({ message: 'Your role (not signed in) cannot do this', code: '42501' }, 403)).toBe(true);
+    expect(isTransientError({ message: 'JWT expired', code: 'PGRST301' }, 400)).toBe(true);
+    expect(isTransientError({ message: 'Load failed' }, 0)).toBe(true);
     expect(isTransientError(null, 0)).toBe(false);
   });
 });
@@ -161,6 +167,93 @@ describe('pushOutbox', () => {
     expect((await syncStatus()).failed).toBe(2);
     expect(await retryFailed()).toBe(2);
     expect((await syncStatus()).pending).toBe(2);
+  });
+});
+
+describe('pushOutbox classification and session guard', () => {
+  beforeEach(() => {
+    useTestDb(`sync-${Math.random()}`);
+  });
+  const add = (action: string, payload: unknown) => db.outbox.add({ action, payload, createdAt: AT, syncedAt: null, error: null });
+  const reply = (status: number, message: string): RpcClient => ({
+    rpc: async () => ({ data: null, error: { message }, status }),
+  });
+
+  it.each([
+    [401, 'JWT expired'],
+    [403, 'permission denied for table stock_levels'],
+    [403, 'Your role (not signed in) cannot do this'],
+    [0, 'TypeError: Failed to fetch'],
+    [503, 'Service unavailable'],
+  ])('stops and keeps rows unsynced and unparked on %i %s', async (status, message) => {
+    await add('toggle_timer', { id: 'w1' });
+    await add('set_job_status', { id: 'w1', to: 'ready' });
+    const res = await pushOutbox(reply(status, message));
+    expect(res).toMatchObject({ pushed: 0, failed: 0, stopped: true });
+    const rows = await db.outbox.orderBy('id').toArray();
+    expect(rows.every((r) => r.syncedAt === null && !r.error)).toBe(true);
+    expect((await syncStatus()).failed).toBe(0);
+    expect((await syncStatus()).pending).toBe(2);
+  });
+
+  it('parks only a genuine business error and keeps going', async () => {
+    await add('record_sale', { sale: { id: 's1' }, movements: [] });
+    await add('toggle_timer', { id: 'w1' });
+    const client: RpcClient = {
+      rpc: async (fn) =>
+        fn === 'record_sale'
+          ? { data: null, error: { message: 'Only 0 available in store', code: 'BK001' }, status: 400 }
+          : { data: { ok: true }, error: null, status: 200 },
+    };
+    expect(await pushOutbox(client)).toMatchObject({ pushed: 1, failed: 1, stopped: false });
+  });
+
+  it('parks a role refusal (signed in, wrong role)', async () => {
+    await add('upsert_staff', { id: 'x' });
+    expect(await pushOutbox(reply(403, 'Your role (cashier) cannot do this'))).toMatchObject({ failed: 1, stopped: false });
+  });
+
+  it('sends nothing without a signed-in session', async () => {
+    await add('toggle_timer', { id: 'w1' });
+    let calls = 0;
+    const client: RpcClient = {
+      rpc: async () => {
+        calls++;
+        return { data: { ok: true }, error: null, status: 200 };
+      },
+      auth: { getSession: async () => ({ data: { session: null } }) },
+    };
+    expect(await pushOutbox(client)).toMatchObject({ pushed: 0, stopped: true, error: 'Sign in to sync' });
+    expect(calls).toBe(0);
+    expect((await syncStatus()).pending).toBe(1);
+    client.auth = { getSession: async () => ({ data: { session: { user: {} } } }) };
+    expect(await pushOutbox(client)).toMatchObject({ pushed: 1 });
+    expect(calls).toBe(1);
+  });
+
+  it('pulls nothing without a signed-in session', async () => {
+    let queried = false;
+    const client = {
+      auth: { getSession: async () => ({ data: { session: null } }) },
+      from: () => {
+        queried = true;
+        throw new Error('should not query');
+      },
+    };
+    const res = await pullAll(client as unknown as Parameters<typeof pullAll>[0]);
+    expect(res).toEqual({ rows: 0, error: 'Sign in to sync' });
+    expect(queried).toBe(false);
+  });
+});
+
+describe('cloudConfigured', () => {
+  afterEach(() => vi.unstubAllEnvs());
+  it('is false without keys and true when the URL and key are set', () => {
+    expect(cloudConfigured()).toBe(false);
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://x.supabase.co');
+    expect(cloudConfigured()).toBe(false);
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon');
+    expect(cloudConfigured()).toBe(true);
   });
 });
 

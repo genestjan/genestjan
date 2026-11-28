@@ -107,12 +107,24 @@ export function toRpc(action: string, payload: unknown, idem: string, clientAt: 
   }
 }
 
-/** Network trouble, server outage or an expired login: keep the row and try again later. Anything else is a business rejection. */
+/** The server said this signed-in person's role may not do the action (a real business refusal, unlike "not signed in"). */
+const ROLE_REFUSAL = /^your role \((?!not signed in)[^)]*\) cannot do this/i;
+
+/**
+ * Network trouble, a server outage, or a login that is missing, expired or not linked yet: keep the row, keep the order,
+ * stop and try again later. Only a genuine business error (for example a stock check raised by the RPC, or a role refusal)
+ * is final and parks the row.
+ */
 export function isTransientError(error: { message?: string; code?: string } | null, status = 0): boolean {
   if (!error) return false;
-  if (status === 0 || status === 401 || status === 408 || status === 429 || status >= 500) return true;
-  return /failed to fetch|networkerror|network request failed|load failed|fetch failed|timed? ?out|jwt expired/i.test(error.message ?? '');
+  const msg = error.message ?? '';
+  if (ROLE_REFUSAL.test(msg)) return false;
+  if (status === 0 || status === 401 || status === 403 || status === 408 || status === 429 || status >= 500) return true;
+  return /failed to fetch|networkerror|network request failed|load failed|fetch failed|timed? ?out|jwt|invalid token|not authenticated|not signed in|auth session|refresh token|invalid api key/i.test(msg);
 }
+
+/** Message shown when there is no signed-in session. */
+export const SIGN_IN_NEEDED = 'Sign in to sync';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Push
@@ -120,7 +132,18 @@ export function isTransientError(error: { message?: string; code?: string } | nu
 /** The slice of the Supabase client the push loop needs. Lets tests pass a fake. */
 export interface RpcClient {
   rpc(fn: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: { message: string; code?: string } | null; status: number }>;
+  /** When present (the real Supabase client), nothing is sent unless it reports a signed-in session. */
+  auth?: { getSession(): PromiseLike<{ data: { session: unknown } }> };
 }
+
+const hasSession = async (c: { auth?: { getSession(): PromiseLike<{ data: { session: unknown } }> } }) => {
+  if (!c.auth) return true;
+  try {
+    return !!(await c.auth.getSession()).data.session;
+  } catch {
+    return false;
+  }
+};
 
 type StampedRow = OutboxRow & { idem?: string };
 
@@ -154,6 +177,7 @@ export interface PushResult {
 /** Send unsynced rows oldest first. Stops on a transient error (order is kept); a rejected row is parked with its error and the rest continue. */
 export async function pushOutbox(client: RpcClient): Promise<PushResult> {
   const result: PushResult = { pushed: 0, failed: 0, stopped: false };
+  if (!(await hasSession(client))) return { ...result, stopped: true, error: SIGN_IN_NEEDED };
   for (const row of (await pendingRows()) as StampedRow[]) {
     const idem = await stampIdem(row);
     const call = toRpc(row.action, row.payload, idem, row.createdAt);
@@ -345,8 +369,9 @@ interface QueryClient {
   };
 }
 
-export async function pullAll(client: QueryClient): Promise<{ rows: number; error?: string; skipped?: boolean }> {
+export async function pullAll(client: QueryClient & { auth?: RpcClient['auth'] }): Promise<{ rows: number; error?: string; skipped?: boolean }> {
   let total = 0;
+  if (!(await hasSession(client))) return { rows: 0, error: SIGN_IN_NEEDED };
   for (const t of PULL_TABLES) {
     let cursor = await getCursor(t.remote);
     let newest = cursor;
@@ -396,7 +421,9 @@ export interface SyncStatus {
 }
 
 const env = import.meta.env as Record<string, string | undefined>;
-export const syncEnabled = () => !!(env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY);
+/** True when this build has the Supabase URL and key. Read lazily so tests can stub the env. */
+export const cloudConfigured = () => !!(env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY);
+export const syncEnabled = cloudConfigured;
 
 const state = { lastSyncedAt: null as string | null, connected: false, realtime: false, signedIn: false, error: null as string | null };
 
@@ -422,6 +449,18 @@ async function getClient(): Promise<Client> {
   return starting;
 }
 
+/** The signed-in cloud login (email) or null. Never throws. */
+export async function currentLogin(): Promise<{ email: string } | null> {
+  if (!syncEnabled()) return null;
+  try {
+    const s = (await (await getClient()).auth.getSession()).data.session;
+    state.signedIn = !!s;
+    return s ? { email: s.user?.email ?? '' } : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Sign this device in. RPCs need a Supabase user whose id is set as staff.user_id. */
 export async function signIn(email: string, password: string): Promise<string | null> {
   if (!syncEnabled()) return 'Cloud sync is not set up in this build';
@@ -437,19 +476,41 @@ export async function signOut(): Promise<void> {
   if (!syncEnabled()) return;
   await (await getClient()).auth.signOut();
   state.signedIn = false;
+  state.connected = false;
+  state.error = SIGN_IN_NEEDED;
 }
 
-/** One-time: send this device's catalogue and opening stock to an empty cloud (owner only). */
-export async function uploadLocalSnapshot(): Promise<string | null> {
+/** Staff nobody has linked a login to yet, for the "link this login" picker. Null when it could not be read. */
+export async function listUnlinkedStaff(): Promise<{ id: string; name: string; role: string }[] | null> {
+  if (!syncEnabled() || !(await currentLogin())) return null;
+  const { data, error } = await (await getClient()).rpc('unlinked_staff');
+  return error ? null : ((data ?? []) as { id: string; name: string; role: string }[]);
+}
+
+/** Link the signed-in login to a staff member (pick them, type their PIN). Returns an error message or null. */
+export async function linkMyLogin(staffId: string, pin: string): Promise<string | null> {
   if (!syncEnabled()) return 'Cloud sync is not set up in this build';
+  if (!(await currentLogin())) return 'Sign in first';
+  const { error } = await (await getClient()).rpc('link_my_login', { p_staff_id: staffId, p_pin: pin });
+  if (error) return error.message;
+  void kick();
+  return null;
+}
+
+/** One-time: send this device's catalogue and opening stock to an empty cloud. The signed-in user becomes the owner. */
+export async function uploadLocalSnapshot(ownerStaffId?: string): Promise<string | null> {
+  if (!syncEnabled()) return 'Cloud sync is not set up in this build';
+  if (!(await currentLogin())) return 'Sign in first';
   const c = await getClient();
   const data = {
     settings: await db.settings.toArray(), staff: await db.staff.toArray(), suppliers: await db.suppliers.toArray(),
     services: await db.services.toArray(), customers: await db.customers.toArray(), bikes: await db.bikes.toArray(),
     products: await db.products.toArray(), supplierProducts: await db.supplierProducts.toArray(), stock: await db.stock.toArray(),
   };
-  const { error } = await c.rpc('bootstrap_import', { p_idem: newId(), p_data: data });
-  return error ? error.message : null;
+  const { error } = await c.rpc('bootstrap_import', { p_idem: newId(), p_data: { ...data, ownerStaffId } });
+  if (error) return error.message;
+  void kick();
+  return null;
 }
 
 let running = false;
@@ -470,7 +531,7 @@ async function kick(): Promise<void> {
     const session = (await c.auth.getSession()).data.session;
     state.signedIn = !!session;
     if (!session) {
-      state.error = 'Sign in to sync';
+      state.error = SIGN_IN_NEEDED;
       state.connected = false;
       schedule(true);
       return;
@@ -543,7 +604,7 @@ export function startSync(): () => void {
       .channel('bikemoko-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_levels' }, (msg: { new?: Row }) => {
         const t = PULL_TABLES.find((x) => x.remote === 'stock_levels')!;
-        if (msg.new && msg.new.product_id) void applyRows(t, [msg.new]);
+        if (state.signedIn && msg.new && msg.new.product_id) void applyRows(t, [msg.new]);
         bump();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'work_orders' }, bump)
